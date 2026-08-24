@@ -7,3 +7,4 @@
 - Chuẩn hóa tên sản phẩm thành `CareFlow - Đặt lịch khám online`.
 - Bổ sung policy dùng tiếng Việt cho tài liệu hướng dự án, giữ thuật ngữ chuyên ngành tiếng Anh khi cần.
 - Chuyển tài liệu hiện có sang tiếng Việt theo policy đã duyệt.
+- Mở rộng conceptual data model cho frontend-first MVP, bao gồm entities, relationships, enums, business rules và mock data guidance.
