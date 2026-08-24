@@ -10,3 +10,4 @@
 - Mở rộng conceptual data model cho frontend-first MVP, bao gồm entities, relationships, enums, business rules và mock data guidance.
 - Bổ sung auth/security model vào data model và thêm documentation map để đối chiếu với bộ tài liệu mẫu.
 - Bổ sung documentation standards để docs đủ chuyên nghiệp cho cả human contributors và agent contributors.
+- Viết frontend MVP spec cho giai đoạn frontend-first, bao gồm personas, screen specs, workflows, mock data, priority và acceptance criteria.

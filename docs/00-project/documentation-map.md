@@ -23,7 +23,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | Tài liệu mẫu | Mục đích | Tài liệu CareFlow hiện tại | Trạng thái |
 | --- | --- | --- | --- |
 | BRD | Mục tiêu nghiệp vụ, stakeholder, scope, business rules | `docs/00-project/vision.md`, `docs/00-project/scope.md`, `docs/01-requirements/mvp-requirements.md` | Có bản nhẹ |
-| PRD | Product requirements, persona, user stories, acceptance criteria | `docs/01-requirements/mvp-requirements.md`, `docs/01-requirements/user-stories.md`, `docs/02-product/workflows.md` | Có bản nền, cần `frontend-mvp-spec.md` |
+| PRD | Product requirements, persona, user stories, acceptance criteria | `docs/01-requirements/mvp-requirements.md`, `docs/01-requirements/user-stories.md`, `docs/02-product/workflows.md`, `docs/02-product/frontend-mvp-spec.md` | Có frontend MVP spec |
 | SRS | Software requirements chi tiết | Chưa có | Để sau khi frontend workflow rõ |
 | ARCHITECTURE | Kiến trúc tổng thể | `docs/03-architecture/frontend-architecture.md`, `docs/03-architecture/data-model.md`, `docs/03-architecture/security-notes.md` | Có bản nhẹ |
 | TECHNICAL-DESIGN | Thiết kế kỹ thuật chi tiết | Chưa có | Để sau implementation plan hoặc backend phase |
@@ -43,14 +43,14 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có conceptual data model đủ tốt hơn bản nháp ban đầu.
 - Có appointment states và workflows cơ bản.
 - Có frontend architecture direction.
+- Có frontend MVP spec với personas, routes, screen specs, workflows, MoSCoW priority và acceptance criteria.
 
 ### Còn Thiếu So Với Mẫu
 
 - Chưa có `Document Control` và `Revision History` trong từng tài liệu quan trọng.
-- Chưa có BRD/PRD/SRS chuẩn theo template riêng.
-- Chưa có persona chi tiết và stakeholder matrix.
-- Chưa có MoSCoW priority.
-- Chưa có acceptance criteria theo từng user story.
+- Chưa có BRD/SRS chuẩn theo template riêng; frontend MVP spec hiện đóng vai trò PRD gọn cho phase đầu.
+- Đã có persona chi tiết ở `docs/02-product/frontend-mvp-spec.md`, nhưng chưa có stakeholder matrix riêng.
+- Đã có MoSCoW priority và acceptance criteria cho frontend MVP, nhưng chưa có trace đầy đủ theo từng requirement/user story.
 - Chưa có traceability matrix.
 - Chưa có API response standard, error code convention và endpoint detail.
 - Chưa có sequence diagram/spec cho các flow chính.
@@ -61,9 +61,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Hoàn thiện `docs/03-architecture/data-model.md` ở mức conceptual nếu phát hiện gap mới.
-2. Viết `docs/02-product/frontend-mvp-spec.md` theo phong cách PRD gọn: persona, screen scope, workflow, acceptance criteria, priority.
-3. Viết `docs/03-architecture/frontend-design-system.md` tham khảo style của frontend sample, nhưng dùng palette phù hợp phòng khám.
-4. Viết `docs/04-planning/frontend-implementation-plan.md`.
-5. Scaffold `apps/web`.
-6. Sau khi frontend prototype ổn, viết API spec, sequence và backend design.
+1. Review `docs/02-product/frontend-mvp-spec.md` và chốt open questions.
+2. Viết `docs/03-architecture/frontend-design-system.md` tham khảo style của frontend sample, nhưng dùng palette phù hợp phòng khám.
+3. Viết `docs/04-planning/frontend-implementation-plan.md`.
+4. Scaffold `apps/web`.
+5. Sau khi frontend prototype ổn, viết API spec, sequence và backend design.
