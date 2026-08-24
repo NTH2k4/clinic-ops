@@ -241,6 +241,87 @@ Relationships:
 - Một `AuditEvent` do một `User` tạo ra thông qua hành động trên hệ thống.
 - `entityType` có thể là `appointment`, `patient`, `doctor`, `service`, `schedule`, `user`.
 
+## Auth And Security Model
+
+Phần này mô tả các entity liên quan đến authentication/session ở mức conceptual. Đây chưa phải security design cuối cùng, nhưng đủ để frontend spec và backend phase không hiểu nhầm rằng hệ thống lưu plaintext password.
+
+### User Authentication Fields
+
+Các field auth nên thuộc `User` hoặc bảng auth riêng khi thiết kế backend:
+
+- passwordHash
+- emailVerifiedAt
+- phoneVerifiedAt
+- lastLoginAt
+- passwordUpdatedAt
+- failedLoginCount
+- lockedUntil
+
+Rules:
+
+- Không lưu field `password` trong database.
+- `password` chỉ tồn tại tạm thời trong request đăng ký, đăng nhập, đổi mật khẩu hoặc reset mật khẩu.
+- Backend phải hash password trước khi lưu, ví dụ bằng Argon2id hoặc bcrypt.
+- Frontend không lưu password trong localStorage, sessionStorage, IndexedDB hoặc mock persisted state.
+- Frontend prototype có thể mock login bằng user có sẵn, nhưng phải ghi rõ đây không phải auth thật.
+
+### RefreshToken
+
+Đại diện cho refresh token hoặc session token ở backend phase.
+
+- id
+- userId
+- tokenHash
+- deviceName
+- ipAddress
+- userAgent
+- expiresAt
+- revokedAt
+- createdAt
+
+Rules:
+
+- Không lưu raw refresh token trong database; chỉ lưu `tokenHash`.
+- Refresh token nên có expiry và cơ chế revoke khi logout.
+- Backend phase nên cân nhắc token rotation khi refresh.
+
+### PasswordResetToken
+
+Token dùng cho forgot/reset password.
+
+- id
+- userId
+- tokenHash
+- expiresAt
+- usedAt
+- createdAt
+
+Rules:
+
+- Token reset password phải có thời hạn.
+- Token đã dùng không được dùng lại.
+- Database chỉ lưu `tokenHash`, không lưu raw token.
+
+### VerificationCode
+
+Mã xác thực dùng cho email/phone verification hoặc OTP flow.
+
+- id
+- userId
+- purpose
+- channel
+- codeHash
+- expiresAt
+- attemptCount
+- usedAt
+- createdAt
+
+Rules:
+
+- Không lưu plaintext OTP/code lâu dài.
+- Cần giới hạn số lần thử.
+- Cần phân biệt `purpose`, ví dụ `email_verification`, `password_reset`, `login_otp`.
+
 ## Enums
 
 ### UserRole
@@ -300,6 +381,9 @@ Relationships:
 User 1--0..1 Patient
 User 1--0..1 Staff
 User 1--0..1 Doctor
+User 1--many RefreshToken
+User 1--many PasswordResetToken
+User 1--many VerificationCode
 
 Specialty 1--many Doctor
 Specialty 1--many Service
@@ -349,11 +433,19 @@ User 1--many AuditEvent
 - AuditEvent là append-only trong backend sau này.
 - Frontend prototype có thể render audit từ `mock data`, nhưng không tự xem đó là security boundary.
 
+### Auth And Session
+
+- Register, login, logout, refresh token, forgot password và reset password là workflows riêng của auth domain.
+- Frontend chỉ hiển thị form và gửi request; backend chịu trách nhiệm hash password, issue token, revoke token và validate reset token.
+- Role-based navigation trong frontend chỉ là UX. Backend vẫn phải enforce authorization.
+- Session state trong frontend prototype nên nằm trong memory hoặc mock store, không lưu credential nhạy cảm.
+
 ## Mock Data Guidance
 
 Frontend MVP nên có bộ `mock data` tối thiểu:
 
 - 4 users đại diện cho patient, doctor, receptionist/nurse và admin.
+- 4 mock auth profiles tương ứng với các users này, không chứa plaintext password trong persisted mock data.
 - 8-12 patients với trạng thái và lịch sử appointment khác nhau.
 - 5-8 doctors thuộc 3-4 specialties.
 - 8-12 services có duration và price khác nhau.
@@ -377,6 +469,9 @@ Mock data phải thể hiện được các trạng thái UI:
 Khi chuyển sang backend phase, data model này cần được nâng cấp thành ERD/database schema. Các quyết định backend cần chốt riêng:
 
 - Tách `User`, `Patient`, `Doctor`, `Staff` thành bảng riêng hay dùng profile inheritance.
+- Tách auth fields khỏi `User` hay giữ cùng bảng.
+- Thiết kế refresh token/session storage.
+- Password hashing algorithm và policy.
 - Dùng many-to-many table cho `DoctorService`.
 - Thiết kế schedule recurrence.
 - Transaction boundary cho appointment booking và reschedule.
