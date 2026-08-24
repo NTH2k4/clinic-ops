@@ -14,7 +14,7 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 
 ## Tài Liệu
 
-- `docs/00-project/`: tầm nhìn dự án, scope, glossary, workflow làm việc và documentation map.
+- `docs/00-project/`: tầm nhìn dự án, scope, glossary, workflow làm việc, documentation standards và documentation map.
 - `docs/01-requirements/`: yêu cầu MVP, vai trò người dùng, user stories và change requests.
 - `docs/02-product/`: workflow sản phẩm, danh sách màn hình và mô hình trạng thái appointment.
 - `docs/03-architecture/`: kiến trúc frontend, API contract, data model và ghi chú security.
