@@ -1,13 +1,13 @@
 # Implementation Plan
 
-The implementation plan will be written after the MVP requirements and product workflows are reviewed.
+Implementation plan sẽ được viết sau khi MVP requirements và product workflows được review.
 
-The expected first plan is the frontend prototype plan:
+Plan đầu tiên dự kiến là frontend prototype plan:
 
 - App scaffold.
-- Routing and layout.
+- Routing và layout.
 - Mock data model.
 - Role-based dashboards.
 - Appointment workflows.
-- Calendar and queue views.
-- Tests and verification commands.
+- Calendar và queue views.
+- Tests và verification commands.

@@ -1,33 +1,33 @@
-# Glossary
+# Bảng Thuật Ngữ
 
 ## Appointment
 
-A scheduled visit between a patient and a doctor for a selected service or specialty.
+Một lịch khám đã được đặt giữa patient và doctor cho một service hoặc specialty cụ thể.
 
 ## Patient
 
-The person receiving care. In the MVP, patients can request, view, cancel, or reschedule their own appointments.
+Người nhận dịch vụ khám/chăm sóc. Trong MVP, patient có thể yêu cầu đặt lịch, xem lịch, hủy lịch hoặc yêu cầu đổi lịch của chính mình.
 
 ## Doctor
 
-A clinical staff member who handles appointments and can mark visits as completed.
+Nhân sự chuyên môn phụ trách appointment và có thể đánh dấu buổi khám là đã hoàn tất.
 
 ## Receptionist / Nurse
 
-An operations staff member who can create appointments for patients, check patients in, coordinate waiting status, and update appointment flow.
+Nhân sự vận hành có thể tạo appointment cho patient, check-in patient, điều phối trạng thái chờ và cập nhật flow của appointment.
 
 ## Admin
 
-A clinic manager who can configure doctors, services, specialties, staff accounts, schedules, and dashboard views.
+Người quản lý phòng khám, có thể cấu hình doctors, services, specialties, tài khoản staff, lịch làm việc và dashboard.
 
 ## Service
 
-A bookable clinic offering, such as general consultation, dermatology consultation, dental check, or follow-up visit.
+Dịch vụ có thể đặt lịch tại phòng khám, ví dụ khám tổng quát, khám da liễu, khám nha khoa hoặc tái khám.
 
 ## Specialty
 
-A clinical area used to group doctors and services.
+Chuyên khoa dùng để nhóm doctors và services.
 
 ## Audit Log
 
-A record of important actions such as appointment creation, cancellation, rescheduling, check-in, and completion.
+Bản ghi các hành động quan trọng như tạo appointment, hủy lịch, đổi lịch, check-in và hoàn tất buổi khám.

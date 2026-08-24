@@ -14,11 +14,11 @@
 - Vitest
 - React Testing Library
 
-## Direction
+## Định Hướng
 
-The first implementation phase is frontend-first. The app should use typed mock data and mock service functions that mirror the future API contract.
+Giai đoạn implementation đầu tiên là frontend-first. App cần dùng typed `mock data` và mock service functions phản ánh API contract sau này.
 
-## Suggested Structure
+## Cấu Trúc Đề Xuất
 
 ```text
 src/
@@ -39,10 +39,10 @@ src/
   types/
 ```
 
-## Principles
+## Nguyên Tắc
 
-- Keep feature modules independent.
-- Keep mock APIs behind service boundaries.
-- Use shared types for data models.
-- Avoid backend-specific assumptions until the API contract is approved.
-- Build dense, operational UI rather than marketing-style pages.
+- Giữ các feature modules độc lập.
+- Đặt mock APIs sau service boundaries.
+- Dùng shared types cho data models.
+- Tránh assumptions phụ thuộc backend cho đến khi API contract được duyệt.
+- Xây UI dạng operational, dense và dễ scan thay vì marketing-style pages.

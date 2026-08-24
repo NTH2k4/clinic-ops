@@ -2,21 +2,21 @@
 
 ## Frontend MVP
 
-- Patient can request an appointment.
-- Patient can view appointment history.
-- Receptionist can create an appointment for a patient.
-- Receptionist can check in a patient.
-- Doctor can view today's schedule.
-- Doctor can start and complete an appointment.
-- Admin can view doctors, services, and specialties.
-- Dashboard reflects appointment status counts.
-- Audit log shows appointment changes.
-- UI works on desktop and mobile.
+- Patient có thể yêu cầu đặt appointment.
+- Patient có thể xem appointment history.
+- Receptionist có thể tạo appointment cho patient.
+- Receptionist có thể check-in patient.
+- Doctor có thể xem schedule hôm nay.
+- Doctor có thể start và complete appointment.
+- Admin có thể xem doctors, services và specialties.
+- Dashboard phản ánh đúng appointment status counts.
+- Audit log hiển thị các thay đổi appointment.
+- UI hoạt động tốt trên desktop và mobile.
 
 ## Backend MVP
 
-- Backend validates appointment status transitions.
-- Backend rejects schedule conflicts.
-- Backend enforces role-based access.
-- Backend records audit events for appointment changes.
-- Frontend can replace mock services with real API calls.
+- Backend validate appointment status transitions.
+- Backend reject schedule conflicts.
+- Backend enforce role-based access.
+- Backend ghi audit events cho các thay đổi appointment.
+- Frontend có thể thay mock services bằng API calls thật.

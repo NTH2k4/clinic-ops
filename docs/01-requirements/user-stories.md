@@ -2,24 +2,24 @@
 
 ## Patient
 
-- As a patient, I want to request an appointment so that I can schedule a visit without calling the clinic.
-- As a patient, I want to see my upcoming appointments so that I know when to arrive.
-- As a patient, I want to cancel or request a reschedule so that I can manage changes.
+- Là patient, tôi muốn yêu cầu đặt appointment để có thể lên lịch khám mà không cần gọi điện đến phòng khám.
+- Là patient, tôi muốn xem appointments sắp tới để biết khi nào cần đến.
+- Là patient, tôi muốn hủy lịch hoặc yêu cầu reschedule để xử lý khi có thay đổi.
 
 ## Doctor
 
-- As a doctor, I want to see my schedule for today so that I know who I will see next.
-- As a doctor, I want to update appointment progress so that staff can follow the clinic flow.
-- As a doctor, I want to mark an appointment complete so that the visit leaves the active queue.
+- Là doctor, tôi muốn xem schedule hôm nay để biết patient tiếp theo là ai.
+- Là doctor, tôi muốn cập nhật tiến trình appointment để staff theo dõi được clinic flow.
+- Là doctor, tôi muốn đánh dấu appointment là completed để buổi khám rời khỏi active queue.
 
 ## Receptionist / Nurse
 
-- As reception staff, I want to create appointments for patients so that phone or walk-in bookings are supported.
-- As reception staff, I want to check patients in so that doctors know who is waiting.
-- As reception staff, I want to reschedule appointments so that clinic changes can be handled.
+- Là reception staff, tôi muốn tạo appointments cho patients để hỗ trợ đặt lịch qua điện thoại hoặc walk-in.
+- Là reception staff, tôi muốn check-in patients để doctors biết ai đang chờ.
+- Là reception staff, tôi muốn reschedule appointments để xử lý thay đổi vận hành của phòng khám.
 
 ## Admin
 
-- As an admin, I want to manage doctors and services so that booking options stay accurate.
-- As an admin, I want to view dashboard metrics so that I understand clinic operations.
-- As an admin, I want to review audit events so that important appointment changes are traceable.
+- Là admin, tôi muốn quản lý doctors và services để các tùy chọn đặt lịch luôn chính xác.
+- Là admin, tôi muốn xem dashboard metrics để hiểu tình hình vận hành phòng khám.
+- Là admin, tôi muốn review audit events để các thay đổi quan trọng của appointment có thể truy vết.

@@ -1,22 +1,22 @@
-# Vision
+# Tầm Nhìn
 
-Build a practical clinic booking and care operations system for small clinics.
+Xây dựng một hệ thống đặt lịch khám và vận hành phòng khám thực tế cho các phòng khám nhỏ.
 
-The MVP should help patients request appointments, reception staff coordinate clinic flow, doctors manage daily schedules, and admins monitor basic operations. The first implementation phase prioritizes clear workflows and a polished frontend experience before backend integration.
+MVP cần giúp patient yêu cầu đặt lịch, lễ tân hoặc nurse điều phối luồng vận hành, doctor quản lý lịch khám hằng ngày và admin theo dõi hoạt động cơ bản. Giai đoạn implementation đầu tiên ưu tiên workflow rõ ràng và trải nghiệm frontend polished trước khi tích hợp backend.
 
-## Product Goals
+## Mục Tiêu Sản Phẩm
 
-- Make appointment operations visible and manageable from one interface.
-- Support the core roles in a small clinic: patient, doctor, receptionist or nurse, and admin.
-- Keep appointment status transitions explicit and auditable.
-- Provide enough operational reporting to understand today's clinic load.
-- Avoid regulated or high-risk clinical features in the MVP.
+- Làm cho hoạt động appointment rõ ràng và quản lý được từ một interface.
+- Hỗ trợ các vai trò cốt lõi trong phòng khám nhỏ: patient, doctor, receptionist hoặc nurse, và admin.
+- Giữ các trạng thái chuyển tiếp của appointment rõ ràng và có thể audit.
+- Cung cấp báo cáo vận hành đủ để hiểu tải công việc trong ngày.
+- Tránh các tính năng lâm sàng có rủi ro pháp lý hoặc compliance cao trong MVP.
 
-## Non-Goals
+## Ngoài Phạm Vi
 
-- Full electronic health records.
-- Official diagnosis or prescription workflows.
-- Insurance claim processing.
-- Real payment processing.
-- Telemedicine or video calls.
-- SMS, email, or push notification integrations.
+- Electronic health records đầy đủ.
+- Workflow chẩn đoán hoặc kê đơn chính thức.
+- Xử lý insurance claim.
+- Payment processing thật.
+- Telemedicine hoặc video call.
+- Tích hợp SMS, email hoặc push notification.

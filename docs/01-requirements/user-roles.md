@@ -1,46 +1,46 @@
-# User Roles
+# Vai Trò Người Dùng
 
 ## Patient
 
-Primary goal: book and manage personal appointments.
+Mục tiêu chính: đặt và quản lý appointments cá nhân.
 
-Allowed actions:
+Hành động được phép:
 
-- View services and specialties.
-- Request appointments.
-- View own appointment history.
-- Cancel or request reschedule when allowed.
+- Xem services và specialties.
+- Yêu cầu đặt appointments.
+- Xem appointment history của chính mình.
+- Hủy hoặc yêu cầu reschedule khi được phép.
 
 ## Doctor
 
-Primary goal: manage daily clinical schedule.
+Mục tiêu chính: quản lý schedule khám hằng ngày.
 
-Allowed actions:
+Hành động được phép:
 
-- View own appointments.
-- Update appointment progress.
-- Complete appointments.
-- Add lightweight internal notes in the MVP prototype.
+- Xem appointments của chính mình.
+- Cập nhật tiến trình appointment.
+- Hoàn tất appointments.
+- Thêm lightweight internal notes trong MVP prototype.
 
 ## Receptionist / Nurse
 
-Primary goal: coordinate clinic flow.
+Mục tiêu chính: điều phối clinic flow.
 
-Allowed actions:
+Hành động được phép:
 
-- Create appointments for patients.
-- Check in patients.
-- Update appointment statuses.
-- Reschedule or cancel appointments.
-- View operational queues.
+- Tạo appointments cho patients.
+- Check-in patients.
+- Cập nhật appointment statuses.
+- Reschedule hoặc cancel appointments.
+- Xem operational queues.
 
 ## Admin
 
-Primary goal: configure clinic operations.
+Mục tiêu chính: cấu hình vận hành phòng khám.
 
-Allowed actions:
+Hành động được phép:
 
-- Manage doctors, services, and specialties.
-- Manage staff users.
-- View operational dashboard.
+- Quản lý doctors, services và specialties.
+- Quản lý staff users.
+- Xem operational dashboard.
 - Review audit events.

@@ -1,32 +1,32 @@
-# Screens
+# Màn Hình
 
 ## Shared
 
 - Sign in
-- Role switcher for prototype mode
+- Role switcher cho prototype mode
 - Notifications panel
 
 ## Patient
 
-- Patient home
-- Browse services
-- Book appointment
-- My appointments
-- Appointment detail
+- Trang chính của patient
+- Duyệt services
+- Đặt appointment
+- Appointments của tôi
+- Chi tiết appointment
 
 ## Doctor
 
 - Doctor dashboard
 - Day schedule
 - Week schedule
-- Appointment detail
+- Chi tiết appointment
 
 ## Receptionist / Nurse
 
 - Operations dashboard
 - Appointment queue
-- Create appointment
-- Patient lookup
+- Tạo appointment
+- Tìm kiếm patient
 - Calendar
 
 ## Admin

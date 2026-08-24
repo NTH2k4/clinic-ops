@@ -1,30 +1,30 @@
-# Scope
+# Phạm Vi
 
-## MVP Scope
+## Phạm Vi MVP
 
-The MVP covers booking and clinic operations around appointments.
+MVP bao phủ nghiệp vụ đặt lịch và vận hành phòng khám xoay quanh appointments.
 
-Included:
+Bao gồm:
 
-- Patient registration and appointment requests.
-- Staff-created appointments for walk-ins or phone bookings.
-- Doctor schedule views.
-- Reception check-in workflow.
-- Appointment status tracking.
-- Service and specialty management.
-- Basic operational dashboard.
-- In-app mock notifications.
-- Basic audit log for appointment changes.
+- Patient registration và yêu cầu đặt appointment.
+- Appointment do staff tạo cho khách walk-in hoặc đặt qua điện thoại.
+- Màn hình xem lịch làm việc của doctor.
+- Workflow check-in tại quầy tiếp nhận.
+- Theo dõi trạng thái appointment.
+- Quản lý service và specialty.
+- Dashboard vận hành cơ bản.
+- Mock notifications trong app.
+- Audit log cơ bản cho các thay đổi appointment.
 
-Excluded from MVP:
+Không bao gồm trong MVP:
 
-- Deep medical records.
+- Medical records chuyên sâu.
 - Prescriptions.
 - Insurance.
-- Real billing or payment.
+- Billing hoặc payment thật.
 - External notification providers.
-- Multi-branch clinic management.
+- Quản lý nhiều chi nhánh.
 
-## Scope Control
+## Kiểm Soát Scope
 
-New requests must be recorded in `docs/01-requirements/change-requests.md` before implementation. Approved requests should update the relevant requirements, product, architecture, and planning documents.
+Yêu cầu mới phải được ghi vào `docs/01-requirements/change-requests.md` trước khi implementation. Yêu cầu đã duyệt cần cập nhật các tài liệu requirements, product, architecture và planning liên quan.

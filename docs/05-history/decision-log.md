@@ -1,33 +1,33 @@
 # Decision Log
 
-## DEC-001: Build Frontend First
+## DEC-001: Xây Frontend Trước
 
-Date: 2026-08-24
+Ngày: 2026-08-24
 
-Decision: Build the frontend prototype first with mock data before backend implementation.
+Quyết định: Xây frontend prototype trước với `mock data`, sau đó mới triển khai backend.
 
-Reason: The highest early risk is product workflow clarity. Frontend-first development makes appointment flow, role behavior, and dashboard structure visible before committing to backend schemas.
+Lý do: Rủi ro lớn nhất ở giai đoạn đầu là độ rõ của product workflow. Frontend-first development giúp nhìn thấy appointment flow, role behavior và dashboard structure trước khi chốt backend schemas.
 
-## DEC-002: Use React + Vite + TypeScript
+## DEC-002: Dùng React + Vite + TypeScript
 
-Date: 2026-08-24
+Ngày: 2026-08-24
 
-Decision: Use React, Vite, TypeScript, Tailwind CSS, React Router, TanStack Query, React Hook Form, Zod, lucide-react, Vitest, and React Testing Library for the frontend.
+Quyết định: Dùng React, Vite, TypeScript, Tailwind CSS, React Router, TanStack Query, React Hook Form, Zod, lucide-react, Vitest và React Testing Library cho frontend.
 
-Reason: This stack fits a dashboard-heavy operational application with forms, validation, routing, server-state boundaries, and focused frontend tests.
+Lý do: Stack này phù hợp với ứng dụng vận hành nhiều dashboard, forms, validation, routing, server-state boundaries và frontend tests tập trung.
 
-## DEC-003: Keep Medical Scope Lightweight
+## DEC-003: Giữ Scope Y Tế Ở Mức Nhẹ
 
-Date: 2026-08-24
+Ngày: 2026-08-24
 
-Decision: Do not include full medical records, prescriptions, insurance, real payment, telemedicine, or external notifications in the MVP.
+Quyết định: Không đưa medical records đầy đủ, prescriptions, insurance, real payment, telemedicine hoặc external notifications vào MVP.
 
-Reason: These features introduce significant compliance, security, and operational complexity beyond the first product milestone.
+Lý do: Các tính năng này kéo theo độ phức tạp lớn về compliance, security và vận hành, vượt quá milestone sản phẩm đầu tiên.
 
-## DEC-004: Use Vietnamese for Project-Facing Documentation
+## DEC-004: Dùng Tiếng Việt Cho Tài Liệu Hướng Dự Án
 
-Date: 2026-08-24
+Ngày: 2026-08-24
 
-Decision: Use Vietnamese by default for project-facing documentation because CareFlow targets Vietnamese users. Keep technical terms, framework names, API names, and established domain terms in English when they are clearer than forced translations.
+Quyết định: Dùng tiếng Việt theo mặc định cho tài liệu hướng dự án vì CareFlow hướng đến người dùng Việt Nam. Giữ technical terms, framework names, API names và thuật ngữ chuyên ngành bằng tiếng Anh khi rõ nghĩa hơn dịch ép sang tiếng Việt.
 
-Reason: Vietnamese documentation keeps product intent, requirements, and review conversations aligned with the target users while preserving technical precision where English terms are standard.
+Lý do: Tài liệu tiếng Việt giúp product intent, requirements và review conversations bám sát người dùng mục tiêu, đồng thời vẫn giữ độ chính xác kỹ thuật ở những nơi tiếng Anh là chuẩn.

@@ -1,6 +1,6 @@
 # Data Model
 
-This is a draft model for the frontend-first phase and future backend contract.
+Đây là data model nháp cho giai đoạn frontend-first và backend contract sau này.
 
 ## Core Entities
 

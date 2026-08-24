@@ -1,6 +1,6 @@
 # Appointment States
 
-## States
+## Trạng Thái
 
 - `requested`
 - `confirmed`
@@ -10,13 +10,13 @@
 - `cancelled`
 - `no_show`
 
-## Default Flow
+## Flow Mặc Định
 
 ```text
 requested -> confirmed -> checked_in -> in_progress -> completed
 ```
 
-## Alternate Flows
+## Flow Thay Thế
 
 ```text
 requested -> cancelled
@@ -25,9 +25,9 @@ confirmed -> no_show
 checked_in -> cancelled
 ```
 
-## Rules
+## Quy Tắc
 
-- Completed appointments cannot be edited in the MVP.
-- Cancelled appointments remain visible in history.
-- Rescheduling keeps the same appointment record and writes an audit event.
-- Status changes should include actor and timestamp.
+- Appointments đã `completed` không được chỉnh sửa trong MVP.
+- Appointments đã `cancelled` vẫn hiển thị trong history.
+- Rescheduling giữ nguyên appointment record và ghi một audit event.
+- Status changes cần có actor và timestamp.

@@ -4,9 +4,9 @@
 
 - Unit test appointment state helpers.
 - Unit test form validation schemas.
-- Component test critical forms and dashboard states.
+- Component test các forms quan trọng và dashboard states.
 - Integration test role-based navigation.
-- Screenshot or browser verification for desktop and mobile layouts.
+- Screenshot hoặc browser verification cho desktop và mobile layouts.
 
 ## Backend Phase
 
@@ -18,4 +18,4 @@
 
 ## Manual Acceptance
 
-Manual acceptance flows are tracked in `docs/06-testing/acceptance-checklist.md`.
+Manual acceptance flows được theo dõi trong `docs/06-testing/acceptance-checklist.md`.

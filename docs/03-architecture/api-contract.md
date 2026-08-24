@@ -1,6 +1,6 @@
 # API Contract
 
-The API contract will be finalized after the frontend workflows are validated.
+API contract sẽ được chốt sau khi frontend workflows được kiểm chứng.
 
 ## Draft Resources
 
@@ -17,18 +17,18 @@ The API contract will be finalized after the frontend workflows are validated.
 
 ## Draft Appointment Operations
 
-- List appointments with filters.
-- Get appointment detail.
-- Create appointment.
+- List appointments với filters.
+- Lấy chi tiết appointment.
+- Tạo appointment.
 - Reschedule appointment.
 - Cancel appointment.
-- Check in appointment.
+- Check-in appointment.
 - Start appointment.
 - Complete appointment.
 
 ## Contract Rules
 
-- Status transitions must be validated by backend.
-- Appointment conflicts must be rejected by backend.
-- Audit events should be written for important changes.
-- API errors should be structured for form-level and field-level display.
+- Status transitions phải được backend validate.
+- Appointment conflicts phải bị backend reject.
+- Audit events cần được ghi cho các thay đổi quan trọng.
+- API errors cần có cấu trúc để hiển thị ở form-level và field-level.

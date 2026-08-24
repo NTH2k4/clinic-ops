@@ -1,14 +1,14 @@
-# Project Workflow
+# Quy Trình Dự Án
 
 ## Documentation First
 
-Requirements, product flows, technical decisions, and planning changes should be documented before code changes. This keeps implementation aligned with the approved MVP.
+Yêu cầu, product flow, quyết định kỹ thuật và thay đổi kế hoạch phải được ghi lại trước khi sửa code. Quy tắc này giữ implementation bám sát MVP đã duyệt.
 
 ## Documentation Language
 
-CareFlow targets Vietnamese users, so project-facing documentation should use Vietnamese by default. Technical terms, framework names, API names, and established domain terms can stay in English when translating them would reduce clarity.
+CareFlow hướng đến người dùng Việt Nam, nên tài liệu hướng dự án sẽ dùng tiếng Việt theo mặc định. Technical terms, framework names, API names và thuật ngữ chuyên ngành phổ biến có thể giữ bằng tiếng Anh khi dịch sang tiếng Việt làm giảm độ rõ nghĩa.
 
-Examples of terms that can stay in English:
+Ví dụ các thuật ngữ có thể giữ bằng tiếng Anh:
 
 - frontend
 - backend
@@ -19,18 +19,18 @@ Examples of terms that can stay in English:
 - audit log
 - role-based access control
 
-## Working Order
+## Thứ Tự Làm Việc
 
-1. Write and approve MVP requirements.
-2. Build frontend prototype with mock data.
-3. Define API contract from validated UI workflows.
-4. Implement backend and database.
-5. Integrate frontend with backend.
-6. Verify, polish, and prepare release notes.
+1. Viết và duyệt MVP requirements.
+2. Xây frontend prototype với `mock data`.
+3. Định nghĩa API contract từ UI workflows đã được kiểm chứng.
+4. Triển khai backend và database.
+5. Tích hợp frontend với backend.
+6. Verify, polish và chuẩn bị release notes.
 
-## Change Control
+## Kiểm Soát Thay Đổi
 
-Use `docs/01-requirements/change-requests.md` for any new requirement or scope change. A change request can be:
+Dùng `docs/01-requirements/change-requests.md` cho mọi yêu cầu mới hoặc thay đổi scope. Một change request có thể ở trạng thái:
 
 - `proposed`
 - `approved`
@@ -40,4 +40,4 @@ Use `docs/01-requirements/change-requests.md` for any new requirement or scope c
 
 ## Subagent Workflow
 
-Subagent work should be split by clear product or technical boundary. Each package must include scope, files or modules expected, dependencies, acceptance criteria, and verification commands.
+Công việc giao cho subagent phải được chia theo ranh giới sản phẩm hoặc kỹ thuật rõ ràng. Mỗi package cần có scope, file hoặc module dự kiến, dependencies, acceptance criteria và verification commands.

@@ -1,10 +1,10 @@
 # MVP Requirements
 
-## Overview
+## Tổng Quan
 
-The MVP is a frontend-first clinic operations application. It should provide a realistic, polished interface using mock data first, then support backend integration after workflows are validated.
+MVP là ứng dụng vận hành phòng khám theo hướng frontend-first. Ứng dụng cần có interface thực tế, polished, dùng `mock data` trước, sau đó hỗ trợ tích hợp backend khi workflows đã được kiểm chứng.
 
-## Roles
+## Vai Trò
 
 - Patient
 - Doctor
@@ -15,54 +15,54 @@ The MVP is a frontend-first clinic operations application. It should provide a r
 
 ### Patient
 
-- Register and sign in through a simulated auth flow during the frontend-first phase.
-- Browse available services and specialties.
-- Request an appointment by selecting service, preferred doctor or specialty, date, and time.
-- View upcoming and past appointments.
-- Cancel or request reschedule for eligible appointments.
+- Đăng ký và sign in thông qua simulated auth flow trong giai đoạn frontend-first.
+- Xem các services và specialties đang có.
+- Yêu cầu đặt appointment bằng cách chọn service, doctor hoặc specialty mong muốn, ngày và giờ.
+- Xem appointments sắp tới và đã qua.
+- Hủy lịch hoặc yêu cầu reschedule với appointments đủ điều kiện.
 
 ### Doctor
 
-- View today's appointments.
-- View schedule by day or week.
-- Filter appointments by status.
-- Open appointment details.
-- Mark appointment as in progress or completed.
-- Add lightweight visit notes for internal mock workflow only.
+- Xem appointments trong ngày.
+- Xem schedule theo ngày hoặc tuần.
+- Filter appointments theo status.
+- Mở chi tiết appointment.
+- Đánh dấu appointment là `in_progress` hoặc `completed`.
+- Thêm visit notes nhẹ, chỉ phục vụ internal mock workflow.
 
 ### Receptionist / Nurse
 
-- Create appointments for existing or new patients.
-- Check in arrived patients.
-- Update appointment status.
-- Reschedule or cancel appointments.
-- View waiting, checked-in, in-progress, completed, and cancelled appointments.
+- Tạo appointments cho patients đã có hoặc patients mới.
+- Check-in patients đã đến.
+- Cập nhật appointment status.
+- Reschedule hoặc cancel appointments.
+- Xem appointments ở các trạng thái waiting, checked-in, in-progress, completed và cancelled.
 
 ### Admin
 
-- Manage doctors.
-- Manage specialties.
-- Manage bookable services.
-- Manage staff-facing schedule settings.
-- View dashboard metrics.
+- Quản lý doctors.
+- Quản lý specialties.
+- Quản lý bookable services.
+- Quản lý schedule settings cho staff.
+- Xem dashboard metrics.
 
 ### Dashboard
 
-- Show today's appointment count.
-- Show waiting and checked-in counts.
-- Show completed and cancelled counts.
-- Show cancellation rate.
-- Show common services.
-- Show doctor workload summary.
+- Hiển thị số lượng appointments trong ngày.
+- Hiển thị số lượng waiting và checked-in.
+- Hiển thị số lượng completed và cancelled.
+- Hiển thị cancellation rate.
+- Hiển thị common services.
+- Hiển thị doctor workload summary.
 
 ### Audit Log
 
-- Record important appointment actions.
-- Show actor, action, timestamp, and affected appointment.
+- Ghi lại các hành động quan trọng trên appointment.
+- Hiển thị actor, action, timestamp và appointment bị ảnh hưởng.
 
 ## Data Requirements
 
-The frontend-first phase should use typed mock data for:
+Giai đoạn frontend-first cần dùng typed `mock data` cho:
 
 - Users
 - Patients
@@ -75,8 +75,8 @@ The frontend-first phase should use typed mock data for:
 - Audit events
 - Notifications
 
-## Constraints
+## Ràng Buộc
 
-- Do not implement full medical record management in the MVP.
-- Do not implement prescriptions, insurance, real payment, or telemedicine.
-- Do not store or process sensitive medical data beyond lightweight mock notes during the prototype phase.
+- Không triển khai medical record management đầy đủ trong MVP.
+- Không triển khai prescriptions, insurance, real payment hoặc telemedicine.
+- Không lưu trữ hoặc xử lý dữ liệu y tế nhạy cảm ngoài lightweight mock notes trong giai đoạn prototype.

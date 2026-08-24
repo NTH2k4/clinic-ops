@@ -1,23 +1,23 @@
 # CareFlow - Đặt lịch khám online
 
-CareFlow is a clinic operations MVP focused on appointment booking, staff workflows, doctor schedules, and operational dashboards for Vietnamese users.
+CareFlow là MVP vận hành phòng khám, tập trung vào đặt lịch khám, workflow của nhân viên, lịch làm việc của bác sĩ và dashboard vận hành cho người dùng Việt Nam.
 
-This repository is intentionally documentation-first. The initial project phase defines scope, workflows, decisions, and implementation boundaries before frontend or backend code is scaffolded.
+Repository này đi theo hướng documentation-first. Giai đoạn đầu của dự án sẽ thống nhất scope, workflow, quyết định kỹ thuật và ranh giới triển khai trước khi scaffold code frontend hoặc backend.
 
-## Project Direction
+## Định Hướng Dự Án
 
-- Build frontend first with mock data and mock API boundaries.
-- Use the frontend prototype to validate product workflows before backend implementation.
-- Keep medical data lightweight in the MVP; avoid full electronic health record, prescription, insurance, telemedicine, or payment integrations.
-- Record scope changes and technical decisions in docs before implementation.
-- Write project-facing documentation in Vietnamese by default, while keeping technical terms and established domain terms in English when they are clearer.
+- Xây frontend trước với `mock data` và ranh giới `mock API`.
+- Dùng frontend prototype để kiểm chứng workflow sản phẩm trước khi triển khai backend.
+- Giữ dữ liệu y tế ở mức nhẹ trong MVP; không triển khai electronic health record đầy đủ, đơn thuốc, bảo hiểm, telemedicine hoặc tích hợp thanh toán thật.
+- Ghi lại thay đổi scope và quyết định kỹ thuật trong docs trước khi implementation.
+- Viết tài liệu hướng dự án bằng tiếng Việt theo mặc định, giữ thuật ngữ kỹ thuật và thuật ngữ chuyên ngành bằng tiếng Anh khi rõ nghĩa hơn.
 
-## Documentation
+## Tài Liệu
 
-- `docs/00-project/`: project vision, scope, glossary, and contribution workflow.
-- `docs/01-requirements/`: MVP requirements, roles, user stories, and change requests.
-- `docs/02-product/`: workflows, screens, and appointment state model.
-- `docs/03-architecture/`: frontend architecture, API contract, data model, and security notes.
-- `docs/04-planning/`: roadmap, implementation plan, and subagent work packages.
-- `docs/05-history/`: changelog, decision log, and release notes.
-- `docs/06-testing/`: test strategy and acceptance checklist.
+- `docs/00-project/`: tầm nhìn dự án, scope, glossary và workflow làm việc.
+- `docs/01-requirements/`: yêu cầu MVP, vai trò người dùng, user stories và change requests.
+- `docs/02-product/`: workflow sản phẩm, danh sách màn hình và mô hình trạng thái appointment.
+- `docs/03-architecture/`: kiến trúc frontend, API contract, data model và ghi chú security.
+- `docs/04-planning/`: roadmap, implementation plan và subagent work packages.
+- `docs/05-history/`: changelog, decision log và release notes.
+- `docs/06-testing/`: test strategy và acceptance checklist.

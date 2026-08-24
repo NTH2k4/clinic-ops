@@ -1,6 +1,6 @@
 # Subagent Work Packages
 
-Subagent packages will be finalized after the frontend implementation plan is approved.
+Subagent packages sẽ được chốt sau khi frontend implementation plan được duyệt.
 
 ## Draft Packages
 
@@ -18,11 +18,11 @@ Scope: patient home, booking flow, appointment history.
 
 ### Package 4: Doctor Workspace
 
-Scope: doctor dashboard, day and week schedule, appointment detail actions.
+Scope: doctor dashboard, day và week schedule, appointment detail actions.
 
 ### Package 5: Reception Operations
 
-Scope: queue, check-in, create appointment, reschedule and cancel flow.
+Scope: queue, check-in, create appointment, reschedule và cancel flow.
 
 ### Package 6: Admin Configuration
 

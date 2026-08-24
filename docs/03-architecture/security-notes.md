@@ -1,18 +1,18 @@
-# Security Notes
+# Ghi Chú Security
 
-## MVP Position
+## Vị Trí MVP
 
-The MVP should avoid collecting sensitive clinical data. Lightweight mock notes are allowed for workflow demonstration, but the product should not be treated as production-ready medical software.
+MVP nên tránh thu thập dữ liệu lâm sàng nhạy cảm. Lightweight mock notes được phép dùng để minh họa workflow, nhưng sản phẩm chưa được xem là production-ready medical software.
 
-## Future Backend Requirements
+## Yêu Cầu Backend Sau Này
 
 - Role-based access control.
-- Authentication and session management.
-- Audit logging for appointment changes.
-- Input validation at API boundary.
-- Protection against unauthorized patient data access.
-- Secure handling of secrets and environment variables.
+- Authentication và session management.
+- Audit logging cho các thay đổi appointment.
+- Input validation tại API boundary.
+- Bảo vệ khỏi truy cập trái phép vào dữ liệu patient.
+- Xử lý an toàn secrets và environment variables.
 
-## Compliance Note
+## Ghi Chú Compliance
 
-Before real clinic deployment, legal and compliance requirements must be reviewed for the target country and operating model.
+Trước khi triển khai cho phòng khám thật, cần review yêu cầu pháp lý và compliance theo quốc gia mục tiêu và operating model.
