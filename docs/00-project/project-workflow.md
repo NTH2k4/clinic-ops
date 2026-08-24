@@ -4,6 +4,21 @@
 
 Requirements, product flows, technical decisions, and planning changes should be documented before code changes. This keeps implementation aligned with the approved MVP.
 
+## Documentation Language
+
+CareFlow targets Vietnamese users, so project-facing documentation should use Vietnamese by default. Technical terms, framework names, API names, and established domain terms can stay in English when translating them would reduce clarity.
+
+Examples of terms that can stay in English:
+
+- frontend
+- backend
+- API
+- mock data
+- user story
+- dashboard
+- audit log
+- role-based access control
+
 ## Working Order
 
 1. Write and approve MVP requirements.

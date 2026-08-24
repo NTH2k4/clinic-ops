@@ -1,6 +1,6 @@
-# Clinic Booking & Care Operations
+# CareFlow - Đặt lịch khám online
 
-Clinic Booking & Care Operations is a clinic operations MVP focused on appointment booking, staff workflows, doctor schedules, and operational dashboards.
+CareFlow is a clinic operations MVP focused on appointment booking, staff workflows, doctor schedules, and operational dashboards for Vietnamese users.
 
 This repository is intentionally documentation-first. The initial project phase defines scope, workflows, decisions, and implementation boundaries before frontend or backend code is scaffolded.
 
@@ -10,6 +10,7 @@ This repository is intentionally documentation-first. The initial project phase 
 - Use the frontend prototype to validate product workflows before backend implementation.
 - Keep medical data lightweight in the MVP; avoid full electronic health record, prescription, insurance, telemedicine, or payment integrations.
 - Record scope changes and technical decisions in docs before implementation.
+- Write project-facing documentation in Vietnamese by default, while keeping technical terms and established domain terms in English when they are clearer.
 
 ## Documentation
 
