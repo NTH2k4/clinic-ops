@@ -7,7 +7,7 @@
 | Tên tài liệu | Frontend Polish Plan |
 | Sản phẩm | CareFlow - Đặt lịch khám online |
 | Ngày | 2026-08-25 |
-| Trạng thái | chờ duyệt |
+| Trạng thái | đang triển khai |
 | Phạm vi | UI/UX polish sau frontend MVP |
 | Đối tượng đọc | Product owner, frontend developer, QA, agent contributors |
 
@@ -83,8 +83,8 @@ Mục tiêu: làm flow đặt lịch dễ hiểu hơn.
 
 Phạm vi:
 
-- Cải thiện service cards và specialty filter.
-- Làm booking step hierarchy rõ hơn.
+- Đã cải thiện service cards và specialty filter: summary số dịch vụ/chuyên khoa, filter group accessible, card có hierarchy rõ hơn và CTA đặt lịch theo từng dịch vụ.
+- Đã làm booking step hierarchy rõ hơn: thêm progress cue trên form và review thời gian theo định dạng `ngày/tháng/năm`.
 - Tăng clarity cho disabled slots và conflict/success state.
 - Cải thiện appointment history tabs và cancel action.
 

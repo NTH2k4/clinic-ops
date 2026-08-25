@@ -2,7 +2,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { StatusBadge } from "../../components/StatusBadge";
-import { formatDate, formatTime } from "../../lib/dateTime";
+import { formatDate, formatDateInputValue, formatTime } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
@@ -67,6 +67,15 @@ export function BookAppointmentPage() {
       <p className="text-sm font-medium text-primary">Đặt lịch trực tuyến</p>
       <h1 className="mt-1 text-2xl font-semibold text-text">Đặt lịch</h1>
       <p className="mt-2 text-sm text-text-muted">Chọn dịch vụ, bác sĩ và khung giờ phù hợp.</p>
+      <nav aria-label="Tiến trình đặt lịch" className="mt-5 rounded-lg border border-border bg-surface p-4 shadow-panel">
+        <p className="text-sm font-semibold text-text">Tiến trình đặt lịch</p>
+        <ol className="mt-3 grid gap-2 text-sm text-text-muted sm:grid-cols-4">
+          <li className="rounded-md bg-primary/10 px-3 py-2 font-medium text-primary">1. Dịch vụ</li>
+          <li className="rounded-md bg-surface-muted px-3 py-2">2. Bác sĩ</li>
+          <li className="rounded-md bg-surface-muted px-3 py-2">3. Thời gian</li>
+          <li className="rounded-md bg-surface-muted px-3 py-2">4. Xác nhận</li>
+        </ol>
+      </nav>
       <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="space-y-5">
           <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">1. Dịch vụ và chuyên khoa</legend><div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -78,7 +87,7 @@ export function BookAppointmentPage() {
             <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">4. Lý do khám</legend><label className="sr-only" htmlFor="reason">Lý do khám</label><textarea className="mt-3 min-h-24 w-full rounded-md border border-border p-3 text-sm" id="reason" onChange={(event) => setReason(event.target.value)} placeholder="Mô tả ngắn triệu chứng hoặc nhu cầu khám" value={reason} /></fieldset>
           </>}
         </div>
-        <aside className="h-fit rounded-lg border border-border bg-surface p-5 shadow-panel lg:sticky lg:top-6"><h2 className="text-base font-semibold">5. Xem lại yêu cầu</h2>{service ? <dl className="mt-4 space-y-3 text-sm"><div><dt className="text-text-muted">Dịch vụ</dt><dd className="mt-1 font-medium">{service.name}</dd></div><div><dt className="text-text-muted">Chuyên khoa</dt><dd className="mt-1 font-medium">{specialty?.name}</dd></div><div><dt className="text-text-muted">Bác sĩ</dt><dd className="mt-1 font-medium">{assignedDoctor?.fullName ?? "Chọn khung giờ"}</dd></div><div><dt className="text-text-muted">Thời gian</dt><dd className="mt-1 font-medium">{slot ? `${date} ${slot}` : "Chưa chọn"}</dd></div></dl> : <p className="mt-3 text-sm text-text-muted">Chọn dịch vụ để tiếp tục.</p>}{error && <p className="mt-4 flex gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert"><AlertCircle aria-hidden="true" size={18} />{error}</p>}<button className="mt-5 h-11 w-full rounded-md bg-primary px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-border-strong" disabled={!canSubmit} onClick={() => void submit()} type="button">Gửi yêu cầu</button></aside>
+        <aside className="h-fit rounded-lg border border-border bg-surface p-5 shadow-panel lg:sticky lg:top-6"><h2 className="text-base font-semibold">5. Xem lại yêu cầu</h2>{service ? <dl className="mt-4 space-y-3 text-sm"><div><dt className="text-text-muted">Dịch vụ</dt><dd className="mt-1 font-medium">{service.name}</dd></div><div><dt className="text-text-muted">Chuyên khoa</dt><dd className="mt-1 font-medium">{specialty?.name}</dd></div><div><dt className="text-text-muted">Bác sĩ</dt><dd className="mt-1 font-medium">{assignedDoctor?.fullName ?? "Chọn khung giờ"}</dd></div><div><dt className="text-text-muted">Thời gian</dt><dd className="mt-1 font-medium">{slot ? `${formatDateInputValue(date)} ${slot}` : "Chưa chọn"}</dd></div></dl> : <p className="mt-3 text-sm text-text-muted">Chọn dịch vụ để tiếp tục.</p>}{error && <p className="mt-4 flex gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert"><AlertCircle aria-hidden="true" size={18} />{error}</p>}<button className="mt-5 h-11 w-full rounded-md bg-primary px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-border-strong" disabled={!canSubmit} onClick={() => void submit()} type="button">Gửi yêu cầu</button></aside>
       </div>
     </section>
   );

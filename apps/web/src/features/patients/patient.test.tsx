@@ -31,19 +31,29 @@ describe("patient portal", () => {
     const user = await signInAsPatient();
 
     await user.click(within(screen.getByRole("navigation", { name: "Điều hướng chính" })).getByRole("link", { name: "Dịch vụ" }));
+    expect(screen.getByText("8 dịch vụ đang mở từ 4 chuyên khoa")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Lọc theo chuyên khoa" })).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Khám tổng quát" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Đặt lịch Khám tổng quát" })).toBeInTheDocument();
+
     await user.click(screen.getByRole("button", { name: /Tim mạch/i }));
 
+    expect(screen.getByText("2 dịch vụ phù hợp")).toBeInTheDocument();
     expect(screen.getByText(/Khám tim mạch/i)).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "Khám tổng quát" })).not.toBeInTheDocument();
   });
 
   it("creates a requested appointment using a deterministic available doctor", async () => {
     const user = await signInAsPatient();
 
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
+    expect(screen.getByText("Tiến trình đặt lịch")).toBeInTheDocument();
+    expect(screen.getByText("1. Dịch vụ")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
     await user.click(screen.getByLabelText("Any available doctor"));
     expect(screen.getByRole("button", { name: /08:00/i })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: /09:00/i }));
+    expect(screen.getByText("26/08/2026 09:00")).toBeInTheDocument();
     await user.type(screen.getByLabelText("Lý do khám"), "Đau ngực nhẹ khi vận động");
     expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
