@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { cleanup, fireEvent, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
 import { appointmentService } from "../appointments/appointmentService";
 import { mockStore } from "../../mocks/mockStore";
@@ -103,6 +103,23 @@ describe("patient portal", () => {
 
     expect(screen.getByRole("button", { name: /09:00/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeDisabled();
+  });
+
+  it("keeps Monday schedule availability stable across browser timezones", async () => {
+    vi.stubEnv("TZ", "America/Los_Angeles");
+
+    try {
+      const user = await signInAsPatient();
+
+      await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
+      await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
+      await user.click(screen.getByLabelText("Any available doctor"));
+      fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "2026-08-31" } });
+
+      expect(screen.getByRole("button", { name: /09:00/i })).toBeEnabled();
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("groups appointments by tab and only offers cancellation for non-terminal statuses", async () => {

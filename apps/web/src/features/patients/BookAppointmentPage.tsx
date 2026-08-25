@@ -20,6 +20,11 @@ function timeToMinutes(time: string): number {
   return hour * 60 + minute;
 }
 
+function calendarDayOfWeek(date: string): number {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
 function appointmentEnd(startAt: string, durationMinutes: number): string {
   return new Date(new Date(startAt).getTime() + durationMinutes * 60_000).toISOString();
 }
@@ -40,7 +45,7 @@ function hasActiveConflict(doctorId: string, startAt: string, durationMinutes: n
 function isDoctorAvailableForSlot(doctorId: string, date: string, time: string, durationMinutes: number): boolean {
   const startMinutes = timeToMinutes(time);
   const endMinutes = startMinutes + durationMinutes;
-  const dayOfWeek = new Date(`${date}T12:00:00+07:00`).getDay();
+  const dayOfWeek = calendarDayOfWeek(date);
   const schedules = mockStore.doctorSchedules.filter(
     (schedule) => schedule.doctorId === doctorId
       && schedule.status === "active"
