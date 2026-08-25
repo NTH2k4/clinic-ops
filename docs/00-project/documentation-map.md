@@ -61,8 +61,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Review `docs/02-product/frontend-mvp-spec.md` và chốt open questions.
-2. Viết `docs/03-architecture/frontend-design-system.md` tham khảo style của frontend sample, nhưng dùng palette phù hợp phòng khám.
-3. Viết `docs/04-planning/frontend-implementation-plan.md`.
-4. Scaffold `apps/web`.
-5. Sau khi frontend prototype ổn, viết API spec, sequence và backend design.
+1. Viết `docs/03-architecture/frontend-design-system.md` tham khảo style của frontend sample, nhưng dùng palette phù hợp phòng khám.
+2. Viết `docs/04-planning/frontend-implementation-plan.md`.
+3. Scaffold `apps/web`.
+4. Sau khi frontend prototype ổn, viết API spec, sequence và backend design.

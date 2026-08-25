@@ -17,6 +17,7 @@
 | Phiên bản | Ngày | Nội dung thay đổi |
 | --- | --- | --- |
 | 1.0 | 2026-08-24 | Bản spec đầu tiên cho frontend MVP của CareFlow. |
+| 1.1 | 2026-08-25 | Chốt các open questions về appointment status mặc định, doctor selection, staff workspace và theme switcher. |
 
 ## Mục Đích
 
@@ -96,6 +97,8 @@ Pain points:
 ## Roles And Navigation
 
 Frontend prototype cần có role switcher để chuyển nhanh giữa các vai trò. Đây chỉ là prototype tool, không phải authorization thật.
+
+Receptionist và nurse dùng chung một operations workspace trong frontend MVP. Việc tách quyền chi tiết sẽ để backend phase hoặc phase sau nếu nghiệp vụ yêu cầu.
 
 | Role | Navigation chính | Actions chính |
 | --- | --- | --- |
@@ -195,7 +198,7 @@ Purpose: Patient tạo appointment request.
 Flow:
 
 1. Chọn service hoặc specialty.
-2. Chọn doctor hoặc any available doctor.
+2. Chọn doctor cụ thể hoặc any available doctor.
 3. Chọn ngày và slot giờ.
 4. Nhập lý do khám ngắn.
 5. Review thông tin.
@@ -215,6 +218,7 @@ Acceptance criteria:
 - `endAt` được tính từ `Service.durationMinutes`.
 - Success state hiển thị appointment vừa tạo.
 - Appointment mới xuất hiện trong lịch của patient và operations queue.
+- Appointment do patient tạo mặc định ở status `requested`.
 
 Priority: Must
 
@@ -359,6 +363,7 @@ Acceptance criteria:
 - Form patient mới validate fullName và phone.
 - Conflict giả lập hiển thị rõ.
 - Appointment mới xuất hiện trong operations calendar.
+- Appointment do staff tạo mặc định ở status `confirmed`.
 
 Priority: Must
 
@@ -469,11 +474,11 @@ Main flow:
 
 1. Patient mở booking flow.
 2. Chọn service.
-3. Chọn doctor hoặc any available doctor.
+3. Chọn doctor cụ thể hoặc any available doctor.
 4. Chọn slot.
 5. Nhập reason.
 6. Review và submit.
-7. System tạo appointment ở status `requested` hoặc `confirmed` theo mock configuration.
+7. System tạo appointment ở status `requested`.
 
 Expected result:
 
@@ -674,7 +679,6 @@ Design system chi tiết sẽ được viết ở `docs/03-architecture/frontend
 - Staff management prototype.
 - Advanced doctor workload visualization.
 - Export mock CSV.
-- Theme switcher.
 
 ### Won't Have In Frontend MVP
 
@@ -686,6 +690,7 @@ Design system chi tiết sẽ được viết ở `docs/03-architecture/frontend
 - Prescription.
 - Full medical record.
 - SMS/email/push notification integration.
+- Theme switcher.
 
 ## Acceptance Criteria
 
@@ -739,9 +744,29 @@ Browser verification cần kiểm tra tối thiểu:
 - External notification providers.
 - Multi-branch clinic management.
 
-## Open Questions
+## Resolved Product Decisions
 
-- Frontend MVP sẽ dùng trạng thái appointment tạo mới là `requested` hay `confirmed` mặc định?
-- Patient có được tự chọn doctor bắt buộc không, hay có option any available doctor?
-- Staff role trong UI nên gộp receptionist/nurse hay tách navigation riêng?
-- Theme switcher có cần trong MVP không, hay để sau design system?
+### Appointment Status Khi Tạo Mới
+
+- Patient-created appointment mặc định là `requested`.
+- Staff-created appointment mặc định là `confirmed`.
+
+Lý do: Patient booking cần được phòng khám xác nhận trước khi xem là lịch chắc chắn. Staff booking thường diễn ra sau khi đã trao đổi trực tiếp với patient qua quầy hoặc điện thoại, nên có thể vào lịch `confirmed` ngay.
+
+### Doctor Selection
+
+Patient được chọn doctor cụ thể hoặc chọn any available doctor. UI nên ưu tiên any available doctor để giảm ma sát đặt lịch, nhưng vẫn cho patient chọn doctor nếu có nhu cầu.
+
+Lý do: MVP cần hỗ trợ cả người dùng không biết chọn bác sĩ nào và người dùng muốn khám lại với một bác sĩ quen.
+
+### Receptionist / Nurse Workspace
+
+Receptionist và nurse dùng chung operations workspace trong frontend MVP.
+
+Lý do: Hai vai trò này có workflow frontend gần nhau trong MVP: tạo appointment, check-in, queue, reschedule và cancel. Tách UI quá sớm làm tăng scope nhưng chưa tạo đủ giá trị.
+
+### Theme Switcher
+
+Theme switcher không nằm trong frontend MVP. Design system có thể định nghĩa nền tảng màu/semantic tokens, nhưng app MVP ưu tiên một light theme chuyên nghiệp trước.
+
+Lý do: MVP cần tập trung vào workflow vận hành, responsive layout và accessibility. Theme switcher sẽ được xem xét sau khi frontend prototype ổn định.

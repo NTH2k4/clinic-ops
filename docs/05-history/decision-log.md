@@ -39,3 +39,11 @@ Ngày: 2026-08-24
 Quyết định: Tài liệu CareFlow phải được viết như contract chung cho human contributors và agent contributors. Docs cần nêu rõ scope, quyết định, ràng buộc, acceptance criteria, verification notes và liên kết liên quan thay vì chỉ ghi chú ngắn.
 
 Lý do: Dự án được phát triển theo quy trình nhiều bước, có thể dùng agent để đọc/sửa/triển khai. Docs chuyên nghiệp giúp giảm đoán mò, tránh lệch scope và làm cho review dễ kiểm chứng hơn.
+
+## DEC-006: Chốt Open Questions Cho Frontend MVP
+
+Ngày: 2026-08-25
+
+Quyết định: Patient-created appointment mặc định là `requested`; staff-created appointment mặc định là `confirmed`; patient có thể chọn doctor cụ thể hoặc any available doctor; receptionist/nurse dùng chung operations workspace; theme switcher không nằm trong frontend MVP.
+
+Lý do: Các quyết định này giảm scope và edge case cho MVP nhưng vẫn phản ánh vận hành thực tế của phòng khám. Frontend có thể tập trung vào booking flow, queue, dashboard và responsive UX trước khi mở rộng role separation hoặc theming.

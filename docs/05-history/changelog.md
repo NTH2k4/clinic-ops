@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-25
+
+- Chốt các open questions trong frontend MVP spec: appointment status mặc định, doctor selection, staff workspace và theme switcher.
+
 ## 2026-08-24
 
 - Tạo project skeleton theo hướng documentation-first cho CareFlow.
