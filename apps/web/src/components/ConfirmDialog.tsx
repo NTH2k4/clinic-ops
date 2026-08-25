@@ -1,6 +1,7 @@
 import { useId } from "react";
 
 type ConfirmDialogProps = {
+  cancelLabel?: string;
   confirmLabel?: string;
   description: string;
   isOpen: boolean;
@@ -10,6 +11,7 @@ type ConfirmDialogProps = {
 };
 
 export function ConfirmDialog({
+  cancelLabel = "Quay lại",
   confirmLabel = "Xác nhận",
   description,
   isOpen,
@@ -27,7 +29,7 @@ export function ConfirmDialog({
         <h2 className="text-lg font-semibold text-text">{title}</h2>
         <p className="mt-2 text-sm text-text-muted" id={descriptionId}>{description}</p>
         <div className="mt-5 flex justify-end gap-3">
-          <button className="h-10 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={onCancel} type="button">Quay lại</button>
+          <button className="h-10 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={onCancel} type="button">{cancelLabel}</button>
           <button className="h-10 rounded-md bg-danger px-3 text-sm font-semibold text-white hover:bg-red-700" onClick={onConfirm} type="button">{confirmLabel}</button>
         </div>
       </section>

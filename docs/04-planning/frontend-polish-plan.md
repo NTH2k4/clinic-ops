@@ -121,10 +121,12 @@ Mục tiêu: làm queue/calendar giống công cụ vận hành hơn.
 
 Phạm vi:
 
-- Queue groups cần phân biệt rõ confirmed, checked-in, in-progress, completed/cancelled.
-- Calendar filters cần dễ thao tác hơn.
-- Staff create appointment cần giảm cảm giác form dài bằng section layout tốt hơn.
-- ConfirmDialog cần polish states và copy.
+Automated scope đã hoàn thành:
+
+- Làm rõ queue groups theo trạng thái confirmed, checked-in, in-progress, completed/cancelled bằng lane description, count summary và action accessible name cho hủy lịch.
+- Polish calendar filters: filter group semantic, result summary, active filter chips và reset filters.
+- Giảm cảm giác form dài trong staff create appointment bằng 3 section riêng: chọn bệnh nhân, chọn dịch vụ/bác sĩ và chọn thời gian.
+- Polish ConfirmDialog copy/state cho hủy lịch operations với cancel label rõ hơn.
 
 Verification:
 

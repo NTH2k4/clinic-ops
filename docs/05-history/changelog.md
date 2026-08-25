@@ -2,6 +2,7 @@
 
 ## 2026-08-25
 
+- Hoàn thiện P4 Operations Workspace polish ở automated scope: queue lane descriptions, calendar filter summary/reset, staff create appointment sections và ConfirmDialog copy.
 - Hoàn thiện P2 Patient Portal polish ở automated scope: làm rõ disabled slots, conflict/success state, appointment history tab counts và cancel feedback.
 - Bắt đầu P2 Patient Portal polish: cải thiện service cards/specialty filter, thêm booking progress cue và hiển thị review thời gian theo định dạng `ngày/tháng/năm`.
 - Hoàn thiện thêm P1 App Shell/Navigation polish: mobile bottom navigation sticky, scroll ngang ổn hơn cho role nhiều mục và active state đồng bộ với sidebar.

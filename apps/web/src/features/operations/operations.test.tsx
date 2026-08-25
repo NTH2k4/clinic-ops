@@ -26,12 +26,36 @@ describe("operations workspace", () => {
     expect(screen.getByText("Đã check-in")).toBeInTheDocument();
   });
 
+  it("shows queue lane descriptions and cancellation confirmation context", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<QueuePage />);
+
+    const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
+    expect(within(confirmedGroup).getByText("Cần check-in khi bệnh nhân đến.")).toBeInTheDocument();
+    expect(within(confirmedGroup).getByText(/lịch trong nhóm này/i)).toBeInTheDocument();
+
+    await user.click(within(confirmedGroup).getAllByRole("button", { name: /Hủy lịch .+/ })[0]);
+
+    expect(screen.getByRole("dialog", { name: "Xác nhận hủy lịch hẹn" })).toBeInTheDocument();
+    expect(screen.getByText(/Thao tác này sẽ chuyển lịch hẹn sang trạng thái đã hủy/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Giữ lịch" })).toBeInTheDocument();
+  });
+
   it("finds a patient before creating an appointment", async () => {
     const user = userEvent.setup();
     renderWithProviders(<CreateAppointmentPage />);
 
     await user.type(screen.getByLabelText("Tìm patient"), "Nguyễn");
     expect(screen.getByText(/Nguyễn/i)).toBeInTheDocument();
+  });
+
+  it("groups the staff appointment form into clear operational sections", () => {
+    renderWithProviders(<CreateAppointmentPage />);
+
+    expect(screen.getByRole("group", { name: "1. Chọn bệnh nhân" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "2. Chọn dịch vụ và bác sĩ" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "3. Chọn thời gian" })).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Xem lại trước khi tạo" })).toBeInTheDocument();
   });
 
   it("creates a confirmed appointment for staff", async () => {
@@ -103,6 +127,24 @@ describe("operations workspace", () => {
     await user.selectOptions(screen.getByLabelText("Chuyên khoa"), "specialty-cardiology");
     expect(screen.getAllByRole("cell", { name: "BS. Nguyen Thanh Mai" }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("cell", { name: "BS. Tran Quang Huy" })).not.toBeInTheDocument();
+  });
+
+  it("summarizes and resets operations calendar filters", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<OperationsCalendar />);
+
+    expect(screen.getByRole("group", { name: "Bộ lọc lịch hoạt động" })).toBeInTheDocument();
+    expect(screen.getByText(/Đang hiển thị \d+ lịch hẹn/)).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Chuyên khoa"), "specialty-cardiology");
+    expect(screen.getByText(/Chuyên khoa: Tim mạch/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Ngày"), { target: { value: "2026-08-26" } });
+    expect(screen.getByText("Ngày: 26/08/2026")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
+    expect(screen.getByLabelText("Chuyên khoa")).toHaveValue("");
+    expect(screen.queryByText(/Chuyên khoa: Tim mạch/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Ngày: 26/08/2026")).not.toBeInTheDocument();
   });
 
   it("shows today counts and a waiting queue on the dashboard", () => {
