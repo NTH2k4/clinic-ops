@@ -23,7 +23,7 @@ export function TopBar() {
         <RoleSwitcher />
         <button
           aria-label="Đăng xuất"
-          className="flex size-9 items-center justify-center rounded-md border border-border text-text-muted hover:bg-surface-muted hover:text-text"
+          className="flex size-11 items-center justify-center rounded-md border border-border text-text-muted hover:bg-surface-muted hover:text-text"
           onClick={handleSignOut}
           title="Đăng xuất"
           type="button"

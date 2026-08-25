@@ -4,14 +4,18 @@ import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../features/auth/AuthProvider";
 
-export function renderWithProviders(ui: ReactElement) {
+type RenderWithProvidersOptions = {
+  initialEntries?: string[];
+};
+
+export function renderWithProviders(ui: ReactElement, { initialEntries }: RenderWithProvidersOptions = {}) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={initialEntries}>
         <AuthProvider>{ui}</AuthProvider>
       </MemoryRouter>
     </QueryClientProvider>,

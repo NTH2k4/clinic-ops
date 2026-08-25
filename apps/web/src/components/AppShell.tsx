@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { SidebarNav } from "./SidebarNav";
+import { MobileNav, SidebarNav } from "./SidebarNav";
 import { TopBar } from "./TopBar";
 
 export function AppShell() {
@@ -11,6 +11,7 @@ export function AppShell() {
         <main className="flex-1 p-4 md:p-6">
           <Outlet />
         </main>
+        <MobileNav />
       </div>
     </div>
   );
