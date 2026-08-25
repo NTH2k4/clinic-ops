@@ -147,6 +147,29 @@ describe("operations workspace", () => {
     expect(screen.queryByText("Ngày: 26/08/2026")).not.toBeInTheDocument();
   });
 
+  it("clears individual operations calendar filter chips without resetting the rest", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<OperationsCalendar />);
+
+    fireEvent.change(screen.getByLabelText("Ngày"), { target: { value: "2026-08-26" } });
+    await user.selectOptions(screen.getByLabelText("Chuyên khoa"), "specialty-cardiology");
+    await user.selectOptions(screen.getByLabelText("Trạng thái"), "confirmed");
+
+    await user.click(screen.getByRole("button", { name: "Xóa filter Chuyên khoa" }));
+    expect(screen.getByLabelText("Chuyên khoa")).toHaveValue("");
+    expect(screen.queryByText(/Chuyên khoa: Tim mạch/)).not.toBeInTheDocument();
+    expect(screen.getByText("Ngày: 26/08/2026")).toBeInTheDocument();
+    expect(screen.getByText("Trạng thái: Đã xác nhận")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Xóa filter Ngày" }));
+    expect(screen.queryByText("Ngày: 26/08/2026")).not.toBeInTheDocument();
+    expect(screen.getByText("Trạng thái: Đã xác nhận")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Xóa filter Trạng thái" }));
+    expect(screen.getByLabelText("Trạng thái")).toHaveValue("");
+    expect(screen.queryByText("Trạng thái: Đã xác nhận")).not.toBeInTheDocument();
+  });
+
   it("shows today counts and a waiting queue on the dashboard", () => {
     renderWithProviders(<OperationsDashboard />);
 

@@ -24,6 +24,15 @@ export function OperationsCalendar() {
     setStatus("");
   }
 
+  function renderFilterChip(label: string, value: string, onClear: () => void) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-surface-muted px-2 py-1">
+        <span>{label}: {value}</span>
+        <button aria-label={`Xóa filter ${label}`} className="inline-flex size-5 items-center justify-center rounded-sm text-text-muted hover:bg-surface hover:text-text" onClick={onClear} type="button">×</button>
+      </span>
+    );
+  }
+
   return (
     <section className="mx-auto max-w-6xl">
       <p className="text-sm font-medium text-primary">Điều phối lịch</p>
@@ -41,10 +50,10 @@ export function OperationsCalendar() {
           <button className="h-10 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={resetFilters} type="button">Xóa bộ lọc</button>
         </div>
         <div className="mt-3 flex flex-wrap gap-2 text-sm text-text-muted">
-          {date !== OPERATIONS_TODAY ? <span className="rounded-md bg-surface-muted px-2 py-1">Ngày: {formatDateInputValue(date)}</span> : null}
-          {doctor ? <span className="rounded-md bg-surface-muted px-2 py-1">Bác sĩ: {doctor.fullName}</span> : null}
-          {specialty ? <span className="rounded-md bg-surface-muted px-2 py-1">Chuyên khoa: {specialty.name}</span> : null}
-          {status && selectedStatus ? <span className="rounded-md bg-surface-muted px-2 py-1">Trạng thái: {selectedStatus.label}</span> : null}
+          {date !== OPERATIONS_TODAY ? renderFilterChip("Ngày", formatDateInputValue(date), () => setDate(OPERATIONS_TODAY)) : null}
+          {doctor ? renderFilterChip("Bác sĩ", doctor.fullName, () => setDoctorId("")) : null}
+          {specialty ? renderFilterChip("Chuyên khoa", specialty.name, () => setSpecialtyId("")) : null}
+          {status && selectedStatus ? renderFilterChip("Trạng thái", selectedStatus.label, () => setStatus("")) : null}
         </div>
       </fieldset>
       <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface shadow-panel"><table className="hidden min-w-full text-left text-sm md:table"><thead className="bg-surface-muted text-text-muted"><tr><th className="p-3 font-medium">Giờ</th><th className="p-3 font-medium">Bệnh nhân</th><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Dịch vụ</th><th className="p-3 font-medium">Trạng thái</th></tr></thead><tbody>{appointments.map((appointment) => { const patient = mockStore.patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = mockStore.doctors.find((candidate) => candidate.id === appointment.doctorId); const service = mockStore.services.find((candidate) => candidate.id === appointment.serviceId); return <tr className="border-t border-border" key={appointment.id}><td className="p-3 font-semibold text-primary">{formatTime(appointment.startAt)}</td><td className="p-3 font-medium text-text">{patient?.fullName}</td><td className="p-3 text-text">{appointmentDoctor?.fullName}</td><td className="p-3 text-text-muted">{service?.name}</td><td className="p-3"><StatusBadge status={appointment.status} /></td></tr>; })}</tbody></table><ul className="divide-y divide-border md:hidden">{appointments.map((appointment) => { const patient = mockStore.patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = mockStore.doctors.find((candidate) => candidate.id === appointment.doctorId); return <li className="flex gap-3 p-3" key={appointment.id}><span className="w-12 shrink-0 font-semibold text-primary">{formatTime(appointment.startAt)}</span><div className="min-w-0 flex-1"><p className="font-medium text-text">{patient?.fullName}</p><p className="mt-1 text-sm text-text-muted">{appointmentDoctor?.fullName}</p><div className="mt-2"><StatusBadge status={appointment.status} /></div></div></li>; })}</ul></div>{!appointments.length ? <p className="mt-4 text-sm text-text-muted">Không có lịch hẹn phù hợp.</p> : null}

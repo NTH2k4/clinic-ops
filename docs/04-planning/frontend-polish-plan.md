@@ -124,7 +124,7 @@ Phạm vi:
 Automated scope đã hoàn thành:
 
 - Làm rõ queue groups theo trạng thái confirmed, checked-in, in-progress, completed/cancelled bằng lane description, count summary và action accessible name cho hủy lịch.
-- Polish calendar filters: filter group semantic, result summary, active filter chips và reset filters.
+- Polish calendar filters: filter group semantic, result summary, active filter chips, xóa từng filter chip và reset filters.
 - Giảm cảm giác form dài trong staff create appointment bằng 3 section riêng: chọn bệnh nhân, chọn dịch vụ/bác sĩ và chọn thời gian.
 - Polish ConfirmDialog copy/state cho hủy lịch operations với cancel label rõ hơn.
 
