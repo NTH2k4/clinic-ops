@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { App } from "../../app/App";
@@ -74,17 +74,55 @@ describe("doctor workspace", () => {
     await user.click(within(mainNavigation).getByRole("link", { name: "Lịch ngày" }));
     expect(screen.getByRole("heading", { name: "Lịch ngày" })).toBeInTheDocument();
     expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("2026-08-25");
+    expect(screen.getByText("25/08/2026")).toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(8);
+    await user.click(screen.getByRole("button", { name: "Ngày trước" }));
+    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("2026-08-24");
+    expect(screen.getByText("24/08/2026")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Hôm nay" }));
+    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("2026-08-25");
+    await user.click(screen.getByRole("button", { name: "Ngày sau" }));
+    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("2026-08-26");
 
     await user.click(within(mainNavigation).getByRole("link", { name: "Lịch tuần" }));
     expect(screen.getByRole("heading", { name: "Lịch tuần" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-25");
+    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-24");
+    expect(screen.getByText("Tuần 35, 24/08/2026 - 30/08/2026")).toBeInTheDocument();
     const daySelector = screen.getByLabelText("Chọn ngày trong tuần");
     const days = within(daySelector).getAllByRole("button");
     expect(days).toHaveLength(7);
     expect(days[0]).toHaveAttribute("aria-pressed", "true");
     await user.click(days[1]);
     expect(days[1]).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "Tuần trước" }));
+    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-17");
+    expect(screen.getByText("Tuần 34, 17/08/2026 - 23/08/2026")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Tuần hiện tại" }));
+    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-24");
+    await user.click(screen.getByRole("button", { name: "Tuần sau" }));
+    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-31");
+    expect(screen.getByText("Tuần 36, 31/08/2026 - 06/09/2026")).toBeInTheDocument();
+  });
+
+  it("keeps native day and week date inputs usable when changed or cleared", async () => {
+    const user = await signInAsDoctor();
+    const mainNavigation = screen.getByRole("navigation", { name: "Điều hướng chính" });
+
+    await user.click(within(mainNavigation).getByRole("link", { name: "Lịch ngày" }));
+    const dayInput = screen.getByLabelText("Ngày xem lịch");
+    fireEvent.change(dayInput, { target: { value: "" } });
+    expect(dayInput).toHaveValue("2026-08-25");
+    fireEvent.change(dayInput, { target: { value: "2026-09-02" } });
+    expect(dayInput).toHaveValue("2026-09-02");
+    expect(screen.getByText("02/09/2026")).toBeInTheDocument();
+
+    await user.click(within(mainNavigation).getByRole("link", { name: "Lịch tuần" }));
+    const weekInput = screen.getByLabelText("Bắt đầu tuần");
+    fireEvent.change(weekInput, { target: { value: "" } });
+    expect(weekInput).toHaveValue("2026-08-24");
+    fireEvent.change(weekInput, { target: { value: "2026-09-02" } });
+    expect(weekInput).toHaveValue("2026-08-31");
+    expect(screen.getByText("Tuần 36, 31/08/2026 - 06/09/2026")).toBeInTheDocument();
   });
 
   it("opens the dashboard drawer with patient, appointment, history, and audit details", async () => {

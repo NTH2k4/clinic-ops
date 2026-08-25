@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
 import { DetailDrawer } from "../../components/DetailDrawer";
 import { EmptyState } from "../../components/EmptyState";
-import { formatDate, toDateInputValue } from "../../lib/dateTime";
+import { addDays, formatDate, formatDateRange, getIsoWeekNumber, getWeekStartDate, isDateInputValue, toDateInputValue } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment } from "../../types/models";
 import { useAuth } from "../auth/AuthProvider";
@@ -16,16 +17,25 @@ function weekDates(startDate: string) {
 export function DoctorWeekSchedule() {
   const { user } = useAuth();
   const doctor = mockStore.doctors.find((candidate) => candidate.userId === user?.id);
-  const [weekStart, setWeekStart] = useState(DOCTOR_PROTOTYPE_TODAY);
+  const currentWeekStart = getWeekStartDate(DOCTOR_PROTOTYPE_TODAY);
+  const [weekStart, setWeekStart] = useState(currentWeekStart);
   const dates = useMemo(() => weekDates(weekStart), [weekStart]);
   const [selectedDate, setSelectedDate] = useState(weekStart);
   const [appointments, setAppointments] = useState<Appointment[]>(() => mockStore.appointments.filter((appointment) => appointment.doctorId === doctor?.id).sort((left, right) => left.startAt.localeCompare(right.startAt)));
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const visibleAppointments = appointments.filter((appointment) => toDateInputValue(appointment.startAt) === selectedDate);
+  const weekEnd = dates[6];
+  const weekLabel = `Tuần ${getIsoWeekNumber(weekStart)}, ${formatDateRange(weekStart, weekEnd)}`;
 
   function updateWeekStart(value: string) {
-    setWeekStart(value);
-    setSelectedDate(value);
+    if (!isDateInputValue(value)) return;
+    const nextWeekStart = getWeekStartDate(value);
+    setWeekStart(nextWeekStart);
+    setSelectedDate(nextWeekStart);
+  }
+
+  function moveWeek(days: number) {
+    updateWeekStart(addDays(weekStart, days));
   }
 
   function updateAppointment(updated: Appointment) {
@@ -33,5 +43,41 @@ export function DoctorWeekSchedule() {
     setSelectedAppointment(updated);
   }
 
-  return <section className="mx-auto max-w-4xl"><p className="text-sm font-medium text-primary">Lịch cá nhân</p><h1 className="mt-1 text-2xl font-semibold text-text">Lịch tuần</h1><label className="mt-5 grid max-w-xs gap-1 text-sm font-medium text-text" htmlFor="doctor-week-start">Bắt đầu tuần<input className="h-11 rounded-md border border-border bg-surface px-3 text-text" id="doctor-week-start" onChange={(event) => updateWeekStart(event.target.value)} type="date" value={weekStart} /></label><div aria-label="Chọn ngày trong tuần" className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">{dates.map((date) => <button aria-pressed={selectedDate === date} className="min-h-14 rounded-md border border-border bg-surface px-2 py-2 text-left text-sm font-medium text-text aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" key={date} onClick={() => setSelectedDate(date)} type="button">{formatDate(`${date}T00:00:00+07:00`)}</button>)}</div><div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={mockStore.patients} services={mockStore.services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div><DetailDrawer actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} /></section>;
+  return (
+    <section className="mx-auto max-w-4xl">
+      <p className="text-sm font-medium text-primary">Lịch cá nhân</p>
+      <h1 className="mt-1 text-2xl font-semibold text-text">Lịch tuần</h1>
+      <div className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Tuần đang xem</p>
+            <p className="mt-1 flex items-center gap-2 text-xl font-semibold text-text">
+              <CalendarDays aria-hidden="true" className="h-5 w-5 text-primary" />
+              {weekLabel}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-end gap-2">
+            <button className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-semibold text-text transition-colors hover:bg-surface-muted" onClick={() => moveWeek(-7)} type="button">
+              <ChevronLeft aria-hidden="true" className="h-4 w-4" />
+              Tuần trước
+            </button>
+            <button className="h-10 rounded-md border border-primary/30 bg-primary/10 px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/15" onClick={() => updateWeekStart(currentWeekStart)} type="button">
+              Tuần hiện tại
+            </button>
+            <button className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-semibold text-text transition-colors hover:bg-surface-muted" onClick={() => moveWeek(7)} type="button">
+              Tuần sau
+              <ChevronRight aria-hidden="true" className="h-4 w-4" />
+            </button>
+            <label className="grid gap-1 text-sm font-medium text-text" htmlFor="doctor-week-start">
+              Bắt đầu tuần
+              <input className="h-10 rounded-md border border-border bg-surface px-3 text-text" id="doctor-week-start" onChange={(event) => updateWeekStart(event.target.value)} type="date" value={weekStart} />
+            </label>
+          </div>
+        </div>
+      </div>
+      <div aria-label="Chọn ngày trong tuần" className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">{dates.map((date) => <button aria-pressed={selectedDate === date} className="min-h-14 rounded-md border border-border bg-surface px-2 py-2 text-left text-sm font-medium text-text aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" key={date} onClick={() => setSelectedDate(date)} type="button">{formatDate(`${date}T00:00:00+07:00`)}</button>)}</div>
+      <div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={mockStore.patients} services={mockStore.services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div>
+      <DetailDrawer actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
+    </section>
+  );
 }

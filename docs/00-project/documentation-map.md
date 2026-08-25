@@ -47,7 +47,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có frontend design system baseline cho design principles, tokens, layout, component rules, accessibility và responsive behavior.
 - Có frontend implementation plan chi tiết để scaffold `apps/web` và triển khai frontend MVP theo task.
 - Đã có frontend MVP chạy với mock data, README setup/verification và Playwright smoke coverage cho patient, doctor và operations workflows.
-- Có frontend polish plan để gom UI/UX follow-up sau khi người dùng review bản MVP đầu tiên.
+- Có frontend polish plan để gom UI/UX follow-up sau khi người dùng review bản MVP đầu tiên; Doctor Workspace đã bắt đầu polish phần điều hướng lịch ngày/tuần.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -65,6 +65,6 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 Thứ tự nên làm tiếp:
 
 1. Dùng frontend MVP và Playwright smoke suite làm baseline khi tinh chỉnh workflow và responsive UI.
-2. Duyệt `docs/04-planning/frontend-polish-plan.md` để chọn thứ tự polish UI/UX.
+2. Tiếp tục polish UI/UX theo `docs/04-planning/frontend-polish-plan.md`, ưu tiên các vấn đề thao tác trực tiếp trước khi polish dashboard rộng hơn.
 3. Sau khi UI workflow đủ ổn, viết API spec, sequence và backend design để thay mock service boundary bằng API client.
 4. Bổ sung traceability matrix và SRS khi API contract và backend workflow đủ ổn định.

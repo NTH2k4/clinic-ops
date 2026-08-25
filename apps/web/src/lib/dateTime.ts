@@ -38,6 +38,41 @@ export function toDateInputValue(dateTime: string): string {
   return dateTime.slice(0, 10);
 }
 
+export function isDateInputValue(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+export function addDays(date: string, days: number): string {
+  const value = new Date(`${date}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+export function formatDateInputValue(date: string): string {
+  return formatDate(`${date}T00:00:00+07:00`);
+}
+
+export function formatDateRange(startDate: string, endDate: string): string {
+  return `${formatDateInputValue(startDate)} - ${formatDateInputValue(endDate)}`;
+}
+
+export function getWeekStartDate(date: string): string {
+  const value = new Date(`${date}T00:00:00Z`);
+  const day = value.getUTCDay() || 7;
+  value.setUTCDate(value.getUTCDate() - day + 1);
+  return value.toISOString().slice(0, 10);
+}
+
+export function getIsoWeekNumber(date: string): number {
+  const value = new Date(`${date}T00:00:00Z`);
+  const day = value.getUTCDay() || 7;
+  value.setUTCDate(value.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(value.getUTCFullYear(), 0, 1));
+  return Math.ceil(((value.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
+}
+
 export function addMinutes(dateTime: string, minutes: number): string {
   return new Date(new Date(dateTime).getTime() + minutes * 60_000).toISOString();
 }

@@ -97,6 +97,10 @@ Mục tiêu: làm lịch bác sĩ và drawer chi tiết dễ scan hơn.
 
 Phạm vi:
 
+- Thêm điều hướng lịch ngày gồm nút ngày trước, hôm nay và ngày sau để bác sĩ không phải nhập date thủ công.
+- Thêm điều hướng lịch tuần gồm nút tuần trước, tuần hiện tại và tuần sau.
+- Hiển thị số tuần trong năm và khoảng ngày của tuần theo định dạng `ngày/tháng/năm`, ví dụ `Tuần 35, 24/08/2026 - 30/08/2026`.
+- Giữ date input hiện có như fallback chính xác, nhưng copy/label hiển thị phải dùng định dạng Việt Nam `ngày/tháng/năm`.
 - Tinh chỉnh timeline spacing và status density.
 - Drawer chi tiết cần phân nhóm rõ patient, appointment, status history, audit events.
 - Week schedule cần nhìn tốt hơn ở desktop mà không tạo horizontal overflow.
@@ -105,6 +109,7 @@ Verification:
 
 - Doctor tests.
 - Playwright doctor start/complete.
+- Unit tests cho helper tính ngày kế tiếp, ngày trước, tuần kế tiếp, tuần trước và số tuần ISO.
 - Manual check desktop 1280px và 1440px.
 
 ### Package P4: Operations Workspace Polish
@@ -165,13 +170,13 @@ Verification:
 
 1. P6 baseline responsive/accessibility QA nhẹ để chụp hiện trạng.
 2. P1 app shell/navigation polish.
-3. P2 patient portal polish.
-4. P4 operations workspace polish.
-5. P3 doctor workspace polish.
+3. P3 doctor schedule navigation polish.
+4. P2 patient portal polish.
+5. P4 operations workspace polish.
 6. P5 admin workspace polish.
 7. P6 final responsive/accessibility QA sau polish.
 
-Lý do: app shell ảnh hưởng mọi role, patient/operations là hai flow quan trọng nhất, doctor/admin polish có thể làm sau khi layout nền đã ổn hơn.
+Lý do: app shell ảnh hưởng mọi role; doctor schedule navigation là vấn đề thao tác trực tiếp đã được người dùng chỉ ra nên cần ưu tiên trước các phần polish rộng hơn.
 
 ## Quyết Định Cần Người Dùng Chốt
 
