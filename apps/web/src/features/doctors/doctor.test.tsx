@@ -37,6 +37,15 @@ function TerminalAppointmentHarness() {
   return <DetailDrawer actorUserId="user-doctor-1" appointment={completed} onClose={() => undefined} onUpdated={() => undefined} />;
 }
 
+function ClinicDateTimeHarness() {
+  const appointment = mockStore.appointments.find(
+    (candidate) => candidate.startAt === "2026-08-25T08:00:00+07:00",
+  );
+  if (!appointment) throw new Error("Missing clinic date-time fixture");
+
+  return <DetailDrawer actorUserId="user-doctor-1" appointment={appointment} onClose={() => undefined} onUpdated={() => undefined} />;
+}
+
 describe("doctor workspace", () => {
   it("shows stable default-day counts, ordered appointments, and the next future active appointment", async () => {
     const user = await signInAsDoctor();
@@ -97,6 +106,12 @@ describe("doctor workspace", () => {
     renderWithProviders(<TerminalAppointmentHarness />);
 
     expect(screen.queryByRole("button", { name: /appointment/i })).not.toBeInTheDocument();
+  });
+
+  it("renders drawer date-time in Vietnam clinic time", () => {
+    renderWithProviders(<ClinicDateTimeHarness />);
+
+    expect(screen.getByText("08:00 25/08/2026")).toBeInTheDocument();
   });
 
   it("moves a checked-in appointment through the doctor consultation flow", async () => {
