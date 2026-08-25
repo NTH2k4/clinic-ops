@@ -1,6 +1,6 @@
 # Work Package Cho Subagent
 
-Frontend MVP đã được triển khai theo các package dưới đây. Package 8 bao gồm responsive QA, README và browser smoke verification của Task 10.
+Frontend MVP đã được triển khai theo các package dưới đây. Package 8 bao gồm README và browser smoke verification của Task 10; manual responsive/accessibility QA vẫn là follow-up được hướng dẫn trong README.
 
 ## Package Đã Hoàn Thành
 
@@ -34,4 +34,4 @@ Trạng thái: hoàn thành. Phạm vi: operational metrics, audit event list, n
 
 ### Package 8: UI Polish, Responsive QA Và Frontend Verification
 
-Trạng thái: hoàn thành. Phạm vi: responsive layout, visual consistency, accessibility pass, README, Playwright smoke tests cho patient/doctor/operations và responsive checks ở 360, 768, 1280, 1440px.
+Trạng thái: hoàn thành cho README và Playwright smoke tests: patient booking ở mobile 360px, doctor/operations flows ở desktop 1280px. Manual responsive checks ở 768/1440px và kiểm tra text overlap/accessibility được ghi trong README để thực hiện tiếp.

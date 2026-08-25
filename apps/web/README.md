@@ -55,7 +55,7 @@ npm run e2e
 git diff --check
 ```
 
-Khi cần manual responsive check, chạy `npm run dev -- --host 0.0.0.0`, mở các route patient, doctor và operations ở widths 360, 768, 1280 và 1440. Xác nhận không có page-level horizontal overflow và text không chồng lên nhau trong button, card và status badge.
+Automated smoke hiện chỉ cover viewport 360 và 1280. Manual responsive follow-up cần chạy `npm run dev -- --host 0.0.0.0`, mở các route patient, doctor và operations ở widths 360, 768, 1280 và 1440, rồi xác nhận không có page-level horizontal overflow và text không chồng lên nhau trong button, card và status badge.
 
 ## Architecture
 

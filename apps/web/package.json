@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest",
-    "e2e": "playwright test --pass-with-no-tests"
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
