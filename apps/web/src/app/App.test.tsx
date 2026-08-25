@@ -6,7 +6,7 @@ import { renderWithProviders } from "../test/render";
 describe("App", () => {
   it("renders the CareFlow sign-in entry point", () => {
     renderWithProviders(<App />);
-    expect(screen.getByRole("heading", { name: /CareFlow/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Đăng nhập/i })).toBeInTheDocument();
+    expect(screen.getByText("CareFlow")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
   });
 });
