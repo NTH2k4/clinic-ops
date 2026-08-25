@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { LoginPage } from "../features/auth/LoginPage";
+import { DoctorDashboard } from "../features/doctors/DoctorDashboard";
+import { DoctorDaySchedule } from "../features/doctors/DoctorDaySchedule";
+import { DoctorWeekSchedule } from "../features/doctors/DoctorWeekSchedule";
 import { BookAppointmentPage } from "../features/patients/BookAppointmentPage";
 import { MyAppointmentsPage } from "../features/patients/MyAppointmentsPage";
 import { PatientHome } from "../features/patients/PatientHome";
@@ -27,9 +30,9 @@ export function AppRoutes() {
           <Route element={<ServicesPage />} path="patient/services" />
           <Route element={<BookAppointmentPage />} path="patient/book" />
           <Route element={<MyAppointmentsPage />} path="patient/appointments" />
-          <Route element={<TemporaryRoutePage title="Doctor dashboard" />} path="doctor" />
-          <Route element={<TemporaryRoutePage title="Lịch ngày" />} path="doctor/day" />
-          <Route element={<TemporaryRoutePage title="Lịch tuần" />} path="doctor/week" />
+          <Route element={<DoctorDashboard />} path="doctor" />
+          <Route element={<DoctorDaySchedule />} path="doctor/day" />
+          <Route element={<DoctorWeekSchedule />} path="doctor/week" />
           <Route element={<TemporaryRoutePage title="Operations dashboard" />} path="operations" />
           <Route element={<TemporaryRoutePage title="Hàng đợi" />} path="operations/queue" />
           <Route element={<TemporaryRoutePage title="Lịch hoạt động" />} path="operations/calendar" />

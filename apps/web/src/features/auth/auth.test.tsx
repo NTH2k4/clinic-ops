@@ -33,7 +33,7 @@ describe("authentication and role routing", () => {
 
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
 
-    expect(screen.getByText("Doctor dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Không gian bác sĩ")).toBeInTheDocument();
   });
 
   it("redirects an anonymous protected child route to login", () => {
@@ -43,7 +43,7 @@ describe("authentication and role routing", () => {
   });
 
   it.each([
-    ["doctor", "Doctor dashboard"],
+    ["doctor", "Không gian bác sĩ"],
     ["receptionist", "Operations dashboard"],
     ["admin", "Admin dashboard"],
   ] as const)("redirects %s from /app to %s", async (role, expectedHeading) => {
