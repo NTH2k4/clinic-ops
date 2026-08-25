@@ -1,6 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { LoginPage } from "../features/auth/LoginPage";
+import { BookAppointmentPage } from "../features/patients/BookAppointmentPage";
+import { MyAppointmentsPage } from "../features/patients/MyAppointmentsPage";
+import { PatientHome } from "../features/patients/PatientHome";
+import { ServicesPage } from "../features/patients/ServicesPage";
 import { RequireAuth } from "../routes/RequireAuth";
 import { RoleHomeRedirect } from "../routes/RoleHomeRedirect";
 
@@ -19,10 +23,10 @@ export function AppRoutes() {
       <Route element={<RequireAuth />}>
         <Route element={<RoleHomeRedirect />} path="/app" />
         <Route element={<AppShell />} path="/app">
-          <Route element={<TemporaryRoutePage title="Trang chính patient" />} path="patient" />
-          <Route element={<TemporaryRoutePage title="Dịch vụ" />} path="patient/services" />
-          <Route element={<TemporaryRoutePage title="Đặt lịch" />} path="patient/book" />
-          <Route element={<TemporaryRoutePage title="Lịch của tôi" />} path="patient/appointments" />
+          <Route element={<PatientHome />} path="patient" />
+          <Route element={<ServicesPage />} path="patient/services" />
+          <Route element={<BookAppointmentPage />} path="patient/book" />
+          <Route element={<MyAppointmentsPage />} path="patient/appointments" />
           <Route element={<TemporaryRoutePage title="Doctor dashboard" />} path="doctor" />
           <Route element={<TemporaryRoutePage title="Lịch ngày" />} path="doctor/day" />
           <Route element={<TemporaryRoutePage title="Lịch tuần" />} path="doctor/week" />
