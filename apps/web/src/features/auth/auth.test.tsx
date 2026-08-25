@@ -173,4 +173,27 @@ describe("authentication and role routing", () => {
 
     expect(screen.getByRole("heading", { name: "Dịch vụ" })).toBeInTheDocument();
   });
+
+  it("lets desktop users collapse and expand the sidebar without losing navigation access", async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
+
+    const sidebarToggle = screen.getByRole("button", { name: "Thu gọn thanh điều hướng" });
+    expect(sidebarToggle).toHaveAttribute("aria-expanded", "true");
+
+    const mainNavigation = screen.getByRole("navigation", { name: "Điều hướng chính" });
+    expect(within(mainNavigation).getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
+
+    await user.click(sidebarToggle);
+
+    expect(screen.getByRole("button", { name: "Mở rộng thanh điều hướng" })).toHaveAttribute("aria-expanded", "false");
+    await user.click(within(mainNavigation).getByRole("link", { name: "Lịch tuần" }));
+
+    expect(screen.getByRole("heading", { name: "Lịch tuần" })).toBeInTheDocument();
+    expect(within(mainNavigation).getByRole("link", { name: "Lịch tuần" })).toHaveAttribute("aria-current", "page");
+  });
 });

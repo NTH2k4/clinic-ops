@@ -63,6 +63,7 @@ Mục tiêu: làm app shell có cảm giác sản phẩm thật hơn.
 
 Phạm vi:
 
+- Đã triển khai bước đầu: desktop sidebar có nút thu gọn/mở rộng, trạng thái `aria-expanded`, link vẫn accessible khi sidebar thu gọn và active navigation nổi bật hơn.
 - Tăng độ rõ của active navigation.
 - Kiểm tra mobile bottom navigation với các role dài.
 - Tinh chỉnh TopBar notification panel để dễ scan hơn.

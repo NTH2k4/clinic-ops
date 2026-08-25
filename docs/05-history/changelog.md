@@ -2,6 +2,7 @@
 
 ## 2026-08-25
 
+- Triển khai bước đầu P1 App Shell/Navigation polish: thêm nút thu gọn/mở rộng desktop sidebar, giữ navigation accessible khi thu gọn và làm active navigation nổi bật hơn.
 - Cập nhật frontend polish plan và triển khai điều hướng lịch ngày/tuần cho Doctor Workspace: nút ngày/tuần trước-sau, nút hôm nay/tuần hiện tại, nhãn số tuần ISO và khoảng ngày theo định dạng `ngày/tháng/năm`.
 - Xác nhận deploy GitHub Pages trả HTTP 200 và GitHub Actions `Web CI`/`Web Pages` đều thành công ở commit `caa64b3779939ba6b59ad730b6d620e7df7fef08`; thêm frontend polish plan cho phase UI/UX tiếp theo.
 - Hoàn thành frontend MVP tasks 6-10: patient portal, doctor workspace, operations workspace, admin/audit/notifications, README và browser-level smoke verification.
