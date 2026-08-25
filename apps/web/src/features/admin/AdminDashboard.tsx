@@ -2,6 +2,8 @@ import { MetricCard } from "../../components/MetricCard";
 import { toDateInputValue } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 
+const ADMIN_PROTOTYPE_TODAY = "2026-08-25";
+
 function percent(value: number) {
   return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1, style: "percent" }).format(value);
 }
@@ -9,7 +11,7 @@ function percent(value: number) {
 export function AdminDashboard() {
   const activeDoctors = mockStore.doctors.filter((doctor) => doctor.status === "active");
   const activeServices = mockStore.services.filter((service) => service.status === "active");
-  const today = toDateInputValue(new Date().toISOString());
+  const today = ADMIN_PROTOTYPE_TODAY;
   const appointmentsToday = mockStore.appointments.filter((appointment) => toDateInputValue(appointment.startAt) === today);
   const cancellationRate = mockStore.appointments.length
     ? mockStore.appointments.filter((appointment) => appointment.status === "cancelled").length / mockStore.appointments.length
@@ -30,7 +32,7 @@ export function AdminDashboard() {
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Doctors active" value={activeDoctors.length} />
         <MetricCard label="Services active" value={activeServices.length} />
-        <MetricCard label="Appointments today" value={appointmentsToday.length} />
+        <MetricCard label="Lịch hẹn hôm nay" value={appointmentsToday.length} />
         <MetricCard label="Cancellation rate" value={percent(cancellationRate)} />
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">

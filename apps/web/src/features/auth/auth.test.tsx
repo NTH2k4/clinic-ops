@@ -21,6 +21,12 @@ function GoToOperations() {
   return <button onClick={() => navigate("/app/operations/queue")} type="button">Go to operations</button>;
 }
 
+function GoToAdmin() {
+  const navigate = useNavigate();
+
+  return <button onClick={() => navigate("/app/admin")} type="button">Go to admin</button>;
+}
+
 afterEach(() => {
   cleanup();
 });
@@ -118,6 +124,30 @@ describe("authentication and role routing", () => {
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "nurse");
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
     expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
+  });
+
+  it("denies non-admin roles direct access to admin routes", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<><App /><GoToAdmin /></>);
+
+    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: "Go to admin" }));
+    expect(screen.getByText("Trang chính patient")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
+    await user.click(screen.getByRole("button", { name: "Go to admin" }));
+    expect(screen.getByRole("heading", { name: "Không gian bác sĩ" })).toBeInTheDocument();
+  });
+
+  it("allows admin direct access to admin routes", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<><App /><GoToAdmin /></>);
+
+    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "admin");
+    await user.click(screen.getByRole("button", { name: "Go to admin" }));
+
+    expect(screen.getByRole("heading", { name: "Admin dashboard" })).toBeInTheDocument();
   });
 
   it("returns to login after sign-out", async () => {
