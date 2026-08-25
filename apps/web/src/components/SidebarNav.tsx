@@ -68,16 +68,16 @@ export function MobileNav() {
   const items = user ? navigationForRole(user.role) : [];
 
   return (
-    <nav aria-label="Điều hướng di động" className="overflow-x-auto border-t border-border bg-surface md:hidden">
-      <div className="flex min-w-max gap-1 px-2 py-2">
+    <nav aria-label="Điều hướng di động" className="sticky bottom-0 z-10 snap-x overflow-x-auto border-t border-border bg-surface/95 shadow-panel backdrop-blur md:hidden">
+      <div className="flex min-w-max gap-1 px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
         {items.map((item) => {
           const Icon = item.icon;
 
           return (
             <NavLink
               className={({ isActive }) =>
-                `flex h-11 shrink-0 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors ${
-                  isActive ? "bg-surface-muted text-primary" : "text-text-muted hover:bg-surface-muted hover:text-text"
+                `flex h-11 shrink-0 snap-start items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors ${
+                  isActive ? "bg-primary/10 text-primary ring-1 ring-primary/20" : "text-text-muted hover:bg-surface-muted hover:text-text"
                 }`
               }
               end={item.to.split("/").length === 3}

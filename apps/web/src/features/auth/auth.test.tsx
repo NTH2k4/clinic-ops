@@ -174,6 +174,24 @@ describe("authentication and role routing", () => {
     expect(screen.getByRole("heading", { name: "Dịch vụ" })).toBeInTheDocument();
   });
 
+  it("keeps admin mobile navigation sticky and scannable with longer role menus", async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Admin Demo/i }));
+
+    const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng di động" });
+    expect(mobileNavigation).toHaveClass("sticky", "bottom-0");
+    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(6);
+    expect(within(mobileNavigation).getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
+
+    await user.click(within(mobileNavigation).getByRole("link", { name: "Audit log" }));
+
+    expect(screen.getByRole("heading", { name: "Audit log" })).toBeInTheDocument();
+    expect(within(mobileNavigation).getByRole("link", { name: "Audit log" })).toHaveAttribute("aria-current", "page");
+  });
+
   it("lets desktop users collapse and expand the sidebar without losing navigation access", async () => {
     const user = userEvent.setup();
 

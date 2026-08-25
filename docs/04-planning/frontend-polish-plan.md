@@ -65,6 +65,7 @@ Phạm vi:
 
 - Đã triển khai bước đầu: desktop sidebar có nút thu gọn/mở rộng, trạng thái `aria-expanded`, link vẫn accessible khi sidebar thu gọn và active navigation nổi bật hơn.
 - Đã polish TopBar notification panel: header có summary số thông báo/chưa đọc, nút đóng dialog rõ ràng, unread item nổi bật hơn và reference action vẫn điều hướng theo vai trò.
+- Đã polish mobile bottom navigation: sticky bottom, scroll ngang ổn hơn cho role nhiều mục, active navigation đồng bộ với sidebar.
 - Tăng độ rõ của active navigation.
 - Kiểm tra mobile bottom navigation với các role dài.
 - Tinh chỉnh TopBar notification panel để dễ scan hơn.
