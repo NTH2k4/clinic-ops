@@ -2,6 +2,7 @@
 
 ## 2026-08-25
 
+- Hoàn thiện P2 Patient Portal polish ở automated scope: làm rõ disabled slots, conflict/success state, appointment history tab counts và cancel feedback.
 - Bắt đầu P2 Patient Portal polish: cải thiện service cards/specialty filter, thêm booking progress cue và hiển thị review thời gian theo định dạng `ngày/tháng/năm`.
 - Hoàn thiện thêm P1 App Shell/Navigation polish: mobile bottom navigation sticky, scroll ngang ổn hơn cho role nhiều mục và active state đồng bộ với sidebar.
 - Tiếp tục P1 App Shell/Navigation polish: tinh chỉnh TopBar notification panel với summary số thông báo/chưa đọc, nút đóng dialog, unread highlight và test reference navigation.

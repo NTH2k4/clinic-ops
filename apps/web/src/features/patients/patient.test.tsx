@@ -60,6 +60,8 @@ describe("patient portal", () => {
     expect(mockStore.appointments.at(-1)?.createdByUserId).toBe("user-patient-1");
 
     expect(await screen.findByText("Chờ xác nhận")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem lịch của tôi" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Đặt lịch khác" })).toBeInTheDocument();
     expect(mockStore.appointments.at(-1)).toMatchObject({
       doctorId: "doctor-2",
       serviceId: "service-cardiology-consult",
@@ -84,7 +86,7 @@ describe("patient portal", () => {
     await user.type(screen.getByLabelText("Lý do khám"), "Cần khám lại");
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
 
-    expect(await screen.findByText("Slot này đã có appointment active")).toBeInTheDocument();
+    expect(await screen.findByText("Khung giờ vừa được đặt bởi lịch hẹn khác. Vui lòng chọn khung giờ khác.")).toBeInTheDocument();
   });
 
   it("disables a slot that overlaps an active appointment with a different start time", async () => {
@@ -100,6 +102,7 @@ describe("patient portal", () => {
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
 
+    expect(screen.getByText("Khung giờ màu xám là không khả dụng do lịch làm việc hoặc lịch hẹn đã trùng.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /08:30/i })).toBeDisabled();
   });
 
@@ -136,14 +139,18 @@ describe("patient portal", () => {
     const user = await signInAsPatient();
 
     await user.click(within(screen.getByRole("navigation", { name: "Điều hướng chính" })).getByRole("link", { name: "Lịch của tôi" }));
-    expect(screen.getByRole("tab", { name: "Sắp tới" })).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Hủy lịch" }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("tab", { name: "Sắp tới (4)" })).toBeInTheDocument();
+    expect(screen.getByText("Bạn có 4 lịch hẹn sắp tới.")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Hủy lịch .+/ }).length).toBeGreaterThan(0);
+    await user.click(screen.getAllByRole("button", { name: /Hủy lịch .+/ })[0]);
+    expect(await screen.findByText("Lịch hẹn đã được hủy.")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Sắp tới (3)" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: "Đã qua" }));
-    expect(screen.queryByRole("button", { name: "Hủy lịch" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "Đã qua (1)" }));
+    expect(screen.queryByRole("button", { name: /Hủy lịch .+/ })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: "Đã hủy" }));
-    const cancelledList = screen.getByRole("tabpanel", { name: "Đã hủy" });
-    expect(within(cancelledList).queryByRole("button", { name: "Hủy lịch" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "Đã hủy (1)" }));
+    const cancelledList = screen.getByRole("tabpanel", { name: "Đã hủy (1)" });
+    expect(within(cancelledList).queryByRole("button", { name: /Hủy lịch .+/ })).not.toBeInTheDocument();
   });
 });

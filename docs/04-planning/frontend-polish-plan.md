@@ -85,8 +85,8 @@ Phạm vi:
 
 - Đã cải thiện service cards và specialty filter: summary số dịch vụ/chuyên khoa, filter group accessible, card có hierarchy rõ hơn và CTA đặt lịch theo từng dịch vụ.
 - Đã làm booking step hierarchy rõ hơn: thêm progress cue trên form và review thời gian theo định dạng `ngày/tháng/năm`.
-- Tăng clarity cho disabled slots và conflict/success state.
-- Cải thiện appointment history tabs và cancel action.
+- Đã tăng clarity cho disabled slots và conflict/success state: helper text cho slot không khả dụng, conflict message thân thiện hơn và success state có next actions.
+- Đã cải thiện appointment history tabs và cancel action: tab có count, summary theo nhóm lịch, cancel action có accessible name theo lịch hẹn và feedback sau khi hủy.
 
 Verification:
 
