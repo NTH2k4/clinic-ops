@@ -627,6 +627,8 @@ git commit -m "feat(web): add auth routing and app shell"
 
 ### Task 6: Implement Patient Portal
 
+**Trạng thái:** Hoàn thành.
+
 **Files:**
 - Create: `apps/web/src/features/patients/PatientHome.tsx`
 - Create: `apps/web/src/features/patients/ServicesPage.tsx`
@@ -708,6 +710,8 @@ git commit -m "feat(web): add patient portal"
 
 ### Task 7: Implement Doctor Workspace
 
+**Trạng thái:** Hoàn thành.
+
 **Files:**
 - Create: `apps/web/src/features/doctors/DoctorDashboard.tsx`
 - Create: `apps/web/src/features/doctors/DoctorDaySchedule.tsx`
@@ -776,6 +780,8 @@ git commit -m "feat(web): add doctor workspace"
 ```
 
 ### Task 8: Implement Operations Workspace
+
+**Trạng thái:** Hoàn thành.
 
 **Files:**
 - Create: `apps/web/src/features/operations/OperationsDashboard.tsx`
@@ -846,6 +852,8 @@ git commit -m "feat(web): add operations workspace"
 ```
 
 ### Task 9: Implement Admin, Audit And Notifications
+
+**Trạng thái:** Hoàn thành.
 
 **Files:**
 - Create: `apps/web/src/features/admin/AdminDashboard.tsx`
@@ -918,6 +926,8 @@ git commit -m "feat(web): add admin audit and notifications"
 ```
 
 ### Task 10: Add Frontend README, E2E Smoke Tests And Responsive QA
+
+**Trạng thái:** Hoàn thành. E2E cover patient booking ở mobile 360px, doctor start/complete và operations check-in ở desktop; README ghi responsive QA và verification commands.
 
 **Files:**
 - Create: `apps/web/README.md`

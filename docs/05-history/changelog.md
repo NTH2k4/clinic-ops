@@ -2,6 +2,8 @@
 
 ## 2026-08-25
 
+- Hoàn thành frontend MVP tasks 6-10: patient portal, doctor workspace, operations workspace, admin/audit/notifications, README và browser-level smoke verification.
+- Bổ sung Playwright smoke tests cho booking patient ở mobile 360px, doctor start/complete và operations check-in ở desktop; README ghi rõ responsive QA và verification commands.
 - Chốt các open questions trong frontend MVP spec: appointment status mặc định, doctor selection, staff workspace và theme switcher.
 - Bổ sung frontend design system baseline: design principles, tokens, layout, component rules, accessibility và responsive behavior.
 - Củng cố yêu cầu tài liệu viết bằng tiếng Việt và rà soát các nhãn/câu tiếng Anh không cần thiết trong docs.

@@ -31,7 +31,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | SEQUENCE | Sequence cho flow chính | `docs/02-product/workflows.md`, `docs/02-product/appointment-states.md` | Có flow text, chưa có sequence chi tiết |
 | DATABASE/ERD | Schema và quan hệ database | `docs/03-architecture/data-model.md` | Có conceptual model, chưa phải ERD |
 | Frontend DESIGN | Design tokens, layout, accessibility, responsive rules | `docs/03-architecture/frontend-design-system.md` | Có bản baseline |
-| Frontend README | Setup, scripts, proxy, verification | Chưa có vì chưa scaffold app | Sẽ tạo trong `apps/web/README.md` |
+| Frontend README | Setup, scripts, mock API boundary, auth/session và verification | `apps/web/README.md` | Hoàn thành cho frontend MVP |
 
 ## Đánh Giá Hiện Tại
 
@@ -46,6 +46,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có frontend MVP spec với personas, routes, screen specs, workflows, MoSCoW priority và acceptance criteria.
 - Có frontend design system baseline cho design principles, tokens, layout, component rules, accessibility và responsive behavior.
 - Có frontend implementation plan chi tiết để scaffold `apps/web` và triển khai frontend MVP theo task.
+- Đã có frontend MVP chạy với mock data, README setup/verification và Playwright smoke coverage cho patient, doctor và operations workflows.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -62,6 +63,6 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Scaffold `apps/web` theo `docs/04-planning/frontend-implementation-plan.md`.
-2. Triển khai frontend MVP task-by-task bằng subagent-driven hoặc executing-plans.
-3. Sau khi frontend prototype ổn, viết API spec, sequence và backend design.
+1. Dùng frontend MVP và Playwright smoke suite làm baseline khi tinh chỉnh workflow và responsive UI.
+2. Viết API spec, sequence và backend design để thay mock service boundary bằng API client.
+3. Bổ sung traceability matrix và SRS khi API contract và backend workflow đủ ổn định.
