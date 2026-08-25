@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
+import { ClinicDateField } from "../../components/ClinicDateField";
 import { DetailDrawer } from "../../components/DetailDrawer";
 import { EmptyState } from "../../components/EmptyState";
 import { addDays, formatDateInputValue, isDateInputValue, toDateInputValue } from "../../lib/dateTime";
@@ -52,10 +53,7 @@ export function DoctorDaySchedule() {
               Ngày sau
               <ChevronRight aria-hidden="true" className="h-4 w-4" />
             </button>
-            <label className="grid gap-1 text-sm font-medium text-text" htmlFor="doctor-day-date">
-              Ngày xem lịch
-              <input className="h-10 rounded-md border border-border bg-surface px-3 text-text" id="doctor-day-date" onChange={(event) => updateDate(event.target.value)} type="date" value={date} />
-            </label>
+            <ClinicDateField id="doctor-day-date" inputClassName="h-10" label="Ngày xem lịch" labelClassName="grid gap-1 text-sm font-medium text-text" onChange={updateDate} value={date} />
           </div>
         </div>
       </div>

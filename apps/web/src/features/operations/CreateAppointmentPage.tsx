@@ -1,5 +1,6 @@
 import { CheckCircle2, Search, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ClinicDateField } from "../../components/ClinicDateField";
 import { formatDateInputValue } from "../../lib/dateTime";
 import { createId } from "../../lib/ids";
 import { mockStore } from "../../mocks/mockStore";
@@ -98,7 +99,7 @@ export function CreateAppointmentPage() {
           <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel">
             <legend className="px-1 text-base font-semibold text-text">3. Chọn thời gian</legend>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <label className="text-sm font-medium text-text">Ngày khám<input className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" onChange={(event) => { setDate(event.target.value); setTime(""); setCreated(false); }} type="date" value={date} /></label>
+              <ClinicDateField id="operations-create-date" label="Ngày khám" labelClassName="text-sm font-medium text-text" onChange={(nextDate) => { setDate(nextDate); setTime(""); setCreated(false); }} value={date} />
               <label className="text-sm font-medium text-text">Giờ khám<select className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" disabled={!selectedService || !doctorId} onChange={(event) => { setTime(event.target.value); setCreated(false); }} value={time}><option value="">Chọn giờ</option>{appointmentTimes.map((appointmentTime) => <option disabled={!selectedService || !doctorId || !isDoctorAvailableForSlot(doctorId, date, appointmentTime, selectedService.durationMinutes)} key={appointmentTime} value={appointmentTime}>{appointmentTime}</option>)}</select></label>
             </div>
             <p className="mt-3 text-sm text-text-muted">Chỉ các khung giờ còn khả dụng theo lịch làm việc và lịch hẹn hiện có mới được chọn.</p>

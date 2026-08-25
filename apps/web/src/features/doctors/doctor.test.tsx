@@ -73,20 +73,20 @@ describe("doctor workspace", () => {
 
     await user.click(within(mainNavigation).getByRole("link", { name: "Lịch ngày" }));
     expect(screen.getByRole("heading", { name: "Lịch ngày" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("2026-08-25");
+    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("25/08/2026");
     expect(screen.getByText("25/08/2026")).toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(8);
     await user.click(screen.getByRole("button", { name: "Ngày trước" }));
-    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("2026-08-24");
+    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("24/08/2026");
     expect(screen.getByText("24/08/2026")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Hôm nay" }));
-    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("2026-08-25");
+    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("25/08/2026");
     await user.click(screen.getByRole("button", { name: "Ngày sau" }));
-    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("2026-08-26");
+    expect(screen.getByLabelText("Ngày xem lịch")).toHaveValue("26/08/2026");
 
     await user.click(within(mainNavigation).getByRole("link", { name: "Lịch tuần" }));
     expect(screen.getByRole("heading", { name: "Lịch tuần" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-24");
+    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("24/08/2026");
     expect(screen.getByText("Tuần 35, 24/08/2026 - 30/08/2026")).toBeInTheDocument();
     const daySelector = screen.getByLabelText("Chọn ngày trong tuần");
     const days = within(daySelector).getAllByRole("button");
@@ -95,33 +95,33 @@ describe("doctor workspace", () => {
     await user.click(days[1]);
     expect(days[1]).toHaveAttribute("aria-pressed", "true");
     await user.click(screen.getByRole("button", { name: "Tuần trước" }));
-    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-17");
+    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("17/08/2026");
     expect(screen.getByText("Tuần 34, 17/08/2026 - 23/08/2026")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Tuần hiện tại" }));
-    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-24");
+    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("24/08/2026");
     await user.click(screen.getByRole("button", { name: "Tuần sau" }));
-    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("2026-08-31");
+    expect(screen.getByLabelText("Bắt đầu tuần")).toHaveValue("31/08/2026");
     expect(screen.getByText("Tuần 36, 31/08/2026 - 06/09/2026")).toBeInTheDocument();
   });
 
-  it("keeps native day and week date inputs usable when changed or cleared", async () => {
+  it("keeps day and week date inputs usable with Vietnamese quick entry", async () => {
     const user = await signInAsDoctor();
     const mainNavigation = screen.getByRole("navigation", { name: "Điều hướng chính" });
 
     await user.click(within(mainNavigation).getByRole("link", { name: "Lịch ngày" }));
     const dayInput = screen.getByLabelText("Ngày xem lịch");
     fireEvent.change(dayInput, { target: { value: "" } });
-    expect(dayInput).toHaveValue("2026-08-25");
-    fireEvent.change(dayInput, { target: { value: "2026-09-02" } });
-    expect(dayInput).toHaveValue("2026-09-02");
+    expect(dayInput).toHaveValue("");
+    fireEvent.change(dayInput, { target: { value: "02092026" } });
+    expect(dayInput).toHaveValue("02/09/2026");
     expect(screen.getByText("02/09/2026")).toBeInTheDocument();
 
     await user.click(within(mainNavigation).getByRole("link", { name: "Lịch tuần" }));
     const weekInput = screen.getByLabelText("Bắt đầu tuần");
     fireEvent.change(weekInput, { target: { value: "" } });
-    expect(weekInput).toHaveValue("2026-08-24");
-    fireEvent.change(weekInput, { target: { value: "2026-09-02" } });
-    expect(weekInput).toHaveValue("2026-08-31");
+    expect(weekInput).toHaveValue("");
+    fireEvent.change(weekInput, { target: { value: "02092026" } });
+    expect(weekInput).toHaveValue("31/08/2026");
     expect(screen.getByText("Tuần 36, 31/08/2026 - 06/09/2026")).toBeInTheDocument();
   });
 

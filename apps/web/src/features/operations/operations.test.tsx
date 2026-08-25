@@ -67,7 +67,8 @@ describe("operations workspace", () => {
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
     await user.clear(screen.getByLabelText("Ngày khám"));
-    await user.type(screen.getByLabelText("Ngày khám"), "2026-08-26");
+    await user.type(screen.getByLabelText("Ngày khám"), "26082026");
+    expect(screen.getByLabelText("Ngày khám")).toHaveValue("26/08/2026");
     await user.selectOptions(screen.getByLabelText("Giờ khám"), "09:00");
     await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
     expect(screen.getByText("Đã xác nhận")).toBeInTheDocument();
@@ -80,7 +81,7 @@ describe("operations workspace", () => {
 
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
-    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "2026-08-30" } });
+    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "30082026" } });
 
     expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "09:00" })).toBeDisabled();
   });
@@ -109,7 +110,7 @@ describe("operations workspace", () => {
     await user.click(screen.getByRole("button", { name: /Nguyen Minh Anh/i }));
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
-    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "2026-08-25" } });
+    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "25082026" } });
     expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "08:00" })).toBeDisabled();
   });
 
@@ -138,7 +139,8 @@ describe("operations workspace", () => {
 
     await user.selectOptions(screen.getByLabelText("Chuyên khoa"), "specialty-cardiology");
     expect(screen.getByText(/Chuyên khoa: Tim mạch/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Ngày"), { target: { value: "2026-08-26" } });
+    fireEvent.change(screen.getByLabelText("Ngày"), { target: { value: "26082026" } });
+    expect(screen.getByLabelText("Ngày")).toHaveValue("26/08/2026");
     expect(screen.getByText("Ngày: 26/08/2026")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
@@ -151,7 +153,7 @@ describe("operations workspace", () => {
     const user = userEvent.setup();
     renderWithProviders(<OperationsCalendar />);
 
-    fireEvent.change(screen.getByLabelText("Ngày"), { target: { value: "2026-08-26" } });
+    fireEvent.change(screen.getByLabelText("Ngày"), { target: { value: "26082026" } });
     await user.selectOptions(screen.getByLabelText("Chuyên khoa"), "specialty-cardiology");
     await user.selectOptions(screen.getByLabelText("Trạng thái"), "confirmed");
 

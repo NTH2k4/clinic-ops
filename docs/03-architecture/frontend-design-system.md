@@ -371,6 +371,15 @@ Quy tắc:
 - Unread state dùng indicator kèm text weight, không chỉ dùng màu.
 - Empty state nên ngắn và trung tính.
 
+### Date Fields
+
+Quy tắc:
+
+- Các field nhập ngày phải hiển thị định dạng Việt Nam `dd/MM/yyyy`, không phụ thuộc locale của trình duyệt.
+- Người dùng có thể nhập nhanh 8 chữ số như `25082026`; UI tự định dạng thành `25/08/2026`.
+- Date picker chỉ là cách chọn phụ; state nội bộ và mock API boundary vẫn dùng ISO `yyyy-MM-dd`.
+- Ngày không hợp lệ phải không được commit vào state nghiệp vụ.
+
 ## Hướng Dẫn Theo Màn Hình
 
 ### Sign In

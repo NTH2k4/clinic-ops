@@ -111,11 +111,25 @@ describe("patient portal", () => {
 
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
-    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "2026-08-30" } });
+    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "30082026" } });
     await user.type(screen.getByLabelText("Lý do khám"), "Khám vào ngày nghỉ");
 
     expect(screen.getByRole("button", { name: /09:00/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeDisabled();
+  });
+
+  it("does not leave the booking date field out of sync when quick entry is before the minimum date", async () => {
+    const user = await signInAsPatient();
+
+    await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
+    await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
+    const dateInput = screen.getByLabelText("Ngày khám");
+
+    fireEvent.change(dateInput, { target: { value: "25082026" } });
+    fireEvent.blur(dateInput);
+
+    expect(dateInput).toHaveValue("26/08/2026");
+    expect(screen.getByRole("alert")).toHaveTextContent("Ngày nằm ngoài khoảng cho phép.");
   });
 
   it("keeps Monday schedule availability stable across browser timezones", async () => {
@@ -127,7 +141,7 @@ describe("patient portal", () => {
       await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
       await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
       await user.click(screen.getByLabelText("Any available doctor"));
-      fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "2026-08-31" } });
+      fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "31082026" } });
 
       expect(screen.getByRole("button", { name: /09:00/i })).toBeEnabled();
     } finally {

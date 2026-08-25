@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
+import { ClinicDateField } from "../../components/ClinicDateField";
 import { DetailDrawer } from "../../components/DetailDrawer";
 import { EmptyState } from "../../components/EmptyState";
 import { addDays, formatDate, formatDateRange, getIsoWeekNumber, getWeekStartDate, isDateInputValue, toDateInputValue } from "../../lib/dateTime";
@@ -68,10 +69,7 @@ export function DoctorWeekSchedule() {
               Tuần sau
               <ChevronRight aria-hidden="true" className="h-4 w-4" />
             </button>
-            <label className="grid gap-1 text-sm font-medium text-text" htmlFor="doctor-week-start">
-              Bắt đầu tuần
-              <input className="h-10 rounded-md border border-border bg-surface px-3 text-text" id="doctor-week-start" onChange={(event) => updateWeekStart(event.target.value)} type="date" value={weekStart} />
-            </label>
+            <ClinicDateField id="doctor-week-start" inputClassName="h-10" label="Bắt đầu tuần" labelClassName="grid gap-1 text-sm font-medium text-text" onChange={updateWeekStart} value={weekStart} />
           </div>
         </div>
       </div>
