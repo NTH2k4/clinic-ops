@@ -56,16 +56,26 @@ describe("admin workspace", () => {
   it("shows the signed-in admin notification and opens its audit reference", async () => {
     const user = userEvent.setup();
     mockStore.notifications[0].recipientUserId = "user-admin-1";
+    mockStore.notifications[1].recipientUserId = "user-admin-1";
+    mockStore.notifications[1].readAt = "2026-08-24T12:00:00+07:00";
     renderWithProviders(<App />);
 
     await user.click(screen.getByRole("button", { name: /Admin Demo/i }));
     await user.click(screen.getByRole("button", { name: "Thông báo" }));
 
+    const notificationDialog = screen.getByRole("dialog", { name: "Thông báo" });
+    expect(within(notificationDialog).getByText("2 thông báo, 1 chưa đọc")).toBeInTheDocument();
     expect(screen.getByText("Lịch hẹn đã được xác nhận")).toBeInTheDocument();
-    expect(screen.getByText("Vui lòng kiểm tra thông tin lịch hẹn trong CareFlow.")).toBeInTheDocument();
+    expect(screen.getByText("Có lịch hẹn mới")).toBeInTheDocument();
+    expect(screen.getAllByText("Vui lòng kiểm tra thông tin lịch hẹn trong CareFlow.")).toHaveLength(2);
     expect(screen.getByText("09:00 24/08/2026")).toBeInTheDocument();
     expect(screen.getByLabelText("Chưa đọc")).toBeInTheDocument();
-    expect(screen.getByText(/appointment/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Đã đọc")).toBeInTheDocument();
+    await user.click(within(notificationDialog).getByRole("button", { name: "Đóng thông báo" }));
+    expect(screen.queryByRole("dialog", { name: "Thông báo" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Thông báo" }));
+    expect(screen.getByRole("button", { name: "Mở appointment appointment-1" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Mở appointment appointment-1" }));
     expect(screen.getByRole("heading", { name: "Audit log" })).toBeInTheDocument();
   });

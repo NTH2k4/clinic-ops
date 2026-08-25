@@ -1,4 +1,4 @@
-import { Bell, LogOut } from "lucide-react";
+import { Bell, LogOut, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthProvider";
@@ -54,14 +54,52 @@ export function TopBar() {
             <span>Thông báo</span>
             {unreadCount ? <span aria-hidden="true" className="flex size-5 items-center justify-center rounded-full bg-danger text-xs font-semibold text-white">{unreadCount}</span> : null}
           </button>
-          {notificationsOpen ? <section aria-label="Thông báo" className="absolute right-0 z-20 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-md border border-border bg-surface p-3 shadow-panel" role="dialog">
-            <h2 className="text-base font-semibold text-text">Thông báo</h2>
-            <ul className="mt-2 max-h-96 divide-y divide-border overflow-y-auto">
-              {notifications.length ? notifications.map((notification) => <li className={`py-3 ${notification.readAt ? "font-normal" : "font-semibold"}`} key={notification.id}>
-                <div className="flex items-start gap-2"><span aria-label={notification.readAt ? "Đã đọc" : "Chưa đọc"} className={`mt-1.5 size-2 shrink-0 rounded-full ${notification.readAt ? "bg-border" : "bg-primary"}`} /><div className="min-w-0"><p className="text-sm text-text">{notification.title}</p><p className="mt-1 text-sm font-normal text-text-muted">{notification.message}</p><p className="mt-1 text-xs font-normal text-text-muted">{formatDateTime(notification.createdAt)}</p>{notification.referenceType && user ? <button className="mt-2 text-sm font-semibold text-primary hover:underline" onClick={() => { setNotificationsOpen(false); navigate(notificationDestination(notification.referenceType, user.role)); }} type="button">Mở {notification.referenceType} {notification.referenceId}</button> : null}</div></div>
-              </li>) : <li className="py-3 text-sm text-text-muted">Không có thông báo.</li>}
-            </ul>
-          </section> : null}
+          {notificationsOpen ? (
+            <section aria-label="Thông báo" className="fixed inset-x-4 top-16 z-20 rounded-md border border-border bg-surface shadow-panel sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-[min(22rem,calc(100vw-2rem))]" role="dialog">
+              <div className="flex items-start justify-between gap-3 border-b border-border p-4">
+                <div>
+                  <h2 className="text-base font-semibold text-text">Thông báo</h2>
+                  <p className="mt-1 text-sm text-text-muted">
+                    {notifications.length} thông báo, {unreadCount} chưa đọc
+                  </p>
+                </div>
+                <button
+                  aria-label="Đóng thông báo"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+                  onClick={() => setNotificationsOpen(false)}
+                  type="button"
+                >
+                  <X aria-hidden="true" size={17} />
+                </button>
+              </div>
+              <ul className="max-h-96 divide-y divide-border overflow-y-auto">
+                {notifications.length ? notifications.map((notification) => (
+                  <li className={`px-4 py-3 ${notification.readAt ? "font-normal" : "bg-primary/5 font-semibold"}`} key={notification.id}>
+                    <div className="flex items-start gap-3">
+                      <span aria-label={notification.readAt ? "Đã đọc" : "Chưa đọc"} className={`mt-1.5 size-2.5 shrink-0 rounded-full ${notification.readAt ? "bg-border" : "bg-primary"}`} />
+                      <div className="min-w-0">
+                        <p className="text-sm text-text">{notification.title}</p>
+                        <p className="mt-1 text-sm font-normal text-text-muted">{notification.message}</p>
+                        <p className="mt-1 text-xs font-normal text-text-muted">{formatDateTime(notification.createdAt)}</p>
+                        {notification.referenceType && user ? (
+                          <button
+                            className="mt-2 text-sm font-semibold text-primary transition-colors hover:text-primary-hover hover:underline"
+                            onClick={() => {
+                              setNotificationsOpen(false);
+                              navigate(notificationDestination(notification.referenceType, user.role));
+                            }}
+                            type="button"
+                          >
+                            Mở {notification.referenceType} {notification.referenceId}
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </li>
+                )) : <li className="px-4 py-3 text-sm text-text-muted">Không có thông báo.</li>}
+              </ul>
+            </section>
+          ) : null}
         </div>
         <button
           aria-label="Đăng xuất"
