@@ -1,7 +1,7 @@
 import { createId } from "../../lib/ids";
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment, AppointmentStatus, AuditEvent } from "../../types/models";
-import { getValidNextStatuses, hasDoctorConflict } from "./appointmentRules";
+import { getValidNextStatuses, hasDoctorConflict, isActiveAppointmentStatus } from "./appointmentRules";
 
 export interface AppointmentFilters {
   patientId?: string;
@@ -47,6 +47,10 @@ function serviceError(code: AppointmentServiceError["code"], message: string): A
 
 function now(): string {
   return new Date().toISOString();
+}
+
+function snapshot(appointment: Appointment): Appointment {
+  return structuredClone(appointment);
 }
 
 function getServiceDuration(serviceId: string): number {
@@ -132,19 +136,21 @@ function createAppointment(input: CreateAppointmentInput, status: "requested" | 
   mockStore.appointments.push(appointment);
   writeAuditEvent(input.actorUserId, appointment.id, "appointment_created");
 
-  return appointment;
+  return snapshot(appointment);
 }
 
 export const appointmentService = {
   async listAppointments(filters?: AppointmentFilters): Promise<Appointment[]> {
-    return mockStore.appointments.filter((appointment) =>
-      (!filters?.patientId || appointment.patientId === filters.patientId)
-      && (!filters?.doctorId || appointment.doctorId === filters.doctorId)
-      && (!filters?.serviceId || appointment.serviceId === filters.serviceId)
-      && (!filters?.status || appointment.status === filters.status)
-      && (!filters?.startAt || appointment.startAt >= filters.startAt)
-      && (!filters?.endAt || appointment.endAt <= filters.endAt),
-    );
+    return mockStore.appointments
+      .filter((appointment) =>
+        (!filters?.patientId || appointment.patientId === filters.patientId)
+        && (!filters?.doctorId || appointment.doctorId === filters.doctorId)
+        && (!filters?.serviceId || appointment.serviceId === filters.serviceId)
+        && (!filters?.status || appointment.status === filters.status)
+        && (!filters?.startAt || appointment.startAt >= filters.startAt)
+        && (!filters?.endAt || appointment.endAt <= filters.endAt),
+      )
+      .map(snapshot);
   },
 
   async createPatientAppointment(input: CreatePatientAppointmentInput): Promise<Appointment> {
@@ -178,11 +184,16 @@ export const appointmentService = {
     });
     writeAuditEvent(actorUserId, id, "appointment_updated", { fromStatus, toStatus: status });
 
-    return appointment;
+    return snapshot(appointment);
   },
 
   async rescheduleAppointment(id: string, input: RescheduleAppointmentInput): Promise<Appointment> {
     const appointment = findAppointment(id);
+
+    if (!isActiveAppointmentStatus(appointment.status)) {
+      throw serviceError("INVALID_STATUS_TRANSITION", "Không thể đổi lịch hẹn đã kết thúc.");
+    }
+
     const serviceId = input.serviceId ?? appointment.serviceId;
     const candidate = {
       ...appointment,
@@ -206,11 +217,16 @@ export const appointmentService = {
       newEndAt: appointment.endAt,
     });
 
-    return appointment;
+    return snapshot(appointment);
   },
 
   async cancelAppointment(id: string, input: CancelAppointmentInput): Promise<Appointment> {
     const appointment = findAppointment(id);
+
+    if (!getValidNextStatuses(appointment.status).includes("cancelled")) {
+      throw serviceError("INVALID_STATUS_TRANSITION", "Chuyển trạng thái lịch hẹn không hợp lệ.");
+    }
+
     const timestamp = now();
     Object.assign(appointment, {
       status: "cancelled",
@@ -223,6 +239,6 @@ export const appointmentService = {
       ...(input.cancellationReason ? { cancellationReason: input.cancellationReason } : {}),
     });
 
-    return appointment;
+    return snapshot(appointment);
   },
 };

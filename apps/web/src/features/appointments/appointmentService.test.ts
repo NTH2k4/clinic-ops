@@ -92,6 +92,30 @@ describe("appointmentService", () => {
     ).rejects.toMatchObject({ code: "INVALID_STATUS_TRANSITION" });
   });
 
+  it.each(["completed", "cancelled", "no_show"] as const)(
+    "rejects cancellation from %s appointments",
+    async (status) => {
+      const terminalAppointment = mockStore.appointments.find((appointment) => appointment.status === status);
+      expect(terminalAppointment).toBeDefined();
+
+      await expect(
+        appointmentService.cancelAppointment(terminalAppointment!.id, { actorUserId: "user-receptionist-1" }),
+      ).rejects.toMatchObject({ code: "INVALID_STATUS_TRANSITION" });
+    },
+  );
+
+  it("rejects rescheduling a terminal appointment", async () => {
+    const completed = mockStore.appointments.find((appointment) => appointment.status === "completed");
+    expect(completed).toBeDefined();
+
+    await expect(
+      appointmentService.rescheduleAppointment(completed!.id, {
+        startAt: "2026-08-25T15:00:00+07:00",
+        actorUserId: "user-receptionist-1",
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_STATUS_TRANSITION" });
+  });
+
   it("reschedules with the same id, recalculates the end time, and records old and new times", async () => {
     const requested = mockStore.appointments.find((appointment) => appointment.status === "requested");
     expect(requested).toBeDefined();
@@ -138,5 +162,59 @@ describe("appointmentService", () => {
       actorUserId: "user-receptionist-1",
       entityId: requested!.id,
     });
+  });
+
+  it("returns a list snapshot that cannot mutate the store", async () => {
+    const [appointment] = await appointmentService.listAppointments();
+    const originalStatus = mockStore.appointments[0].status;
+
+    appointment.status = "cancelled";
+
+    expect(mockStore.appointments[0].status).toBe(originalStatus);
+  });
+
+  it("returns a create snapshot that cannot mutate the store", async () => {
+    const created = await appointmentService.createPatientAppointment(patientInput);
+
+    created.reason = "Thay đổi bên ngoài service";
+
+    expect(mockStore.appointments.find((appointment) => appointment.id === created.id)?.reason).toBe(patientInput.reason);
+  });
+
+  it("returns an update snapshot that cannot mutate the store", async () => {
+    const confirmed = mockStore.appointments.find((appointment) => appointment.status === "confirmed");
+    expect(confirmed).toBeDefined();
+    const updated = await appointmentService.updateAppointmentStatus(confirmed!.id, "checked_in", "user-receptionist-1");
+
+    updated.status = "cancelled";
+
+    expect(mockStore.appointments.find((appointment) => appointment.id === updated.id)?.status).toBe("checked_in");
+  });
+
+  it("returns a reschedule snapshot that cannot mutate the store", async () => {
+    const requested = mockStore.appointments.find((appointment) => appointment.status === "requested");
+    expect(requested).toBeDefined();
+    const rescheduled = await appointmentService.rescheduleAppointment(requested!.id, {
+      startAt: "2026-08-25T15:00:00+07:00",
+      actorUserId: "user-receptionist-1",
+    });
+
+    rescheduled.startAt = "2026-08-25T16:00:00+07:00";
+
+    expect(mockStore.appointments.find((appointment) => appointment.id === rescheduled.id)?.startAt)
+      .toBe("2026-08-25T15:00:00+07:00");
+  });
+
+  it("returns a cancellation snapshot that cannot mutate the store", async () => {
+    const requested = mockStore.appointments.find((appointment) => appointment.status === "requested");
+    expect(requested).toBeDefined();
+    const cancelled = await appointmentService.cancelAppointment(requested!.id, {
+      actorUserId: "user-receptionist-1",
+    });
+
+    cancelled.cancelledAt = "2026-08-25T16:00:00+07:00";
+
+    expect(mockStore.appointments.find((appointment) => appointment.id === cancelled.id)?.cancelledAt)
+      .not.toBe("2026-08-25T16:00:00+07:00");
   });
 });
