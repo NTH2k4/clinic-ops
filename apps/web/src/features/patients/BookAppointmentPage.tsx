@@ -4,65 +4,12 @@ import { useSearchParams } from "react-router-dom";
 import { StatusBadge } from "../../components/StatusBadge";
 import { formatDate, formatTime } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
-import { hasDoctorConflict } from "../appointments/appointmentRules";
+import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
 
 const slotTimes = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
 const bookingDate = "2026-08-26";
-
-function appointmentStart(date: string, time: string): string {
-  return `${date}T${time}:00+07:00`;
-}
-
-function timeToMinutes(time: string): number {
-  const [hour, minute] = time.split(":").map(Number);
-  return hour * 60 + minute;
-}
-
-function calendarDayOfWeek(date: string): number {
-  const [year, month, day] = date.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-}
-
-function appointmentEnd(startAt: string, durationMinutes: number): string {
-  return new Date(new Date(startAt).getTime() + durationMinutes * 60_000).toISOString();
-}
-
-function hasActiveConflict(doctorId: string, startAt: string, durationMinutes: number): boolean {
-  return hasDoctorConflict({
-    appointment: {
-      id: "patient-booking-candidate",
-      doctorId,
-      startAt,
-      endAt: appointmentEnd(startAt, durationMinutes),
-      status: "requested",
-    },
-    appointments: mockStore.appointments,
-  });
-}
-
-function isDoctorAvailableForSlot(doctorId: string, date: string, time: string, durationMinutes: number): boolean {
-  const startMinutes = timeToMinutes(time);
-  const endMinutes = startMinutes + durationMinutes;
-  const dayOfWeek = calendarDayOfWeek(date);
-  const schedules = mockStore.doctorSchedules.filter(
-    (schedule) => schedule.doctorId === doctorId
-      && schedule.status === "active"
-      && schedule.dayOfWeek === dayOfWeek
-      && schedule.effectiveFrom <= date
-      && date <= schedule.effectiveTo,
-  );
-  const isWithinSchedule = (schedule: { startTime: string; endTime: string }) =>
-    timeToMinutes(schedule.startTime) <= startMinutes && endMinutes <= timeToMinutes(schedule.endTime);
-  const overlapsSchedule = (schedule: { startTime: string; endTime: string }) =>
-    startMinutes < timeToMinutes(schedule.endTime) && timeToMinutes(schedule.startTime) < endMinutes;
-  const startAt = appointmentStart(date, time);
-
-  return schedules.some((schedule) => schedule.type === "working" && isWithinSchedule(schedule))
-    && !schedules.some((schedule) => (schedule.type === "blocked" || schedule.type === "leave") && overlapsSchedule(schedule))
-    && !hasActiveConflict(doctorId, startAt, durationMinutes);
-}
 
 export function BookAppointmentPage() {
   const { user } = useAuth();

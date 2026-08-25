@@ -13,6 +13,7 @@ import { MyAppointmentsPage } from "../features/patients/MyAppointmentsPage";
 import { PatientHome } from "../features/patients/PatientHome";
 import { ServicesPage } from "../features/patients/ServicesPage";
 import { RequireAuth } from "../routes/RequireAuth";
+import { RequireRole } from "../routes/RequireRole";
 import { RoleHomeRedirect } from "../routes/RoleHomeRedirect";
 
 function TemporaryRoutePage({ title }: { title: string }) {
@@ -37,10 +38,12 @@ export function AppRoutes() {
           <Route element={<DoctorDashboard />} path="doctor" />
           <Route element={<DoctorDaySchedule />} path="doctor/day" />
           <Route element={<DoctorWeekSchedule />} path="doctor/week" />
-          <Route element={<OperationsDashboard />} path="operations" />
-          <Route element={<QueuePage />} path="operations/queue" />
-          <Route element={<OperationsCalendar />} path="operations/calendar" />
-          <Route element={<CreateAppointmentPage />} path="operations/appointments/new" />
+          <Route element={<RequireRole allowedRoles={["receptionist", "nurse"]} />}>
+            <Route element={<OperationsDashboard />} path="operations" />
+            <Route element={<QueuePage />} path="operations/queue" />
+            <Route element={<OperationsCalendar />} path="operations/calendar" />
+            <Route element={<CreateAppointmentPage />} path="operations/appointments/new" />
+          </Route>
           <Route element={<TemporaryRoutePage title="Admin dashboard" />} path="admin" />
           <Route element={<TemporaryRoutePage title="Doctors" />} path="admin/doctors" />
           <Route element={<TemporaryRoutePage title="Services" />} path="admin/services" />

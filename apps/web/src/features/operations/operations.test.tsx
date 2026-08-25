@@ -50,7 +50,34 @@ describe("operations workspace", () => {
     expect(mockStore.appointments.at(-1)?.status).toBe("confirmed");
   });
 
-  it("shows service conflicts returned when staff creates an appointment", async () => {
+  it("does not offer staff booking slots outside the doctor's working schedule", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<CreateAppointmentPage />);
+
+    await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
+    await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
+    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "2026-08-30" } });
+
+    expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "09:00" })).toBeDisabled();
+  });
+
+  it("does not submit a second appointment after a successful staff creation", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<CreateAppointmentPage />);
+
+    await user.type(screen.getByLabelText("Tìm patient"), "Nguyễn");
+    await user.click(screen.getByRole("button", { name: /Nguyen Minh Anh/i }));
+    await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
+    await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
+    await user.selectOptions(screen.getByLabelText("Giờ khám"), "09:00");
+    await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
+    await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
+
+    expect(mockStore.appointments.filter((appointment) => appointment.startAt === "2026-08-26T09:00:00+07:00")).toHaveLength(1);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("does not offer staff booking slots that conflict with active appointments", async () => {
     const user = userEvent.setup();
     renderWithProviders(<CreateAppointmentPage />);
 
@@ -59,10 +86,7 @@ describe("operations workspace", () => {
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
     fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "2026-08-25" } });
-    await user.selectOptions(screen.getByLabelText("Giờ khám"), "08:00");
-    await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
-
-    expect(screen.getByRole("alert")).toHaveTextContent("Khung giờ của bác sĩ đã có lịch hẹn.");
+    expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "08:00" })).toBeDisabled();
   });
 
   it("does not render actions for completed queue entries", () => {

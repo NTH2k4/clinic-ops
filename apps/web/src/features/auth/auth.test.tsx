@@ -15,6 +15,12 @@ function GoToRoleHome() {
   );
 }
 
+function GoToOperations() {
+  const navigate = useNavigate();
+
+  return <button onClick={() => navigate("/app/operations/queue")} type="button">Go to operations</button>;
+}
+
 afterEach(() => {
   cleanup();
 });
@@ -81,6 +87,37 @@ describe("authentication and role routing", () => {
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "nurse");
     await user.click(screen.getByRole("button", { name: "Go to role home" }));
     expect(screen.getByRole("heading", { name: "Operations Workspace" })).toBeInTheDocument();
+  });
+
+  it("denies non-operations roles direct access to operations routes", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<><App /><GoToOperations /></>);
+
+    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: "Go to operations" }));
+    expect(screen.getByText("Trang chính patient")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
+    await user.click(screen.getByRole("button", { name: "Go to operations" }));
+    expect(screen.getByRole("heading", { name: "Không gian bác sĩ" })).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "admin");
+    await user.click(screen.getByRole("button", { name: "Go to operations" }));
+    expect(screen.getByRole("heading", { name: "Admin dashboard" })).toBeInTheDocument();
+  });
+
+  it("allows receptionist and nurse direct access to operations routes", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<><App /><GoToOperations /></>);
+
+    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "receptionist");
+    await user.click(screen.getByRole("button", { name: "Go to operations" }));
+    expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "nurse");
+    await user.click(screen.getByRole("button", { name: "Go to operations" }));
+    expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
   });
 
   it("returns to login after sign-out", async () => {
