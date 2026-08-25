@@ -6,6 +6,7 @@ import { formatDate, toDateInputValue } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment } from "../../types/models";
 import { useAuth } from "../auth/AuthProvider";
+import { DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
 
 function weekDates(startDate: string) {
   const start = new Date(`${startDate}T00:00:00Z`);
@@ -15,7 +16,7 @@ function weekDates(startDate: string) {
 export function DoctorWeekSchedule() {
   const { user } = useAuth();
   const doctor = mockStore.doctors.find((candidate) => candidate.userId === user?.id);
-  const [weekStart, setWeekStart] = useState(toDateInputValue(new Date().toISOString()));
+  const [weekStart, setWeekStart] = useState(DOCTOR_PROTOTYPE_TODAY);
   const dates = useMemo(() => weekDates(weekStart), [weekStart]);
   const [selectedDate, setSelectedDate] = useState(weekStart);
   const [appointments, setAppointments] = useState<Appointment[]>(() => mockStore.appointments.filter((appointment) => appointment.doctorId === doctor?.id).sort((left, right) => left.startAt.localeCompare(right.startAt)));

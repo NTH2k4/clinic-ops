@@ -6,11 +6,12 @@ import { toDateInputValue } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment } from "../../types/models";
 import { useAuth } from "../auth/AuthProvider";
+import { DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
 
 export function DoctorDaySchedule() {
   const { user } = useAuth();
   const doctor = mockStore.doctors.find((candidate) => candidate.userId === user?.id);
-  const [date, setDate] = useState(toDateInputValue(new Date().toISOString()));
+  const [date, setDate] = useState(DOCTOR_PROTOTYPE_TODAY);
   const [appointments, setAppointments] = useState<Appointment[]>(() => mockStore.appointments.filter((appointment) => appointment.doctorId === doctor?.id).sort((left, right) => left.startAt.localeCompare(right.startAt)));
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const visibleAppointments = appointments.filter((appointment) => toDateInputValue(appointment.startAt) === date);

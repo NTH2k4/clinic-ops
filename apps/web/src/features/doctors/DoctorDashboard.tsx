@@ -7,6 +7,8 @@ import { formatDateTime, toDateInputValue } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment, AppointmentStatus } from "../../types/models";
 import { useAuth } from "../auth/AuthProvider";
+import { isActiveAppointmentStatus } from "../appointments/appointmentRules";
+import { DOCTOR_PROTOTYPE_NOW, DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
 
 const statusMetrics: Array<{ label: string; status: AppointmentStatus }> = [
   { label: "Waiting", status: "confirmed" },
@@ -24,10 +26,12 @@ function doctorAppointments(doctorId: string | undefined, date: string): Appoint
 export function DoctorDashboard() {
   const { user } = useAuth();
   const doctor = mockStore.doctors.find((candidate) => candidate.userId === user?.id);
-  const today = toDateInputValue(new Date().toISOString());
+  const today = DOCTOR_PROTOTYPE_TODAY;
   const [appointments, setAppointments] = useState(() => doctorAppointments(doctor?.id, today));
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const nextAppointment = appointments.find((appointment) => !["completed", "cancelled", "no_show"].includes(appointment.status));
+  const nextAppointment = appointments.find(
+    (appointment) => isActiveAppointmentStatus(appointment.status) && appointment.startAt > DOCTOR_PROTOTYPE_NOW,
+  );
 
   const counts = useMemo(() => Object.fromEntries(statusMetrics.map(({ status }) => [status, appointments.filter((appointment) => appointment.status === status).length])), [appointments]);
 
