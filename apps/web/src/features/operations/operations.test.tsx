@@ -1,11 +1,12 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, fireEvent, screen, within } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { CreateAppointmentPage } from "./CreateAppointmentPage";
 import { OperationsCalendar } from "./OperationsCalendar";
 import { OperationsDashboard } from "./OperationsDashboard";
 import { QueuePage } from "./QueuePage";
 import { mockStore } from "../../mocks/mockStore";
+import { expectClinicDateField, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
 
 afterEach(() => {
@@ -66,9 +67,7 @@ describe("operations workspace", () => {
     await user.click(screen.getByRole("button", { name: /Nguyen Minh Anh/i }));
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
-    await user.clear(screen.getByLabelText("Ngày khám"));
-    await user.type(screen.getByLabelText("Ngày khám"), "26082026");
-    expect(screen.getByLabelText("Ngày khám")).toHaveValue("26/08/2026");
+    expectClinicDateField("Ngày khám", { day: 26, month: 8, year: 2026 });
     await user.selectOptions(screen.getByLabelText("Giờ khám"), "09:00");
     await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
     expect(screen.getByText("Đã xác nhận")).toBeInTheDocument();
@@ -81,7 +80,7 @@ describe("operations workspace", () => {
 
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
-    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "30082026" } });
+    await setClinicDateDay(user, "Ngày khám", 30);
 
     expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "09:00" })).toBeDisabled();
   });
@@ -110,7 +109,7 @@ describe("operations workspace", () => {
     await user.click(screen.getByRole("button", { name: /Nguyen Minh Anh/i }));
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
-    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "25082026" } });
+    await setClinicDateDay(user, "Ngày khám", 25);
     expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "08:00" })).toBeDisabled();
   });
 
@@ -139,12 +138,13 @@ describe("operations workspace", () => {
 
     await user.selectOptions(screen.getByLabelText("Chuyên khoa"), "specialty-cardiology");
     expect(screen.getByText(/Chuyên khoa: Tim mạch/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Ngày"), { target: { value: "26082026" } });
-    expect(screen.getByLabelText("Ngày")).toHaveValue("26/08/2026");
+    await setClinicDateDay(user, "Ngày", 26);
+    expectClinicDateField("Ngày", { day: 26, month: 8, year: 2026 });
     expect(screen.getByText("Ngày: 26/08/2026")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
     expect(screen.getByLabelText("Chuyên khoa")).toHaveValue("");
+    expectClinicDateField("Ngày", { day: 25, month: 8, year: 2026 });
     expect(screen.queryByText(/Chuyên khoa: Tim mạch/)).not.toBeInTheDocument();
     expect(screen.queryByText("Ngày: 26/08/2026")).not.toBeInTheDocument();
   });
@@ -153,7 +153,7 @@ describe("operations workspace", () => {
     const user = userEvent.setup();
     renderWithProviders(<OperationsCalendar />);
 
-    fireEvent.change(screen.getByLabelText("Ngày"), { target: { value: "26082026" } });
+    await setClinicDateDay(user, "Ngày", 26);
     await user.selectOptions(screen.getByLabelText("Chuyên khoa"), "specialty-cardiology");
     await user.selectOptions(screen.getByLabelText("Trạng thái"), "confirmed");
 

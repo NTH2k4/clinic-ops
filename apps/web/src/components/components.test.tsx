@@ -1,14 +1,20 @@
 import userEvent from "@testing-library/user-event";
-import { screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { useState } from "react";
+import { cleanup, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
+import { ClinicDateField } from "./ClinicDateField";
 import { LoadingState } from "./LoadingState";
 import { MetricCard } from "./MetricCard";
 import { SegmentedControl } from "./SegmentedControl";
 import { StatusBadge } from "./StatusBadge";
 import { renderWithProviders } from "../test/render";
 import type { AppointmentStatus } from "../types/models";
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("shared UI components", () => {
   it("renders appointment status with text and accessible label", () => {
@@ -55,5 +61,41 @@ describe("shared UI components", () => {
     await user.click(screen.getByRole("button", { name: "Tuần" }));
 
     expect(onChange).toHaveBeenCalledWith("week");
+  });
+
+  it("renders clinic dates as editable segments without a native browser date input", () => {
+    const onChange = vi.fn();
+    const { container } = renderWithProviders(<ClinicDateField id="clinic-date" label="Ngày khám" onChange={onChange} value="2026-08-25" />);
+
+    const nativeDateInput = container.querySelector('input[type="date"]');
+    expect(nativeDateInput).toHaveAttribute("tabindex", "-1");
+    expect(container.firstElementChild).toHaveClass("[&>input[type=date]]:hidden");
+    expect(screen.getAllByRole("spinbutton").length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByRole("spinbutton", { name: /^Ngày,/ })).toHaveTextContent("25");
+    expect(screen.getByRole("spinbutton", { name: /^Tháng,/ })).toHaveTextContent("08");
+    expect(screen.getByRole("spinbutton", { name: /^Năm,/ })).toHaveTextContent("2026");
+    expect(screen.getByRole("button", { name: /^Mở lịch Ngày khám/ })).toBeInTheDocument();
+  });
+
+  it("lets users edit one date segment without clearing the full date", async () => {
+    const user = userEvent.setup();
+
+    function DateHarness() {
+      const [value, setValue] = useState("2026-08-25");
+      return (
+        <>
+          <ClinicDateField id="clinic-date" label="Ngày khám" onChange={setValue} value={value} />
+          <output aria-label="Ngày đã chọn">{value}</output>
+        </>
+      );
+    }
+
+    renderWithProviders(<DateHarness />);
+
+    const daySegment = screen.getByRole("spinbutton", { name: /^Ngày,/ });
+    await user.click(daySegment);
+    await user.keyboard("{ArrowUp}");
+
+    expect(screen.getByLabelText("Ngày đã chọn")).toHaveTextContent("2026-08-26");
   });
 });

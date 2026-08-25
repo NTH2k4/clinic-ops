@@ -54,23 +54,6 @@ export function formatDateInputValue(date: string): string {
   return formatDate(`${date}T00:00:00+07:00`);
 }
 
-export function formatClinicDateDraft(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 8);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-}
-
-export function parseClinicDateInput(value: string): string | null {
-  const digits = value.replace(/\D/g, "");
-  if (digits.length !== 8) return null;
-  const day = digits.slice(0, 2);
-  const month = digits.slice(2, 4);
-  const year = digits.slice(4);
-  const isoValue = `${year}-${month}-${day}`;
-  return isDateInputValue(isoValue) ? isoValue : null;
-}
-
 export function formatDateRange(startDate: string, endDate: string): string {
   return `${formatDateInputValue(startDate)} - ${formatDateInputValue(endDate)}`;
 }

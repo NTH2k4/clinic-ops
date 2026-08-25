@@ -1,9 +1,10 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, fireEvent, screen, within } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
 import { appointmentService } from "../appointments/appointmentService";
 import { mockStore } from "../../mocks/mockStore";
+import { expectClinicDateField, getClinicDateSegment, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
 
 afterEach(() => {
@@ -111,25 +112,26 @@ describe("patient portal", () => {
 
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
-    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "30082026" } });
+    await setClinicDateDay(user, "Ngày khám", 30);
     await user.type(screen.getByLabelText("Lý do khám"), "Khám vào ngày nghỉ");
 
+    expectClinicDateField("Ngày khám", { day: 30, month: 8, year: 2026 });
     expect(screen.getByRole("button", { name: /09:00/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeDisabled();
   });
 
-  it("does not leave the booking date field out of sync when quick entry is before the minimum date", async () => {
+  it("prevents the booking date field from moving before its minimum date", async () => {
     const user = await signInAsPatient();
 
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
-    const dateInput = screen.getByLabelText("Ngày khám");
+    const daySegment = getClinicDateSegment("Ngày khám", "day");
 
-    fireEvent.change(dateInput, { target: { value: "25082026" } });
-    fireEvent.blur(dateInput);
+    await user.click(daySegment);
+    await user.keyboard("{ArrowDown}");
 
-    expect(dateInput).toHaveValue("26/08/2026");
-    expect(screen.getByRole("alert")).toHaveTextContent("Ngày nằm ngoài khoảng cho phép.");
+    expectClinicDateField("Ngày khám", { day: 26, month: 8, year: 2026 });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("keeps Monday schedule availability stable across browser timezones", async () => {
@@ -141,7 +143,7 @@ describe("patient portal", () => {
       await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
       await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
       await user.click(screen.getByLabelText("Any available doctor"));
-      fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "31082026" } });
+      await setClinicDateDay(user, "Ngày khám", 31);
 
       expect(screen.getByRole("button", { name: /09:00/i })).toBeEnabled();
     } finally {

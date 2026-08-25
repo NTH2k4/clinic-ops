@@ -2,7 +2,7 @@
 
 ## 2026-08-25
 
-- Chuẩn hóa date field frontend sang `dd/MM/yyyy`, hỗ trợ nhập nhanh `ddMMyyyy` và giữ ISO `yyyy-MM-dd` ở state nội bộ.
+- Thay date field tự mask bằng segmented date picker locale `vi-VN`: hiển thị `dd/MM/yyyy`, sửa riêng ngày/tháng/năm, calendar popover tiếng Việt và giữ ISO `yyyy-MM-dd` ở state nội bộ.
 - Bổ sung thao tác xóa nhanh từng active filter chip trong Operations Calendar, giữ nút reset toàn bộ.
 - Hoàn thiện P4 Operations Workspace polish ở automated scope: queue lane descriptions, calendar filter summary/reset, staff create appointment sections và ConfirmDialog copy.
 - Hoàn thiện P2 Patient Portal polish ở automated scope: làm rõ disabled slots, conflict/success state, appointment history tab counts và cancel feedback.
