@@ -1,6 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { LoginPage } from "../features/auth/LoginPage";
+import { AdminDashboard } from "../features/admin/AdminDashboard";
+import { AdminDoctors } from "../features/admin/AdminDoctors";
+import { AdminServices } from "../features/admin/AdminServices";
+import { AdminSpecialties } from "../features/admin/AdminSpecialties";
+import { AdminStaff } from "../features/admin/AdminStaff";
+import { AuditLog } from "../features/admin/AuditLog";
 import { DoctorDashboard } from "../features/doctors/DoctorDashboard";
 import { DoctorDaySchedule } from "../features/doctors/DoctorDaySchedule";
 import { DoctorWeekSchedule } from "../features/doctors/DoctorWeekSchedule";
@@ -15,14 +21,6 @@ import { ServicesPage } from "../features/patients/ServicesPage";
 import { RequireAuth } from "../routes/RequireAuth";
 import { RequireRole } from "../routes/RequireRole";
 import { RoleHomeRedirect } from "../routes/RoleHomeRedirect";
-
-function TemporaryRoutePage({ title }: { title: string }) {
-  return (
-    <section>
-      <h1 className="text-2xl font-semibold text-text">{title}</h1>
-    </section>
-  );
-}
 
 export function AppRoutes() {
   return (
@@ -44,12 +42,14 @@ export function AppRoutes() {
             <Route element={<OperationsCalendar />} path="operations/calendar" />
             <Route element={<CreateAppointmentPage />} path="operations/appointments/new" />
           </Route>
-          <Route element={<TemporaryRoutePage title="Admin dashboard" />} path="admin" />
-          <Route element={<TemporaryRoutePage title="Doctors" />} path="admin/doctors" />
-          <Route element={<TemporaryRoutePage title="Services" />} path="admin/services" />
-          <Route element={<TemporaryRoutePage title="Specialties" />} path="admin/specialties" />
-          <Route element={<TemporaryRoutePage title="Staff" />} path="admin/staff" />
-          <Route element={<TemporaryRoutePage title="Audit log" />} path="admin/audit" />
+          <Route element={<RequireRole allowedRoles={["admin"]} />}>
+            <Route element={<AdminDashboard />} path="admin" />
+            <Route element={<AdminDoctors />} path="admin/doctors" />
+            <Route element={<AdminServices />} path="admin/services" />
+            <Route element={<AdminSpecialties />} path="admin/specialties" />
+            <Route element={<AdminStaff />} path="admin/staff" />
+            <Route element={<AuditLog />} path="admin/audit" />
+          </Route>
         </Route>
       </Route>
       <Route element={<Navigate replace to="/app" />} path="*" />
