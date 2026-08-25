@@ -4,6 +4,10 @@ import { LoginPage } from "../features/auth/LoginPage";
 import { DoctorDashboard } from "../features/doctors/DoctorDashboard";
 import { DoctorDaySchedule } from "../features/doctors/DoctorDaySchedule";
 import { DoctorWeekSchedule } from "../features/doctors/DoctorWeekSchedule";
+import { CreateAppointmentPage } from "../features/operations/CreateAppointmentPage";
+import { OperationsCalendar } from "../features/operations/OperationsCalendar";
+import { OperationsDashboard } from "../features/operations/OperationsDashboard";
+import { QueuePage } from "../features/operations/QueuePage";
 import { BookAppointmentPage } from "../features/patients/BookAppointmentPage";
 import { MyAppointmentsPage } from "../features/patients/MyAppointmentsPage";
 import { PatientHome } from "../features/patients/PatientHome";
@@ -33,10 +37,10 @@ export function AppRoutes() {
           <Route element={<DoctorDashboard />} path="doctor" />
           <Route element={<DoctorDaySchedule />} path="doctor/day" />
           <Route element={<DoctorWeekSchedule />} path="doctor/week" />
-          <Route element={<TemporaryRoutePage title="Operations dashboard" />} path="operations" />
-          <Route element={<TemporaryRoutePage title="Hàng đợi" />} path="operations/queue" />
-          <Route element={<TemporaryRoutePage title="Lịch hoạt động" />} path="operations/calendar" />
-          <Route element={<TemporaryRoutePage title="Tạo appointment" />} path="operations/appointments/new" />
+          <Route element={<OperationsDashboard />} path="operations" />
+          <Route element={<QueuePage />} path="operations/queue" />
+          <Route element={<OperationsCalendar />} path="operations/calendar" />
+          <Route element={<CreateAppointmentPage />} path="operations/appointments/new" />
           <Route element={<TemporaryRoutePage title="Admin dashboard" />} path="admin" />
           <Route element={<TemporaryRoutePage title="Doctors" />} path="admin/doctors" />
           <Route element={<TemporaryRoutePage title="Services" />} path="admin/services" />

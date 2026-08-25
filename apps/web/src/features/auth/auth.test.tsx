@@ -44,7 +44,7 @@ describe("authentication and role routing", () => {
 
   it.each([
     ["doctor", "Không gian bác sĩ"],
-    ["receptionist", "Operations dashboard"],
+    ["receptionist", "Operations Workspace"],
     ["admin", "Admin dashboard"],
   ] as const)("redirects %s from /app to %s", async (role, expectedHeading) => {
     const user = userEvent.setup();
@@ -76,11 +76,11 @@ describe("authentication and role routing", () => {
     await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "receptionist");
     await user.click(screen.getByRole("button", { name: "Go to role home" }));
-    expect(screen.getByRole("heading", { name: "Operations dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Operations Workspace" })).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "nurse");
     await user.click(screen.getByRole("button", { name: "Go to role home" }));
-    expect(screen.getByRole("heading", { name: "Operations dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Operations Workspace" })).toBeInTheDocument();
   });
 
   it("returns to login after sign-out", async () => {
