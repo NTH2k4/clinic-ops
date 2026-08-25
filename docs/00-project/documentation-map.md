@@ -30,7 +30,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | UC-API-SPEC | Use case và API specification | `docs/03-architecture/api-contract.md` | Có draft rất nhẹ |
 | SEQUENCE | Sequence cho flow chính | `docs/02-product/workflows.md`, `docs/02-product/appointment-states.md` | Có flow text, chưa có sequence chi tiết |
 | DATABASE/ERD | Schema và quan hệ database | `docs/03-architecture/data-model.md` | Có conceptual model, chưa phải ERD |
-| Frontend DESIGN | Design tokens, layout, accessibility, responsive rules | Chưa có file riêng | Nên tạo `docs/03-architecture/frontend-design-system.md` |
+| Frontend DESIGN | Design tokens, layout, accessibility, responsive rules | `docs/03-architecture/frontend-design-system.md` | Có bản baseline |
 | Frontend README | Setup, scripts, proxy, verification | Chưa có vì chưa scaffold app | Sẽ tạo trong `apps/web/README.md` |
 
 ## Đánh Giá Hiện Tại
@@ -44,6 +44,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có appointment states và workflows cơ bản.
 - Có frontend architecture direction.
 - Có frontend MVP spec với personas, routes, screen specs, workflows, MoSCoW priority và acceptance criteria.
+- Có frontend design system baseline cho design principles, tokens, layout, component rules, accessibility và responsive behavior.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -55,13 +56,11 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Chưa có API response standard, error code convention và endpoint detail.
 - Chưa có sequence diagram/spec cho các flow chính.
 - Chưa có ERD/backend database schema.
-- Chưa có frontend design system riêng.
 
 ## Khuyến Nghị Bước Tiếp Theo
 
 Thứ tự nên làm tiếp:
 
-1. Viết `docs/03-architecture/frontend-design-system.md` tham khảo style của frontend sample, nhưng dùng palette phù hợp phòng khám.
-2. Viết `docs/04-planning/frontend-implementation-plan.md`.
-3. Scaffold `apps/web`.
-4. Sau khi frontend prototype ổn, viết API spec, sequence và backend design.
+1. Viết `docs/04-planning/frontend-implementation-plan.md`.
+2. Scaffold `apps/web`.
+3. Sau khi frontend prototype ổn, viết API spec, sequence và backend design.

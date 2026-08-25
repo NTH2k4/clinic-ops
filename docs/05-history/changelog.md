@@ -3,6 +3,7 @@
 ## 2026-08-25
 
 - Chốt các open questions trong frontend MVP spec: appointment status mặc định, doctor selection, staff workspace và theme switcher.
+- Bổ sung frontend design system baseline: design principles, tokens, layout, component rules, accessibility và responsive behavior.
 
 ## 2026-08-24
 
