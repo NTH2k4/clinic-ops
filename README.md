@@ -21,3 +21,13 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 - `docs/04-planning/`: roadmap, implementation plan và subagent work packages.
 - `docs/05-history/`: changelog, decision log và release notes.
 - `docs/06-testing/`: test strategy và acceptance checklist.
+
+## Frontend Và CI/CD
+
+Frontend hiện nằm trong `apps/web` và dùng React + Vite + TypeScript. GitHub Actions kiểm tra Pull Request bằng workflow `Web CI` và deploy bản merge vào `main` lên GitHub Pages bằng workflow `Web Pages`.
+
+Sau khi bật Pages source là **GitHub Actions** trong repository settings, app có thể xem tại:
+
+```text
+https://nth2k4.github.io/clinic-ops/
+```
