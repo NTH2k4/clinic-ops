@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { App } from "../../app/App";
 import { appointmentService } from "../appointments/appointmentService";
@@ -42,7 +42,7 @@ describe("patient portal", () => {
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
     await user.click(screen.getByLabelText("Any available doctor"));
-    expect(screen.getByRole("button", { name: /08:00/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /08:00/i })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: /09:00/i }));
     await user.type(screen.getByLabelText("Lý do khám"), "Đau ngực nhẹ khi vận động");
     expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeEnabled();
@@ -75,6 +75,34 @@ describe("patient portal", () => {
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
 
     expect(await screen.findByText("Slot này đã có appointment active")).toBeInTheDocument();
+  });
+
+  it("disables a slot that overlaps an active appointment with a different start time", async () => {
+    await appointmentService.createStaffAppointment({
+      patientId: "patient-2",
+      doctorId: "doctor-2",
+      serviceId: "service-cardiology-consult",
+      startAt: "2026-08-26T08:15:00+07:00",
+      actorUserId: "user-receptionist-1",
+    });
+    const user = await signInAsPatient();
+
+    await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
+    await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
+
+    expect(screen.getByRole("button", { name: /08:30/i })).toBeDisabled();
+  });
+
+  it("disables slots outside the doctor's active working schedule", async () => {
+    const user = await signInAsPatient();
+
+    await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
+    await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
+    fireEvent.change(screen.getByLabelText("Ngày khám"), { target: { value: "2026-08-30" } });
+    await user.type(screen.getByLabelText("Lý do khám"), "Khám vào ngày nghỉ");
+
+    expect(screen.getByRole("button", { name: /09:00/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeDisabled();
   });
 
   it("groups appointments by tab and only offers cancellation for non-terminal statuses", async () => {

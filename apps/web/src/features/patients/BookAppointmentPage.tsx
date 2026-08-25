@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { StatusBadge } from "../../components/StatusBadge";
 import { formatDate, formatTime } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
-import { isActiveAppointmentStatus } from "../appointments/appointmentRules";
+import { hasDoctorConflict } from "../appointments/appointmentRules";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -15,8 +15,48 @@ function appointmentStart(date: string, time: string): string {
   return `${date}T${time}:00+07:00`;
 }
 
-function hasActiveConflict(doctorId: string, startAt: string): boolean {
-  return mockStore.appointments.some((appointment) => appointment.doctorId === doctorId && appointment.startAt === startAt && isActiveAppointmentStatus(appointment.status));
+function timeToMinutes(time: string): number {
+  const [hour, minute] = time.split(":").map(Number);
+  return hour * 60 + minute;
+}
+
+function appointmentEnd(startAt: string, durationMinutes: number): string {
+  return new Date(new Date(startAt).getTime() + durationMinutes * 60_000).toISOString();
+}
+
+function hasActiveConflict(doctorId: string, startAt: string, durationMinutes: number): boolean {
+  return hasDoctorConflict({
+    appointment: {
+      id: "patient-booking-candidate",
+      doctorId,
+      startAt,
+      endAt: appointmentEnd(startAt, durationMinutes),
+      status: "requested",
+    },
+    appointments: mockStore.appointments,
+  });
+}
+
+function isDoctorAvailableForSlot(doctorId: string, date: string, time: string, durationMinutes: number): boolean {
+  const startMinutes = timeToMinutes(time);
+  const endMinutes = startMinutes + durationMinutes;
+  const dayOfWeek = new Date(`${date}T12:00:00+07:00`).getDay();
+  const schedules = mockStore.doctorSchedules.filter(
+    (schedule) => schedule.doctorId === doctorId
+      && schedule.status === "active"
+      && schedule.dayOfWeek === dayOfWeek
+      && schedule.effectiveFrom <= date
+      && date <= schedule.effectiveTo,
+  );
+  const isWithinSchedule = (schedule: { startTime: string; endTime: string }) =>
+    timeToMinutes(schedule.startTime) <= startMinutes && endMinutes <= timeToMinutes(schedule.endTime);
+  const overlapsSchedule = (schedule: { startTime: string; endTime: string }) =>
+    startMinutes < timeToMinutes(schedule.endTime) && timeToMinutes(schedule.startTime) < endMinutes;
+  const startAt = appointmentStart(date, time);
+
+  return schedules.some((schedule) => schedule.type === "working" && isWithinSchedule(schedule))
+    && !schedules.some((schedule) => (schedule.type === "blocked" || schedule.type === "leave") && overlapsSchedule(schedule))
+    && !hasActiveConflict(doctorId, startAt, durationMinutes);
 }
 
 export function BookAppointmentPage() {
@@ -41,7 +81,9 @@ export function BookAppointmentPage() {
   );
   const startAt = slot ? appointmentStart(date, slot) : "";
   const assignedDoctor = eligibleDoctors.find((doctor) => doctor.id === doctorId)
-    ?? (doctorMode === "any" ? eligibleDoctors.find((doctor) => !hasActiveConflict(doctor.id, startAt)) : undefined);
+    ?? (doctorMode === "any" && service && slot
+      ? eligibleDoctors.find((doctor) => isDoctorAvailableForSlot(doctor.id, date, slot, service.durationMinutes))
+      : undefined);
   const canSubmit = Boolean(patient && user && service && assignedDoctor && slot && reason.trim());
 
   function selectService(nextServiceId: string) {
@@ -80,7 +122,7 @@ export function BookAppointmentPage() {
           </div></fieldset>
           {service && <>
             <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">2. Bác sĩ</legend><div className="mt-3 space-y-3"><label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3" htmlFor="any-available-doctor"><input aria-label="Any available doctor" checked={doctorMode === "any"} id="any-available-doctor" name="doctor-mode" onChange={() => { setDoctorMode("any"); setDoctorId(""); setSlot(""); }} type="radio" value="any" /><span><span className="block font-medium text-text">Any available doctor</span><span className="block text-sm text-text-muted">Tự động chọn bác sĩ còn trống cho khung giờ.</span></span></label><label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3" htmlFor="specific-doctor"><input checked={doctorMode === "specific"} id="specific-doctor" name="doctor-mode" onChange={() => { setDoctorMode("specific"); setDoctorId(""); setSlot(""); }} type="radio" value="specific" /><span className="font-medium text-text">Chọn bác sĩ cụ thể</span></label>{doctorMode === "specific" && <select aria-label="Bác sĩ" className="h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" onChange={(event) => { setDoctorId(event.target.value); setSlot(""); }} value={doctorId}><option value="">Chọn bác sĩ</option>{eligibleDoctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.fullName} - {doctor.title}</option>)}</select>}</div></fieldset>
-            <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">3. Ngày và khung giờ</legend><label className="mt-3 block text-sm font-medium text-text" htmlFor="appointment-date">Ngày khám</label><input className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm sm:max-w-64" id="appointment-date" min={bookingDate} onChange={(event) => { setDate(event.target.value); setDoctorId(""); setSlot(""); }} type="date" value={date} /><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">{slotTimes.map((time) => { const value = appointmentStart(date, time); const unavailable = time === "08:00" || (doctorMode === "specific" ? !doctorId || hasActiveConflict(doctorId, value) : !eligibleDoctors.some((doctor) => !hasActiveConflict(doctor.id, value))); return <button aria-pressed={slot === time} className="h-10 rounded-md border border-border text-sm font-medium disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" disabled={unavailable} key={time} onClick={() => { if (doctorMode === "any") setDoctorId(eligibleDoctors.find((doctor) => !hasActiveConflict(doctor.id, value))?.id ?? ""); setSlot(time); setError(""); }} type="button">{time}</button>; })}</div></fieldset>
+            <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">3. Ngày và khung giờ</legend><label className="mt-3 block text-sm font-medium text-text" htmlFor="appointment-date">Ngày khám</label><input className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm sm:max-w-64" id="appointment-date" min={bookingDate} onChange={(event) => { setDate(event.target.value); setDoctorId(""); setSlot(""); }} type="date" value={date} /><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">{slotTimes.map((time) => { const unavailable = doctorMode === "specific" ? !doctorId || !isDoctorAvailableForSlot(doctorId, date, time, service.durationMinutes) : !eligibleDoctors.some((doctor) => isDoctorAvailableForSlot(doctor.id, date, time, service.durationMinutes)); return <button aria-pressed={slot === time} className="h-10 rounded-md border border-border text-sm font-medium disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" disabled={unavailable} key={time} onClick={() => { if (doctorMode === "any") setDoctorId(eligibleDoctors.find((doctor) => isDoctorAvailableForSlot(doctor.id, date, time, service.durationMinutes))?.id ?? ""); setSlot(time); setError(""); }} type="button">{time}</button>; })}</div></fieldset>
             <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">4. Lý do khám</legend><label className="sr-only" htmlFor="reason">Lý do khám</label><textarea className="mt-3 min-h-24 w-full rounded-md border border-border p-3 text-sm" id="reason" onChange={(event) => setReason(event.target.value)} placeholder="Mô tả ngắn triệu chứng hoặc nhu cầu khám" value={reason} /></fieldset>
           </>}
         </div>
