@@ -1,0 +1,34 @@
+import type { Appointment, AppointmentStatus } from "../../types/models";
+import { ACTIVE_APPOINTMENT_STATUSES, VALID_NEXT_STATUSES, type TimeRange } from "./appointmentTypes";
+
+export interface HasDoctorConflictInput {
+  appointment: Pick<Appointment, "id" | "doctorId" | "startAt" | "endAt" | "status">;
+  appointments: ReadonlyArray<Pick<Appointment, "id" | "doctorId" | "startAt" | "endAt" | "status">>;
+}
+
+export function isActiveAppointmentStatus(status: AppointmentStatus): boolean {
+  return ACTIVE_APPOINTMENT_STATUSES.includes(status);
+}
+
+export function appointmentsOverlap(a: TimeRange, b: TimeRange): boolean {
+  return new Date(a.startAt).getTime() < new Date(b.endAt).getTime()
+    && new Date(b.startAt).getTime() < new Date(a.endAt).getTime();
+}
+
+export function hasDoctorConflict({ appointment, appointments }: HasDoctorConflictInput): boolean {
+  if (!isActiveAppointmentStatus(appointment.status)) {
+    return false;
+  }
+
+  return appointments.some(
+    (existingAppointment) =>
+      existingAppointment.id !== appointment.id
+      && existingAppointment.doctorId === appointment.doctorId
+      && isActiveAppointmentStatus(existingAppointment.status)
+      && appointmentsOverlap(appointment, existingAppointment),
+  );
+}
+
+export function getValidNextStatuses(status: AppointmentStatus): AppointmentStatus[] {
+  return VALID_NEXT_STATUSES[status];
+}

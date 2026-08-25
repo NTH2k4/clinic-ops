@@ -8,15 +8,7 @@ import { MetricCard } from "./MetricCard";
 import { SegmentedControl } from "./SegmentedControl";
 import { StatusBadge } from "./StatusBadge";
 import { renderWithProviders } from "../test/render";
-
-type AppointmentStatus =
-  | "requested"
-  | "confirmed"
-  | "checked_in"
-  | "in_progress"
-  | "completed"
-  | "cancelled"
-  | "no_show";
+import type { AppointmentStatus } from "../types/models";
 
 describe("shared UI components", () => {
   it("renders appointment status with text and accessible label", () => {

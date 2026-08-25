@@ -8,15 +8,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
-
-export type AppointmentStatus =
-  | "requested"
-  | "confirmed"
-  | "checked_in"
-  | "in_progress"
-  | "completed"
-  | "cancelled"
-  | "no_show";
+import type { AppointmentStatus } from "../types/models";
 
 const labels = {
   requested: "Chờ xác nhận",
