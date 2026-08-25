@@ -2,6 +2,7 @@ const viDateFormatter = new Intl.DateTimeFormat("vi-VN", {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
+  timeZone: "Asia/Ho_Chi_Minh",
 });
 
 const viDateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
@@ -11,12 +12,14 @@ const viDateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
   hour: "2-digit",
   minute: "2-digit",
   hour12: false,
+  timeZone: "Asia/Ho_Chi_Minh",
 });
 
 const viTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
   hour: "2-digit",
   minute: "2-digit",
   hour12: false,
+  timeZone: "Asia/Ho_Chi_Minh",
 });
 
 export function formatDate(dateTime: string): string {

@@ -52,7 +52,7 @@ describe("doctor workspace", () => {
     expect(screen.getAllByText("Hoàn tất").length).toBeGreaterThan(0);
 
     const appointmentTimes = screen.getAllByRole("article").map((appointment) => within(appointment).getByText(/\d{2}:\d{2}/).textContent);
-    expect(appointmentTimes).toEqual(["01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30"]);
+    expect(appointmentTimes).toEqual(["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"]);
 
     await user.click(screen.getByRole("button", { name: "Xem chi tiết" }));
     expect(screen.getByRole("button", { name: /Start appointment/i })).toBeInTheDocument();
