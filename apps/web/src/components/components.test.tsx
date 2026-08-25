@@ -69,7 +69,7 @@ describe("shared UI components", () => {
 
     const nativeDateInput = container.querySelector('input[type="date"]');
     expect(nativeDateInput).toHaveAttribute("tabindex", "-1");
-    expect(container.firstElementChild).toHaveClass("[&>input[type=date]]:hidden");
+    expect(container.firstElementChild).toHaveClass("[&_input[type=date]]:hidden");
     expect(screen.getAllByRole("spinbutton").length).toBeGreaterThanOrEqual(3);
     expect(screen.getByRole("spinbutton", { name: /^Ngày,/ })).toHaveTextContent("25");
     expect(screen.getByRole("spinbutton", { name: /^Tháng,/ })).toHaveTextContent("08");
@@ -97,5 +97,39 @@ describe("shared UI components", () => {
     await user.keyboard("{ArrowUp}");
 
     expect(screen.getByLabelText("Ngày đã chọn")).toHaveTextContent("2026-08-26");
+  });
+
+  it("lets users type over date segments when the field has a minimum date", async () => {
+    const user = userEvent.setup();
+
+    function DateHarness() {
+      const [value, setValue] = useState("2026-08-26");
+      return (
+        <>
+          <ClinicDateField id="clinic-date" label="Ngày khám" min="2026-08-26" onChange={setValue} value={value} />
+          <output aria-label="Ngày đã chọn">{value}</output>
+        </>
+      );
+    }
+
+    renderWithProviders(<DateHarness />);
+
+    const daySegment = screen.getByRole("spinbutton", { name: /^Ngày,/ });
+    await user.click(daySegment);
+    await user.keyboard("27");
+
+    expect(screen.getByLabelText("Ngày đã chọn")).toHaveTextContent("2026-08-27");
+
+    const monthSegment = screen.getByRole("spinbutton", { name: /^Tháng,/ });
+    await user.click(monthSegment);
+    await user.keyboard("09");
+
+    expect(screen.getByLabelText("Ngày đã chọn")).toHaveTextContent("2026-09-27");
+
+    const yearSegment = screen.getByRole("spinbutton", { name: /^Năm,/ });
+    await user.click(yearSegment);
+    await user.keyboard("2027");
+
+    expect(screen.getByLabelText("Ngày đã chọn")).toHaveTextContent("2027-09-27");
   });
 });

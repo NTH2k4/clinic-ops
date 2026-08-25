@@ -2,6 +2,7 @@
 
 ## 2026-08-25
 
+- Sửa `ClinicDateField` segmented picker: ẩn chắc native date input nội bộ và cho phép sửa riêng ngày/tháng/năm bằng cách focus segment rồi gõ giá trị mới.
 - Thay date field tự mask bằng segmented date picker locale `vi-VN`: hiển thị `dd/MM/yyyy`, sửa riêng ngày/tháng/năm, calendar popover tiếng Việt và giữ ISO `yyyy-MM-dd` ở state nội bộ.
 - Bổ sung thao tác xóa nhanh từng active filter chip trong Operations Calendar, giữ nút reset toàn bộ.
 - Hoàn thiện P4 Operations Workspace polish ở automated scope: queue lane descriptions, calendar filter summary/reset, staff create appointment sections và ConfirmDialog copy.

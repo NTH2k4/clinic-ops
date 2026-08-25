@@ -46,7 +46,7 @@ function formatSegmentText(type: string, defaultChildren: ReactNode) {
 export function ClinicDateField({ id, label, value, onChange, min, max, labelClassName = "block text-sm font-medium text-text", controlClassName = "", inputClassName = "" }: ClinicDateFieldProps) {
   return (
     <I18nProvider locale="vi-VN">
-      <div className="[&>input[type=date]]:hidden">
+      <div className="[&_input[type=date]]:hidden">
         <DatePicker
           aria-label={label}
           maxValue={toCalendarDate(max)}
