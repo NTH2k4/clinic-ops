@@ -1,8 +1,8 @@
 # Kế Hoạch Triển Khai
 
-Kế hoạch triển khai sẽ được viết sau khi MVP requirements và product workflow được review.
+Kế hoạch frontend MVP chi tiết đã được viết tại `docs/04-planning/frontend-implementation-plan.md`.
 
-Plan đầu tiên dự kiến là frontend prototype plan:
+Plan frontend prototype bao gồm:
 
 - App scaffold.
 - Routing và layout.

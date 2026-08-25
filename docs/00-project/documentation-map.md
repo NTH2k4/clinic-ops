@@ -26,7 +26,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | PRD | Product requirements, persona, user stories, acceptance criteria | `docs/01-requirements/mvp-requirements.md`, `docs/01-requirements/user-stories.md`, `docs/02-product/workflows.md`, `docs/02-product/frontend-mvp-spec.md` | Có frontend MVP spec |
 | SRS | Software requirements chi tiết | Chưa có | Để sau khi frontend workflow rõ |
 | ARCHITECTURE | Kiến trúc tổng thể | `docs/03-architecture/frontend-architecture.md`, `docs/03-architecture/data-model.md`, `docs/03-architecture/security-notes.md` | Có bản nhẹ |
-| TECHNICAL-DESIGN | Thiết kế kỹ thuật chi tiết | Chưa có | Để sau implementation plan hoặc backend phase |
+| TECHNICAL-DESIGN | Thiết kế kỹ thuật chi tiết | `docs/04-planning/frontend-implementation-plan.md` | Có frontend implementation plan |
 | UC-API-SPEC | Use case và API specification | `docs/03-architecture/api-contract.md` | Có draft rất nhẹ |
 | SEQUENCE | Sequence cho flow chính | `docs/02-product/workflows.md`, `docs/02-product/appointment-states.md` | Có flow text, chưa có sequence chi tiết |
 | DATABASE/ERD | Schema và quan hệ database | `docs/03-architecture/data-model.md` | Có conceptual model, chưa phải ERD |
@@ -45,6 +45,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có frontend architecture direction.
 - Có frontend MVP spec với personas, routes, screen specs, workflows, MoSCoW priority và acceptance criteria.
 - Có frontend design system baseline cho design principles, tokens, layout, component rules, accessibility và responsive behavior.
+- Có frontend implementation plan chi tiết để scaffold `apps/web` và triển khai frontend MVP theo task.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -61,6 +62,6 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Viết `docs/04-planning/frontend-implementation-plan.md`.
-2. Scaffold `apps/web`.
+1. Scaffold `apps/web` theo `docs/04-planning/frontend-implementation-plan.md`.
+2. Triển khai frontend MVP task-by-task bằng subagent-driven hoặc executing-plans.
 3. Sau khi frontend prototype ổn, viết API spec, sequence và backend design.
