@@ -1,37 +1,37 @@
-# Subagent Work Packages
+# Work Package Cho Subagent
 
-Subagent packages sẽ được chốt sau khi frontend implementation plan được duyệt.
+Các package cho subagent sẽ được chốt sau khi frontend implementation plan được duyệt.
 
-## Draft Packages
+## Package Draft
 
-### Package 1: App Shell and Navigation
+### Package 1: App Shell Và Navigation
 
-Scope: layout, routing, role switcher, shared navigation.
+Phạm vi: layout, routing, role switcher, shared navigation.
 
 ### Package 2: Appointment Domain
 
-Scope: appointment types, mock service, state transitions, validation helpers.
+Phạm vi: appointment type, mock service, state transition, validation helper.
 
 ### Package 3: Patient Portal
 
-Scope: patient home, booking flow, appointment history.
+Phạm vi: patient home, booking flow, appointment history.
 
 ### Package 4: Doctor Workspace
 
-Scope: doctor dashboard, day và week schedule, appointment detail actions.
+Phạm vi: doctor dashboard, day và week schedule, appointment detail action.
 
 ### Package 5: Reception Operations
 
-Scope: queue, check-in, create appointment, reschedule và cancel flow.
+Phạm vi: queue, check-in, create appointment, reschedule và cancel flow.
 
 ### Package 6: Admin Configuration
 
-Scope: doctors, services, specialties, staff-facing management screens.
+Phạm vi: doctors, services, specialties, staff-facing management screen.
 
-### Package 7: Dashboard and Audit
+### Package 7: Dashboard Và Audit
 
-Scope: operational metrics, audit event list, notification mock.
+Phạm vi: operational metrics, audit event list, notification mock.
 
-### Package 8: UI Polish and Responsive QA
+### Package 8: UI Polish Và Responsive QA
 
-Scope: responsive layout, visual consistency, accessibility pass, screenshot verification.
+Phạm vi: responsive layout, visual consistency, accessibility pass, screenshot verification.

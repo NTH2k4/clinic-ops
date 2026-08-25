@@ -1,4 +1,4 @@
-# Decision Log
+# Nhật Ký Quyết Định
 
 ## DEC-001: Xây Frontend Trước
 

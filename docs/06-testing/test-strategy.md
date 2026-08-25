@@ -1,4 +1,4 @@
-# Test Strategy
+# Chiến Lược Test
 
 ## Frontend Prototype
 
@@ -8,7 +8,7 @@
 - Integration test role-based navigation.
 - Screenshot hoặc browser verification cho desktop và mobile layouts.
 
-## Backend Phase
+## Giai Đoạn Backend
 
 - Unit test appointment status transitions.
 - Unit test schedule conflict checks.
@@ -18,4 +18,4 @@
 
 ## Manual Acceptance
 
-Manual acceptance flows được theo dõi trong `docs/06-testing/acceptance-checklist.md`.
+Các manual acceptance flow được theo dõi trong `docs/06-testing/acceptance-checklist.md`.

@@ -1,6 +1,6 @@
-# Workflows
+# Luồng Nghiệp Vụ
 
-## Patient Appointment Request
+## Patient Request Appointment
 
 1. Patient chọn service hoặc specialty.
 2. Patient chọn doctor hoặc chọn bất kỳ doctor còn lịch trống.
@@ -15,7 +15,7 @@
 3. System tạo appointment.
 4. Appointment xuất hiện trên clinic schedule.
 
-## Check-In Flow
+## Luồng Check-In
 
 1. Patient đến phòng khám.
 2. Receptionist đánh dấu appointment là checked in.
@@ -23,14 +23,14 @@
 4. Doctor bắt đầu appointment.
 5. Doctor hoàn tất appointment.
 
-## Reschedule Flow
+## Luồng Reschedule
 
 1. Patient hoặc staff yêu cầu reschedule.
 2. Staff chọn slot mới.
 3. System cập nhật ngày và giờ của appointment.
 4. Audit log ghi lại schedule cũ và mới.
 
-## Cancellation Flow
+## Luồng Cancellation
 
 1. Patient hoặc staff cancel appointment.
 2. System đánh dấu appointment là cancelled.

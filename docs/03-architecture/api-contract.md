@@ -1,8 +1,8 @@
 # API Contract
 
-API contract sẽ được chốt sau khi frontend workflows được kiểm chứng.
+API contract sẽ được chốt sau khi frontend workflow được kiểm chứng.
 
-## Draft Resources
+## Resource Draft
 
 - `/auth`
 - `/users`
@@ -15,7 +15,7 @@ API contract sẽ được chốt sau khi frontend workflows được kiểm ch�
 - `/audit-events`
 - `/notifications`
 
-## Draft Appointment Operations
+## Operation Draft Cho Appointment
 
 - List appointments với filters.
 - Lấy chi tiết appointment.
@@ -26,7 +26,7 @@ API contract sẽ được chốt sau khi frontend workflows được kiểm ch�
 - Start appointment.
 - Complete appointment.
 
-## Contract Rules
+## Quy Tắc Contract
 
 - Status transitions phải được backend validate.
 - Appointment conflicts phải bị backend reject.

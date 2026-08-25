@@ -1,4 +1,4 @@
-# Documentation Standards
+# Quy Chuẩn Tài Liệu
 
 Tài liệu CareFlow được viết cho cả người và agent đọc. Mỗi tài liệu phải đủ rõ để định hướng implementation, review và verification mà không phụ thuộc vào trí nhớ hội thoại.
 
@@ -11,8 +11,9 @@ Tài liệu CareFlow được viết cho cả người và agent đọc. Mỗi t
 
 ## Ngôn Ngữ
 
-- Dùng tiếng Việt theo mặc định vì CareFlow hướng đến người dùng Việt Nam.
-- Giữ thuật ngữ tiếng Anh khi đó là technical term hoặc domain term phổ biến, ví dụ `frontend`, `backend`, `API`, `mock data`, `dashboard`, `audit log`, `role-based access control`.
+- Tài liệu dự án phải dùng tiếng Việt theo mặc định vì CareFlow hướng đến người dùng Việt Nam.
+- Chỉ giữ tiếng Anh khi đó là technical term, framework name, API name hoặc domain term phổ biến, ví dụ `frontend`, `backend`, `API`, `mock data`, `dashboard`, `audit log`, `role-based access control`.
+- Các heading, nhãn bảng, mô tả nghiệp vụ và acceptance criteria nên viết bằng tiếng Việt nếu dịch không làm mất nghĩa.
 - Không trộn tiếng Anh chỉ để trang trí. Nếu dùng tiếng Anh, thuật ngữ đó phải giúp rõ nghĩa hơn.
 
 ## Yêu Cầu Chất Lượng
@@ -46,7 +47,7 @@ Mỗi tài liệu quan trọng nên có:
 
 ## Mức Độ Chi Tiết Theo Giai Đoạn
 
-### Frontend-First Phase
+### Giai Đoạn Frontend-First
 
 Tài liệu cần đủ rõ cho:
 
@@ -61,7 +62,7 @@ Tài liệu cần đủ rõ cho:
 
 Không cần chốt ERD/backend schema chi tiết ở giai đoạn này.
 
-### Backend Phase
+### Giai Đoạn Backend
 
 Tài liệu cần bổ sung:
 

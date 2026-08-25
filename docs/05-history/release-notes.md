@@ -1,3 +1,3 @@
-# Release Notes
+# Ghi Chú Phát Hành
 
-Release notes sẽ được viết khi có phiên bản đầu tiên chạy được.
+Ghi chú phát hành sẽ được viết khi có phiên bản đầu tiên chạy được.

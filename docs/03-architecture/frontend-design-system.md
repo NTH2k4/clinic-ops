@@ -1,6 +1,6 @@
 # Frontend Design System
 
-## Document Control
+## Kiểm Soát Tài Liệu
 
 | Mục | Nội dung |
 | --- | --- |
@@ -12,7 +12,7 @@
 | Phạm vi | Design system cho frontend-first MVP |
 | Đối tượng đọc | Product owner, frontend developer, QA, agent contributors |
 
-## Revision History
+## Lịch Sử Phiên Bản
 
 | Phiên bản | Ngày | Nội dung thay đổi |
 | --- | --- | --- |
@@ -20,9 +20,9 @@
 
 ## Mục Đích
 
-Tài liệu này định nghĩa visual language, layout, component rules, accessibility và responsive behavior cho frontend MVP của CareFlow. Mục tiêu là giúp các màn hình patient, doctor, operations và admin có cùng một ngôn ngữ giao diện trước khi scaffold `apps/web`.
+Tài liệu này định nghĩa ngôn ngữ giao diện, layout, quy tắc component, accessibility và responsive behavior cho frontend MVP của CareFlow. Mục tiêu là giúp các màn hình patient, doctor, operations và admin có cùng một ngôn ngữ giao diện trước khi scaffold `apps/web`.
 
-Design system này là baseline cho prototype dùng `mock data`. Khi backend hoặc brand guideline thật xuất hiện, tài liệu này có thể được cập nhật, nhưng frontend MVP không được tự ý thêm theme switcher hoặc nhiều visual theme.
+Design system này là baseline cho prototype dùng `mock data`. Khi backend hoặc brand guideline thật xuất hiện, tài liệu này có thể được cập nhật, nhưng frontend MVP không được tự ý thêm theme switcher hoặc nhiều theme giao diện.
 
 ## Tài Liệu Liên Quan
 
@@ -35,46 +35,46 @@ Design system này là baseline cho prototype dùng `mock data`. Khi backend ho�
 - `docs/03-architecture/frontend-architecture.md`
 - `docs/06-testing/acceptance-checklist.md`
 
-## Design Principles
+## Nguyên Tắc Thiết Kế
 
-### Operational First
+### Ưu Tiên Vận Hành
 
 CareFlow là công cụ vận hành phòng khám, không phải landing page. Giao diện cần ưu tiên scan nhanh, thao tác lặp lại và giảm nhầm lẫn khi xử lý appointment.
 
-Rules:
+Quy tắc:
 
 - Không dùng hero section trong app shell.
 - Không dùng decorative gradient/orb/background nặng.
-- Dashboard dùng dense but organized layout: metrics, queue, timeline, filters và tables/lists rõ ràng.
+- Dashboard dùng layout dày thông tin nhưng có tổ chức: metrics, queue, timeline, filter và table/list rõ ràng.
 - Text mô tả chức năng chỉ dùng khi cần giải nghĩa domain state hoặc empty state, không dùng để quảng cáo tính năng.
 
-### Clinical Calm
+### Bình Tĩnh Và Chuyên Nghiệp
 
 Visual style cần tạo cảm giác y tế hiện đại, sạch, chuyên nghiệp và ít nhiễu.
 
-Rules:
+Quy tắc:
 
 - Light theme là theme duy nhất trong MVP.
 - Palette chính dùng xanh teal/blue ở mức tiết chế, kết hợp neutral background và accent phụ cho status.
 - Tránh UI một màu. Status, alerts và role signals phải có nhiều hue chức năng khác nhau.
 - Các bề mặt quan trọng cần độ tương phản rõ để dùng tốt trong môi trường phòng khám nhiều ánh sáng.
 
-### Status Is Text Plus Signal
+### Status Cần Có Text Và Tín Hiệu
 
 Appointment status không được chỉ thể hiện bằng màu.
 
-Rules:
+Quy tắc:
 
 - Mỗi status badge phải có label text.
 - Với status quan trọng hoặc action-critical, thêm icon từ `lucide-react`.
 - Empty/loading/error/success state phải có text rõ và action tiếp theo nếu có.
 - Disabled action cần nêu lý do bằng tooltip, helper text hoặc inline message khi phù hợp.
 
-### Mobile Is A Real Workflow
+### Mobile Là Workflow Thực Sự
 
 Mobile không chỉ là shrink desktop. Patient booking, appointment list và doctor day view phải dùng tốt trên điện thoại.
 
-Rules:
+Quy tắc:
 
 - Mobile ưu tiên list, stacked form và compact timeline.
 - Không dùng table rộng cho mobile queue/calendar.
@@ -83,244 +83,244 @@ Rules:
 
 ## Design Tokens
 
-Token names nên được map sang Tailwind config hoặc CSS variables khi scaffold frontend.
+Tên token nên được map sang Tailwind config hoặc CSS variables khi scaffold frontend.
 
-### Color Tokens
+### Color Token
 
-| Token | Hex | Use |
+| Token | Hex | Cách dùng |
 | --- | --- | --- |
-| `color-bg` | `#F7FAFA` | Page background |
-| `color-surface` | `#FFFFFF` | Main content surface |
-| `color-surface-muted` | `#EEF6F5` | Subtle grouped region, selected filter |
-| `color-border` | `#D7E3E1` | Default border |
-| `color-border-strong` | `#AFC6C3` | Focused/active border |
-| `color-text` | `#172326` | Primary text |
-| `color-text-muted` | `#52666B` | Secondary text |
-| `color-text-subtle` | `#73858A` | Metadata text |
-| `color-primary` | `#0F766E` | Primary actions, active nav |
-| `color-primary-hover` | `#0B5F59` | Primary hover |
-| `color-primary-soft` | `#DDF3F0` | Primary low-emphasis surface |
-| `color-accent` | `#2563EB` | Links, selected calendar slot |
-| `color-accent-soft` | `#DBEAFE` | Accent low-emphasis surface |
+| `color-bg` | `#F7FAFA` | Nền page |
+| `color-surface` | `#FFFFFF` | Bề mặt nội dung chính |
+| `color-surface-muted` | `#EEF6F5` | Vùng nhóm nhẹ, filter đang chọn |
+| `color-border` | `#D7E3E1` | Border mặc định |
+| `color-border-strong` | `#AFC6C3` | Border khi focus/active |
+| `color-text` | `#172326` | Text chính |
+| `color-text-muted` | `#52666B` | Text phụ |
+| `color-text-subtle` | `#73858A` | Text metadata |
+| `color-primary` | `#0F766E` | Action chính, nav active |
+| `color-primary-hover` | `#0B5F59` | Hover cho action chính |
+| `color-primary-soft` | `#DDF3F0` | Bề mặt primary ít nhấn mạnh |
+| `color-accent` | `#2563EB` | Link, slot calendar đang chọn |
+| `color-accent-soft` | `#DBEAFE` | Bề mặt accent ít nhấn mạnh |
 | `color-danger` | `#B42318` | Cancel/destructive/error |
-| `color-danger-soft` | `#FEE4E2` | Danger low-emphasis surface |
+| `color-danger-soft` | `#FEE4E2` | Bề mặt danger ít nhấn mạnh |
 | `color-warning` | `#B54708` | Conflict/no-show/warning |
-| `color-warning-soft` | `#FEF0C7` | Warning low-emphasis surface |
+| `color-warning-soft` | `#FEF0C7` | Bề mặt warning ít nhấn mạnh |
 | `color-success` | `#027A48` | Completed/success |
-| `color-success-soft` | `#D1FADF` | Success low-emphasis surface |
+| `color-success-soft` | `#D1FADF` | Bề mặt success ít nhấn mạnh |
 | `color-info` | `#175CD3` | Requested/info |
-| `color-info-soft` | `#D1E9FF` | Info low-emphasis surface |
+| `color-info-soft` | `#D1E9FF` | Bề mặt info ít nhấn mạnh |
 
-Usage constraints:
+Ràng buộc sử dụng:
 
-- Primary teal is for main workflow actions, not every heading or icon.
-- Accent blue is reserved for links, selected calendar slots and secondary emphasis.
-- Destructive actions must use danger tokens and confirmation UI.
-- Text on colored badges must pass WCAG AA contrast.
+- Primary teal dùng cho action chính trong workflow, không dùng cho mọi heading hoặc icon.
+- Accent blue dành cho link, slot calendar đang chọn và nhấn mạnh phụ.
+- Action destructive phải dùng danger token và confirmation UI.
+- Text trên badge có màu phải đạt WCAG AA contrast.
 
-### Appointment Status Tokens
+### Token Cho Appointment Status
 
-| Status | Visual token | Icon suggestion | UI meaning |
+| Status | Visual token | Icon đề xuất | Ý nghĩa UI |
 | --- | --- | --- | --- |
-| `requested` | `color-info-soft` + `color-info` | `Clock3` | Patient request waiting for staff confirmation |
-| `confirmed` | `color-primary-soft` + `color-primary` | `CalendarCheck` | Appointment scheduled and ready for check-in |
-| `checked_in` | `color-warning-soft` + `color-warning` | `UserCheck` | Patient arrived and waiting |
-| `in_progress` | `color-accent-soft` + `color-accent` | `Stethoscope` | Doctor is seeing the patient |
-| `completed` | `color-success-soft` + `color-success` | `CheckCircle2` | Appointment finished |
-| `cancelled` | `color-danger-soft` + `color-danger` | `CircleX` | Appointment cancelled |
-| `no_show` | `#F2F4F7` + `#475467` | `AlertCircle` | Patient did not arrive |
+| `requested` | `color-info-soft` + `color-info` | `Clock3` | Patient request đang chờ staff xác nhận |
+| `confirmed` | `color-primary-soft` + `color-primary` | `CalendarCheck` | Appointment đã lên lịch và sẵn sàng check-in |
+| `checked_in` | `color-warning-soft` + `color-warning` | `UserCheck` | Patient đã đến và đang chờ |
+| `in_progress` | `color-accent-soft` + `color-accent` | `Stethoscope` | Doctor đang khám cho patient |
+| `completed` | `color-success-soft` + `color-success` | `CheckCircle2` | Appointment đã hoàn tất |
+| `cancelled` | `color-danger-soft` + `color-danger` | `CircleX` | Appointment đã hủy |
+| `no_show` | `#F2F4F7` + `#475467` | `AlertCircle` | Patient không đến |
 
-### Role Tokens
+### Token Cho Role
 
-Role identity should help orientation but not create separate themes.
+Role identity giúp người dùng định hướng nhưng không tạo theme riêng cho từng role.
 
-| Role | Accent | Use |
+| Role | Accent | Cách dùng |
 | --- | --- | --- |
-| Patient | `color-primary` | Booking flow, patient home quick actions |
-| Doctor | `color-accent` | Schedule, clinical queue emphasis |
-| Receptionist/Nurse | `color-warning` | Operations queue and check-in workload |
-| Admin | `#6941C6` | Configuration and audit orientation |
+| Patient | `color-primary` | Booking flow, quick action ở patient home |
+| Doctor | `color-accent` | Schedule, nhấn mạnh clinical queue |
+| Receptionist/Nurse | `color-warning` | Operations queue và workload check-in |
+| Admin | `#6941C6` | Định hướng cấu hình và audit |
 
-Role accents may appear in nav active state, avatar ring, small eyebrow label or section marker. They must not override the shared design system.
+Role accent có thể xuất hiện trong nav active state, avatar ring, label nhỏ hoặc section marker. Accent này không được ghi đè design system chung.
 
 ### Typography
 
-Recommended stack:
+Stack khuyến nghị:
 
 ```text
 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
 ```
 
-Type scale:
+Thang typography:
 
-| Token | Size | Line height | Use |
+| Token | Size | Line height | Cách dùng |
 | --- | --- | --- | --- |
-| `text-xs` | `12px` | `16px` | Metadata, table secondary text |
-| `text-sm` | `14px` | `20px` | Default body, form helper, table cells |
-| `text-md` | `16px` | `24px` | Emphasized body, form input |
-| `text-lg` | `18px` | `28px` | Section title |
-| `text-xl` | `20px` | `30px` | Page title in app shell |
-| `text-2xl` | `24px` | `32px` | High-level dashboard title only |
+| `text-xs` | `12px` | `16px` | Metadata, text phụ trong table |
+| `text-sm` | `14px` | `20px` | Body mặc định, form helper, table cell |
+| `text-md` | `16px` | `24px` | Body nhấn mạnh, form input |
+| `text-lg` | `18px` | `28px` | Tiêu đề section |
+| `text-xl` | `20px` | `30px` | Tiêu đề page trong app shell |
+| `text-2xl` | `24px` | `32px` | Chỉ dùng cho tiêu đề dashboard cấp cao |
 
-Rules:
+Quy tắc:
 
-- Do not scale font size with viewport width.
-- Letter spacing must be `0`.
-- App surfaces should use `text-sm` and `text-md` by default.
-- Hero-scale typography is not used inside the authenticated app.
+- Không scale font size theo viewport width.
+- Letter spacing phải là `0`.
+- Bề mặt app nên dùng `text-sm` và `text-md` theo mặc định.
+- Không dùng typography cỡ hero trong authenticated app.
 
-### Spacing And Sizing
+### Spacing Và Sizing
 
-Use a 4px spacing base.
+Dùng spacing base 4px.
 
-| Token | Value | Use |
+| Token | Value | Cách dùng |
 | --- | --- | --- |
-| `space-1` | `4px` | Tight icon/text gap |
-| `space-2` | `8px` | Button gap, compact rows |
-| `space-3` | `12px` | Form field gap |
-| `space-4` | `16px` | Card padding mobile, section gap |
-| `space-5` | `20px` | Card padding desktop |
-| `space-6` | `24px` | Page section gap |
-| `space-8` | `32px` | Major page gap |
+| `space-1` | `4px` | Khoảng cách icon/text rất hẹp |
+| `space-2` | `8px` | Khoảng cách trong button, compact row |
+| `space-3` | `12px` | Khoảng cách giữa form field |
+| `space-4` | `16px` | Padding card mobile, khoảng cách section |
+| `space-5` | `20px` | Padding card desktop |
+| `space-6` | `24px` | Khoảng cách section trong page |
+| `space-8` | `32px` | Khoảng cách lớn giữa các vùng page |
 
-Sizing rules:
+Quy tắc sizing:
 
-- Button height: `36px` compact, `40px` default, `44px` mobile primary.
+- Button height: `36px` compact, `40px` mặc định, `44px` cho mobile primary.
 - Input height: `40px` desktop, `44px` mobile.
-- Icon button: `36px` square desktop, `40px` square mobile.
-- Left nav width: `240px` desktop; collapsed nav width: `72px` if implemented.
+- Icon button: `36px` vuông trên desktop, `40px` vuông trên mobile.
+- Left nav width: `240px` desktop; collapsed nav width: `72px` nếu có triển khai.
 - Page max content width: `1440px`.
 
-### Radius And Shadow
+### Radius Và Shadow
 
-| Token | Value | Use |
+| Token | Value | Cách dùng |
 | --- | --- | --- |
-| `radius-sm` | `4px` | Badges, compact fields |
-| `radius-md` | `6px` | Buttons, inputs |
-| `radius-lg` | `8px` | Cards, modals, drawers |
+| `radius-sm` | `4px` | Badge, compact field |
+| `radius-md` | `6px` | Button, input |
+| `radius-lg` | `8px` | Card, modal, drawer |
 
-Rules:
+Quy tắc:
 
-- Cards must stay at `8px` radius or less.
-- Do not nest cards inside cards.
-- Prefer border and background contrast over heavy shadow.
-- Shadow is reserved for dropdowns, popovers, modals and drawers.
+- Card phải giữ radius tối đa `8px`.
+- Không lồng card trong card.
+- Ưu tiên border và tương phản background thay vì shadow nặng.
+- Shadow chỉ dành cho dropdown, popover, modal và drawer.
 
-### Focus And Motion
+### Focus Và Motion
 
 Focus style:
 
-- `2px` outline using `color-accent`.
+- Outline `2px` dùng `color-accent`.
 - `2px` outline offset.
-- Focus must be visible on buttons, links, form controls, tabs, menus and appointment cards with actions.
+- Focus phải nhìn thấy trên button, link, form control, tab, menu và appointment card có action.
 
 Motion:
 
-- Use `120ms-180ms` transitions for hover/focus/open states.
-- Avoid large entrance animations in operational screens.
-- Respect `prefers-reduced-motion`.
+- Dùng transition `120ms-180ms` cho hover/focus/open state.
+- Tránh entrance animation lớn trong màn hình vận hành.
+- Tôn trọng `prefers-reduced-motion`.
 
-## Layout System
+## Hệ Thống Layout
 
 ### App Shell
 
-Desktop shell:
+Shell desktop:
 
-- Left sidebar for primary role navigation.
-- Top bar for page title, role switcher, notifications and user menu.
-- Main content uses constrained width and responsive grid.
+- Sidebar trái cho điều hướng chính theo role.
+- Top bar cho page title, role switcher, notifications và user menu.
+- Nội dung chính dùng width có giới hạn và responsive grid.
 
-Mobile shell:
+Shell mobile:
 
-- Top app bar with current section and menu trigger.
-- Role switcher should remain accessible but not dominate first screen.
-- Primary nav can use drawer or bottom navigation for core role routes.
+- Top app bar hiển thị section hiện tại và menu trigger.
+- Role switcher vẫn phải truy cập được nhưng không chiếm ưu tiên ở first screen.
+- Primary nav có thể dùng drawer hoặc bottom navigation cho các route chính của role.
 
-Rules:
+Quy tắc:
 
-- The role switcher is a prototype tool and must be visually secondary.
-- Navigation labels should match route purpose from `frontend-mvp-spec.md`.
-- Avoid hiding critical appointment actions behind more than one menu level.
+- Role switcher là prototype tool và phải có độ ưu tiên thị giác thấp.
+- Navigation label phải khớp mục đích route trong `frontend-mvp-spec.md`.
+- Không ẩn action appointment quan trọng sau hơn một tầng menu.
 
-### Dashboard Layout
+### Layout Dashboard
 
 Desktop:
 
-- Use a 12-column grid.
-- KPI strip at top with 3-5 metrics.
-- Main workflow area takes 7-8 columns.
-- Secondary insight/activity panel takes 4-5 columns.
+- Dùng grid 12 cột.
+- KPI strip ở trên cùng với 3-5 metrics.
+- Vùng workflow chính chiếm 7-8 cột.
+- Panel insight/activity phụ chiếm 4-5 cột.
 
 Mobile:
 
-- KPI cards become horizontal scroll or 2-column compact grid.
-- Queue, timeline and next appointment sections stack vertically.
-- Keep primary action near the relevant section, not only at page bottom.
+- KPI card chuyển thành horizontal scroll hoặc compact grid 2 cột.
+- Queue, timeline và next appointment section xếp dọc.
+- Giữ primary action gần section liên quan, không chỉ đặt ở cuối page.
 
 ### Forms
 
-Booking and create appointment forms should use step-based layout when there are more than four meaningful inputs.
+Form booking và create appointment nên dùng step-based layout khi có hơn bốn input nghiệp vụ.
 
-Rules:
+Quy tắc:
 
-- Patient booking flow uses clear steps: service, doctor mode, slot, reason, review.
-- Staff create appointment flow includes patient search/create before appointment details.
-- Validation messages appear under the field.
-- Submit area summarizes selected service, doctor, time and status outcome.
-- Patient-created appointment success must say the request is pending confirmation.
-- Staff-created appointment success must say the appointment is confirmed.
+- Patient booking flow dùng các bước rõ: service, doctor mode, slot, reason, review.
+- Staff create appointment flow đặt patient search/create trước phần appointment detail.
+- Validation message hiển thị dưới field.
+- Vùng submit tóm tắt service, doctor, thời gian và status outcome đã chọn.
+- Success state của patient-created appointment phải nói request đang chờ xác nhận.
+- Success state của staff-created appointment phải nói appointment đã confirmed.
 
-### Lists, Tables And Timelines
+### List, Table Và Timeline
 
 Desktop:
 
-- Use tables for admin data and operations calendar when the viewport supports it.
-- Use cards or split list/detail for queue and patient appointments.
+- Dùng table cho admin data và operations calendar khi viewport đủ rộng.
+- Dùng card hoặc split list/detail cho queue và patient appointments.
 
 Mobile:
 
-- Replace wide tables with cards.
-- Use compact timeline for doctor day and operations day schedule.
-- Row actions should be visible as icon buttons or short command buttons, not buried in dense text.
+- Thay table rộng bằng card.
+- Dùng compact timeline cho doctor day và operations day schedule.
+- Row action nên hiển thị bằng icon button hoặc command button ngắn, không chôn trong text dày.
 
-Rules:
+Quy tắc:
 
-- Every list needs loading, empty, error and filter-empty states.
-- Sort appointments by `startAt` unless a workflow explicitly needs status grouping.
-- Metadata should be scannable: patient, doctor, service, room, time, status.
+- Mỗi list cần có loading, empty, error và filter-empty state.
+- Sort appointments theo `startAt` trừ khi workflow cần group theo status.
+- Metadata phải dễ scan: patient, doctor, service, room, time, status.
 
-## Component Rules
+## Quy Tắc Component
 
 ### Buttons
 
-Variants:
+Biến thể:
 
-- `primary`: main workflow action.
-- `secondary`: normal non-primary action.
-- `ghost`: low-emphasis navigation/action.
+- `primary`: action chính của workflow.
+- `secondary`: action thường, không phải primary.
+- `ghost`: navigation/action ít nhấn mạnh.
 - `danger`: cancel/destructive action.
-- `icon`: compact tool action with tooltip.
+- `icon`: tool action compact có tooltip.
 
-Rules:
+Quy tắc:
 
-- Use `lucide-react` icons inside buttons when a clear icon exists.
-- Do not use rounded text pills as substitutes for familiar icons.
-- Destructive actions require confirmation when they alter appointment state.
-- Disabled buttons need a reason when the disabled condition is not obvious.
+- Dùng icon từ `lucide-react` trong button khi có icon rõ nghĩa.
+- Không dùng text pill bo tròn để thay cho icon quen thuộc.
+- Destructive action cần confirmation khi thay đổi appointment state.
+- Disabled button cần nêu lý do khi điều kiện disable không hiển nhiên.
 
 ### Status Badge
 
-Required content:
+Nội dung bắt buộc:
 
 - Icon.
 - Status label.
-- Accessible text equivalent.
+- Text tương đương cho accessibility.
 
-Rules:
+Quy tắc:
 
-- Badge color must map to appointment status tokens.
-- Do not rely on color only.
-- Use consistent Vietnamese labels in UI:
+- Màu badge phải map với appointment status token.
+- Không dựa vào màu đơn thuần.
+- Dùng label tiếng Việt nhất quán trong UI:
   - `requested`: `Chờ xác nhận`
   - `confirmed`: `Đã xác nhận`
   - `checked_in`: `Đã check-in`
@@ -331,127 +331,127 @@ Rules:
 
 ### Cards
 
-Use cards for repeated items, appointment summaries, KPI metrics and modal/drawer content.
+Dùng card cho repeated item, appointment summary, KPI metric và nội dung modal/drawer.
 
-Rules:
+Quy tắc:
 
-- No card inside card.
-- Card header should fit in one or two lines without overlapping action buttons.
-- Appointment cards should reserve stable space for status and time.
-- Cards with actions must have clear hover/focus states.
+- Không đặt card trong card.
+- Card header nên vừa trong một hoặc hai dòng mà không đè lên action button.
+- Appointment card nên chừa vùng ổn định cho status và time.
+- Card có action phải có hover/focus state rõ.
 
-### Filters And Segments
+### Filter Và Segment
 
-Use segmented controls for small mutually exclusive option sets, for example appointment status groups or day/week mode.
+Dùng segmented control cho option set nhỏ và loại trừ lẫn nhau, ví dụ group appointment status hoặc mode day/week.
 
-Rules:
+Quy tắc:
 
-- Search, filters and sort should sit above the list they affect.
-- Filter chips must have clear remove/reset affordance.
-- Filter empty state should say no result matches filters, not that data is missing.
+- Search, filter và sort nên nằm phía trên list mà chúng tác động.
+- Filter chip phải có affordance remove/reset rõ.
+- Filter empty state phải nói không có kết quả khớp filter, không nói dữ liệu bị thiếu.
 
-### Modal, Drawer And Detail Panel
+### Modal, Drawer Và Detail Panel
 
-Appointment detail should use:
+Appointment detail nên dùng:
 
-- Drawer on desktop when opened from list/calendar.
-- Full-screen or near full-screen panel on mobile.
+- Drawer trên desktop khi mở từ list/calendar.
+- Full-screen hoặc gần full-screen panel trên mobile.
 
-Rules:
+Quy tắc:
 
-- State-changing actions stay in the panel footer or a fixed action area.
-- Status history and audit events are secondary sections.
-- Completed appointments are view-only except close/back actions.
+- Action thay đổi state nằm ở panel footer hoặc fixed action area.
+- Status history và audit event là section phụ.
+- Completed appointment ở chế độ view-only, ngoại trừ action close/back.
 
 ### Notifications
 
-Rules:
+Quy tắc:
 
-- Notifications panel uses timestamp, title, message and reference action.
-- Unread state uses indicator plus text weight, not color only.
-- Empty state should be short and neutral.
+- Notifications panel dùng timestamp, title, message và reference action.
+- Unread state dùng indicator kèm text weight, không chỉ dùng màu.
+- Empty state nên ngắn và trung tính.
 
-## Screen-Level Guidance
+## Hướng Dẫn Theo Màn Hình
 
 ### Sign In
 
-- Use a compact centered auth surface, not a marketing page.
-- Mock users can be shown as selectable rows/cards.
-- Role and user identity must be visible before submit.
-- Error state should not mention real credential rules because auth is mocked.
+- Dùng auth surface compact ở giữa màn hình, không dùng marketing page.
+- Mock user có thể hiển thị dưới dạng row/card có thể chọn.
+- Role và user identity phải nhìn thấy trước khi submit.
+- Error state không nên nhắc đến credential rule thật vì auth đang mock.
 
-### Patient Screens
+### Màn Hình Patient
 
-- Patient home emphasizes next appointment and booking action.
-- Services screen uses specialty filter and service list cards.
-- Booking should feel guided and low-friction.
-- Doctor selection defaults to `any available doctor`, with explicit option to pick a doctor.
-- Appointment history separates upcoming, past and cancelled.
+- Patient home nhấn mạnh next appointment và booking action.
+- Services screen dùng specialty filter và service list card.
+- Booking cần có cảm giác được dẫn dắt, ít ma sát.
+- Doctor selection mặc định là `any available doctor`, đồng thời có option rõ để chọn doctor cụ thể.
+- Appointment history tách upcoming, past và cancelled.
 
-### Doctor Screens
+### Màn Hình Doctor
 
-- Doctor dashboard emphasizes today's load, waiting patients and next appointment.
-- Day view is the primary workflow; week view is overview.
-- Appointment detail should surface reason, service, room, patient identity and status actions.
-- Internal note UI stays lightweight and should not imply full medical record support.
+- Doctor dashboard nhấn mạnh tải khám hôm nay, waiting patients và next appointment.
+- Day view là workflow chính; week view là overview.
+- Appointment detail cần làm nổi bật reason, service, room, patient identity và status actions.
+- Internal note UI giữ ở mức nhẹ và không gợi ý rằng MVP có full medical record.
 
-### Operations Screens
+### Màn Hình Operations
 
-- Operations dashboard is the densest workspace.
-- Queue groups appointment states and exposes valid next actions.
-- Staff create appointment flow must make patient search/create prominent.
-- Filters by doctor, specialty and status should be available where they reduce operational noise.
+- Operations dashboard là workspace dày thông tin nhất.
+- Queue group appointment state và hiển thị next action hợp lệ.
+- Staff create appointment flow phải làm nổi bật patient search/create.
+- Filter theo doctor, specialty và status nên có ở nơi chúng giảm nhiễu vận hành.
 
-### Admin Screens
+### Màn Hình Admin
 
-- Admin screens are configuration-focused, not clinical workflow screens.
-- Use tables on desktop for doctors, services, specialties, staff and audit log.
-- Forms should validate required fields but can stay mock-only.
-- Audit log should be readable and filterable before adding charts.
+- Admin screen tập trung vào cấu hình, không phải clinical workflow.
+- Dùng table trên desktop cho doctors, services, specialties, staff và audit log.
+- Form nên validate required field nhưng có thể giữ mock-only.
+- Audit log cần dễ đọc và filter được trước khi thêm chart.
 
-## Accessibility Requirements
+## Yêu Cầu Accessibility
 
-Minimum requirements:
+Yêu cầu tối thiểu:
 
-- WCAG AA contrast for text and interactive controls.
-- Keyboard navigation for nav, menus, forms, filters, modals/drawers and appointment actions.
-- Visible focus state on every interactive element.
-- Form fields have labels connected to controls.
-- Error messages identify the field and the recovery action.
-- Status and role information is available as text.
-- Modal/drawer traps focus and restores focus on close.
-- Icon-only buttons have accessible labels and visible tooltip on hover/focus.
+- WCAG AA contrast cho text và interactive control.
+- Keyboard navigation cho nav, menu, form, filter, modal/drawer và appointment action.
+- Focus state nhìn thấy trên mọi interactive element.
+- Form field có label liên kết với control.
+- Error message chỉ rõ field lỗi và action để khắc phục.
+- Thông tin status và role phải có dạng text.
+- Modal/drawer trap focus và restore focus khi đóng.
+- Icon-only button có accessible label và tooltip nhìn thấy khi hover/focus.
 
-## Responsive Breakpoints
+## Breakpoint Responsive
 
-Proposed Tailwind breakpoints:
+Breakpoint Tailwind đề xuất:
 
 | Breakpoint | Width | Behavior |
 | --- | --- | --- |
-| `sm` | `640px` | Wider mobile forms and two-column compact KPI cards |
-| `md` | `768px` | Tablet layout, split list/detail where useful |
-| `lg` | `1024px` | Desktop sidebar, dashboard grid, table views |
-| `xl` | `1280px` | Wider dashboard and calendar density |
+| `sm` | `640px` | Mobile form rộng hơn và compact KPI card 2 cột |
+| `md` | `768px` | Tablet layout, split list/detail khi hữu ích |
+| `lg` | `1024px` | Desktop sidebar, dashboard grid, table view |
+| `xl` | `1280px` | Dashboard rộng hơn và calendar dày thông tin hơn |
 
-Rules:
+Quy tắc:
 
-- No horizontal overflow at `320px`, `375px`, `390px`, `768px`, `1024px` and `1440px`.
-- Text inside buttons, badges, cards and table cells must wrap or truncate intentionally.
-- Calendar and week schedule must switch layout before they overflow.
-- Primary mobile workflows must be usable without hover.
+- Không có horizontal overflow ở `320px`, `375px`, `390px`, `768px`, `1024px` và `1440px`.
+- Text trong button, badge, card và table cell phải wrap hoặc truncate có chủ đích.
+- Calendar và week schedule phải đổi layout trước khi overflow.
+- Primary mobile workflow phải dùng được mà không cần hover.
 
-## Implementation Guidance
+## Hướng Dẫn Implementation
 
-### Tailwind Mapping
+### Mapping Tailwind
 
-When scaffold `apps/web`, define:
+Khi scaffold `apps/web`, định nghĩa:
 
 - CSS variables for colors in `src/index.css` or equivalent.
-- Tailwind theme extension for color, radius, shadow and spacing tokens.
-- Shared components under `src/components`.
-- Feature-specific components under `src/features/<feature>`.
+- Tailwind theme extension cho color, radius, shadow và spacing token.
+- Shared component đặt dưới `src/components`.
+- Feature-specific component đặt dưới `src/features/<feature>`.
 
-Suggested shared components:
+Shared components đề xuất:
 
 - `AppShell`
 - `PageHeader`
@@ -472,42 +472,42 @@ Suggested shared components:
 - `FilterBar`
 - `FormField`
 
-### Asset Guidance
+### Hướng Dẫn Asset
 
-CareFlow app screens do not need decorative marketing imagery. If visual assets are used, they should be practical:
+Màn hình app CareFlow không cần hình ảnh marketing trang trí. Nếu dùng visual asset, asset đó nên có mục đích thực tế:
 
-- User/doctor avatars can use initials or simple profile photos in mock data.
-- Service/specialty imagery is optional and should not replace operational metadata.
-- Icons should come from `lucide-react`.
+- Avatar user/doctor có thể dùng initials hoặc profile photo đơn giản trong mock data.
+- Hình ảnh service/specialty là tùy chọn và không được thay thế operational metadata.
+- Icon nên lấy từ `lucide-react`.
 
-### Copy Guidance
+### Hướng Dẫn Copy
 
-UI copy should be concise Vietnamese with stable domain terms:
+UI copy nên dùng tiếng Việt ngắn gọn với domain term ổn định:
 
-- Use `appointment`, `booking`, `check-in`, `queue`, `audit log` when those terms are clearer than forced translation.
-- Use `lịch khám`, `dịch vụ`, `bác sĩ`, `bệnh nhân`, `chuyên khoa`, `trạng thái` for user-facing labels.
-- Do not imply real medical records, prescriptions, payment, insurance or telemedicine in MVP UI.
+- Dùng `appointment`, `booking`, `check-in`, `queue`, `audit log` khi các thuật ngữ đó rõ hơn dịch ép.
+- Dùng `lịch khám`, `dịch vụ`, `bác sĩ`, `bệnh nhân`, `chuyên khoa`, `trạng thái` cho label hướng người dùng.
+- Không gợi ý rằng MVP có medical record thật, prescription, payment, insurance hoặc telemedicine.
 
-## Verification Checklist
+## Checklist Kiểm Tra
 
-Before frontend MVP is considered visually acceptable:
+Trước khi xem frontend MVP đạt yêu cầu visual:
 
-- App shell renders correctly on desktop and mobile.
-- Patient booking can be completed on mobile without horizontal overflow.
-- Doctor day schedule is usable on mobile.
-- Operations queue shows status groups and valid actions clearly.
-- Admin tables degrade to cards or responsive lists on mobile.
-- Status badges include text and icon, not only color.
-- Loading, empty, error, success and disabled states are implemented for key screens.
-- Keyboard focus is visible and usable.
-- No page section uses marketing-style hero layout.
-- No nested cards or heavy decorative backgrounds are introduced.
+- App shell render đúng trên desktop và mobile.
+- Patient booking hoàn tất được trên mobile và không có horizontal overflow.
+- Doctor day schedule dùng được trên mobile.
+- Operations queue hiển thị status group và action hợp lệ rõ ràng.
+- Admin table degrade thành card hoặc responsive list trên mobile.
+- Status badge có text và icon, không chỉ dùng màu.
+- Loading, empty, error, success và disabled state được triển khai cho key screen.
+- Keyboard focus nhìn thấy và dùng được.
+- Không có page section dùng marketing-style hero layout.
+- Không có nested card hoặc background trang trí nặng.
 
-## Non-Goals
+## Ngoài Phạm Vi
 
-- Dark mode or theme switcher.
+- Dark mode hoặc theme switcher.
 - Full brand identity system.
-- Marketing website or public landing page.
+- Marketing website hoặc public landing page.
 - Full medical record UI.
-- Prescription, insurance, payment or telemedicine UI.
-- Production authorization UI beyond mock role/session behavior.
+- Prescription, insurance, payment hoặc telemedicine UI.
+- Production authorization UI ngoài mock role/session behavior.

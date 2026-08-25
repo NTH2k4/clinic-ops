@@ -1,4 +1,4 @@
-# Appointment States
+# Trạng Thái Appointment
 
 ## Trạng Thái
 
@@ -10,13 +10,13 @@
 - `cancelled`
 - `no_show`
 
-## Flow Mặc Định
+## Luồng Mặc Định
 
 ```text
 requested -> confirmed -> checked_in -> in_progress -> completed
 ```
 
-## Flow Thay Thế
+## Luồng Thay Thế
 
 ```text
 requested -> cancelled
@@ -30,4 +30,4 @@ checked_in -> cancelled
 - Appointments đã `completed` không được chỉnh sửa trong MVP.
 - Appointments đã `cancelled` vẫn hiển thị trong history.
 - Rescheduling giữ nguyên appointment record và ghi một audit event.
-- Status changes cần có actor và timestamp.
+- Status change cần có actor và timestamp.

@@ -1,6 +1,6 @@
 # Frontend MVP Spec
 
-## Document Control
+## Kiểm Soát Tài Liệu
 
 | Mục | Nội dung |
 | --- | --- |
@@ -12,7 +12,7 @@
 | Phạm vi | Frontend-first MVP với `mock data` |
 | Đối tượng đọc | Product owner, frontend developer, QA, agent contributors |
 
-## Revision History
+## Lịch Sử Phiên Bản
 
 | Phiên bản | Ngày | Nội dung thay đổi |
 | --- | --- | --- |
@@ -39,7 +39,7 @@ Tài liệu này không thay thế backend SRS, API spec hoặc ERD. Backend con
 - `docs/03-architecture/frontend-architecture.md`
 - `docs/06-testing/acceptance-checklist.md`
 
-## Product Summary
+## Tóm Tắt Sản Phẩm
 
 CareFlow là ứng dụng vận hành phòng khám nhỏ theo hướng đặt lịch khám online và điều phối appointment. Frontend MVP cần cho người dùng thấy rõ cách hệ thống hoạt động qua các vai trò patient, doctor, receptionist/nurse và admin.
 
@@ -52,13 +52,13 @@ MVP ưu tiên:
 - Responsive behavior tốt trên mobile và desktop.
 - Không xử lý dữ liệu y tế nhạy cảm ngoài ghi chú vận hành nhẹ.
 
-## Personas
+## Nhóm Người Dùng
 
 ### Patient
 
 Người đặt lịch khám. Mục tiêu là tìm service phù hợp, chọn thời gian, gửi yêu cầu đặt lịch và theo dõi appointment của mình.
 
-Pain points:
+Vấn đề chính:
 
 - Không muốn gọi điện để hỏi lịch.
 - Muốn biết lịch sắp tới và trạng thái lịch.
@@ -68,7 +68,7 @@ Pain points:
 
 Bác sĩ tiếp nhận lịch khám trong ngày. Mục tiêu là xem danh sách patient, biết ai đang chờ, bắt đầu và hoàn tất appointment.
 
-Pain points:
+Vấn đề chính:
 
 - Lịch khám bị rời rạc.
 - Không biết patient nào đã check-in.
@@ -78,7 +78,7 @@ Pain points:
 
 Nhân sự vận hành phòng khám. Mục tiêu là tạo lịch thay patient, check-in patient, điều phối queue và xử lý reschedule/cancellation.
 
-Pain points:
+Vấn đề chính:
 
 - Phải xử lý nhiều lịch trong ngày.
 - Cần nhìn nhanh ai đang chờ, ai đang khám, ai đã hoàn tất.
@@ -88,26 +88,26 @@ Pain points:
 
 Người quản lý cấu hình vận hành. Mục tiêu là quản lý doctors, specialties, services, staff và xem dashboard vận hành.
 
-Pain points:
+Vấn đề chính:
 
 - Cần dữ liệu tổng quan về tải khám trong ngày.
 - Cần biết service nào phổ biến và doctor nào đang quá tải.
 - Cần audit log để truy vết thay đổi quan trọng.
 
-## Roles And Navigation
+## Vai Trò Và Điều Hướng
 
 Frontend prototype cần có role switcher để chuyển nhanh giữa các vai trò. Đây chỉ là prototype tool, không phải authorization thật.
 
 Receptionist và nurse dùng chung một operations workspace trong frontend MVP. Việc tách quyền chi tiết sẽ để backend phase hoặc phase sau nếu nghiệp vụ yêu cầu.
 
-| Role | Navigation chính | Actions chính |
+| Role | Điều hướng chính | Hành động chính |
 | --- | --- | --- |
 | Patient | Trang chính, Dịch vụ, Đặt lịch, Lịch của tôi, Thông báo | Request appointment, xem lịch, cancel/request reschedule |
 | Doctor | Dashboard, Lịch ngày, Lịch tuần, Appointment detail | Start appointment, complete appointment, thêm internal note nhẹ |
 | Receptionist/Nurse | Operations dashboard, Queue, Calendar, Tạo appointment, Patient lookup | Tạo lịch, check-in, reschedule, cancel |
 | Admin | Admin dashboard, Doctors, Services, Specialties, Staff, Audit log | Quản lý cấu hình, xem metrics, review audit |
 
-## Route Scope
+## Phạm Vi Route
 
 Routes đề xuất cho frontend MVP:
 
@@ -133,69 +133,69 @@ Routes đề xuất cho frontend MVP:
 /app/admin/audit
 ```
 
-## Screen Specifications
+## Đặc Tả Màn Hình
 
-### Sign In
+### Đăng Nhập
 
-Purpose: Cho phép chọn user mẫu và vào app theo role.
+Mục đích: Cho phép chọn user mẫu và vào app theo role.
 
-Required states:
+Trạng thái bắt buộc:
 
-- Default: hiển thị danh sách mock users hoặc form login giả lập.
+- Mặc định: hiển thị danh sách mock users hoặc form login giả lập.
 - Loading: submit đang xử lý.
-- Error: credential không hợp lệ trong mock flow.
+- Lỗi: credential không hợp lệ trong mock flow.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - User có thể sign in bằng một mock user.
 - Sau sign in, app điều hướng đến dashboard đúng role.
 - Không lưu password trong persisted storage.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
-### Patient Home
+### Trang Chính Patient
 
-Purpose: Trang tổng quan cho patient.
+Mục đích: Trang tổng quan cho patient.
 
-Content:
+Nội dung:
 
 - Appointment sắp tới gần nhất.
 - Quick action đặt lịch.
 - Danh sách notifications gần đây.
 - Shortcut đến lịch của tôi.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Hiển thị empty state nếu patient chưa có appointment.
 - Appointment sắp tới hiển thị doctor, service, thời gian và status.
 - Quick action dẫn đến booking flow.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
-### Browse Services
+### Duyệt Dịch Vụ
 
-Purpose: Patient xem services và specialties.
+Mục đích: Patient xem services và specialties.
 
-Content:
+Nội dung:
 
 - Filter theo specialty.
 - Danh sách services.
 - Thời lượng, giá và mô tả ngắn.
 - Doctors có thể phụ trách service.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Có thể filter services theo specialty.
 - Empty filter state hiển thị rõ.
 - Mỗi service có action đặt lịch.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
-### Book Appointment
+### Đặt Appointment
 
-Purpose: Patient tạo appointment request.
+Mục đích: Patient tạo appointment request.
 
-Flow:
+Luồng:
 
 1. Chọn service hoặc specialty.
 2. Chọn doctor cụ thể hoặc any available doctor.
@@ -204,7 +204,7 @@ Flow:
 5. Review thông tin.
 6. Submit request.
 
-Required states:
+Trạng thái bắt buộc:
 
 - Không có slot trống.
 - Doctor không khả dụng.
@@ -212,7 +212,7 @@ Required states:
 - Submit success.
 - Submit error.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Không cho submit nếu thiếu service, doctor/selection mode, date/time hoặc reason.
 - `endAt` được tính từ `Service.durationMinutes`.
@@ -220,69 +220,69 @@ Acceptance criteria:
 - Appointment mới xuất hiện trong lịch của patient và operations queue.
 - Appointment do patient tạo mặc định ở status `requested`.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
-### My Appointments
+### Appointment Của Tôi
 
-Purpose: Patient xem upcoming và past appointments.
+Mục đích: Patient xem upcoming và past appointments.
 
-Content:
+Nội dung:
 
 - Tabs hoặc filter: upcoming, past, cancelled.
 - Appointment cards.
 - Action cancel hoặc request reschedule khi hợp lệ.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Cancel chỉ hiển thị với appointment chưa completed/cancelled/no_show.
 - Past appointments không có destructive action.
 - Empty state phân biệt chưa có dữ liệu và filter không có kết quả.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
 ### Doctor Dashboard
 
-Purpose: Doctor xem tải khám trong ngày.
+Mục đích: Doctor xem tải khám trong ngày.
 
-Content:
+Nội dung:
 
 - Số appointments hôm nay.
 - Waiting, checked-in, in-progress, completed.
 - Next appointment.
 - Danh sách appointments theo thời gian.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Appointments được sort theo `startAt`.
 - Status hiển thị bằng text và màu/icon, không chỉ màu.
 - Doctor chỉ thấy appointments của mình trong prototype.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
-### Doctor Day / Week Schedule
+### Lịch Ngày / Tuần Của Doctor
 
-Purpose: Doctor xem lịch theo ngày hoặc tuần.
+Mục đích: Doctor xem lịch theo ngày hoặc tuần.
 
-Content:
+Nội dung:
 
 - Calendar/list day view.
 - Week overview.
 - Filter theo status.
 - Appointment detail drawer/modal.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Day view dùng tốt trên mobile.
 - Week view không gây horizontal overflow trên mobile.
 - Blocked/leave schedule hiển thị khác appointments.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
 ### Appointment Detail
 
-Purpose: Xem và thao tác trên một appointment.
+Mục đích: Xem và thao tác trên một appointment.
 
-Content:
+Nội dung:
 
 - Patient summary.
 - Doctor/service/time/status.
@@ -290,26 +290,26 @@ Content:
 - Status history.
 - Audit events liên quan.
 
-Actions by role:
+Hành động theo vai trò:
 
 - Patient: cancel hoặc request reschedule nếu hợp lệ.
 - Doctor: start, complete, thêm note nhẹ.
 - Receptionist/Nurse: check-in, reschedule, cancel.
 - Admin: view-only trong MVP.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Actions bị disable hoặc ẩn nếu status không hợp lệ.
 - Mọi action quan trọng tạo mock audit event.
 - Completed appointment không cho sửa.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
 ### Operations Dashboard
 
-Purpose: Receptionist/nurse theo dõi vận hành trong ngày.
+Mục đích: Receptionist/nurse theo dõi vận hành trong ngày.
 
-Content:
+Nội dung:
 
 - Today appointment count.
 - Waiting queue.
@@ -318,38 +318,38 @@ Content:
 - Cancelled/no-show count.
 - Quick action tạo appointment.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Queue cập nhật khi check-in/start/complete trong mock state.
 - Dashboard có empty state khi không có lịch trong ngày.
 - Có filter theo doctor hoặc specialty.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
 ### Appointment Queue
 
-Purpose: Điều phối patient đang chờ, đã check-in, đang khám và hoàn tất.
+Mục đích: Điều phối patient đang chờ, đã check-in, đang khám và hoàn tất.
 
-Content:
+Nội dung:
 
 - Segments: confirmed, checked_in, in_progress, completed, cancelled.
 - Cards hoặc table responsive.
 - Quick actions theo status.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Check-in chuyển `confirmed` sang `checked_in`.
 - Start chuyển `checked_in` sang `in_progress`.
 - Complete chuyển `in_progress` sang `completed`.
 - Invalid transition không được hiển thị như action.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
-### Create Appointment For Patient
+### Tạo Appointment Cho Patient
 
-Purpose: Staff tạo appointment cho patient qua phone booking hoặc walk-in.
+Mục đích: Staff tạo appointment cho patient qua phone booking hoặc walk-in.
 
-Flow:
+Luồng:
 
 1. Search patient.
 2. Tạo patient mới nếu chưa có.
@@ -357,7 +357,7 @@ Flow:
 4. Chọn doctor/date/time.
 5. Submit appointment.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Search có empty state.
 - Form patient mới validate fullName và phone.
@@ -365,26 +365,26 @@ Acceptance criteria:
 - Appointment mới xuất hiện trong operations calendar.
 - Appointment do staff tạo mặc định ở status `confirmed`.
 
-Priority: Must
+Độ ưu tiên: Phải có
 
 ### Operations Calendar
 
-Purpose: Staff xem lịch theo ngày/tuần và filter theo doctor/specialty.
+Mục đích: Staff xem lịch theo ngày/tuần và filter theo doctor/specialty.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Có day view dễ scan.
 - Có filter doctor/specialty/status.
 - Appointment cards thể hiện status bằng text và màu/icon.
 - Mobile dùng list hoặc compact timeline thay vì table rộng.
 
-Priority: Should
+Độ ưu tiên: Nên có
 
 ### Admin Dashboard
 
-Purpose: Admin xem overview cấu hình và vận hành.
+Mục đích: Admin xem overview cấu hình và vận hành.
 
-Content:
+Nội dung:
 
 - Tổng doctors active.
 - Tổng services active.
@@ -393,57 +393,57 @@ Content:
 - Popular services.
 - Doctor workload summary.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Metrics lấy từ mock data, không hardcode số rời rạc trong component.
 - Nếu thiếu dữ liệu, hiển thị summary unavailable thay vì fabricate chart.
 
-Priority: Should
+Độ ưu tiên: Nên có
 
 ### Admin Doctors
 
-Purpose: Quản lý danh sách doctors trong prototype.
+Mục đích: Quản lý danh sách doctors trong prototype.
 
-Content:
+Nội dung:
 
 - List doctors.
 - Specialty, services, status, room.
 - Create/edit mock doctor form.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Form validate fullName, specialty và status.
 - Doctor inactive không nên xuất hiện trong booking slot mặc định.
 
-Priority: Should
+Độ ưu tiên: Nên có
 
-### Admin Services And Specialties
+### Admin Services Và Specialties
 
-Purpose: Quản lý services và specialties.
+Mục đích: Quản lý services và specialties.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Service phải có name, specialty, durationMinutes, price, currency và status.
 - Specialty inactive không nên hiển thị trong booking filter mặc định.
 
-Priority: Should
+Độ ưu tiên: Nên có
 
 ### Admin Staff
 
-Purpose: Xem staff users và role.
+Mục đích: Xem staff users và role.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Hiển thị receptionist, nurse và admin.
 - Không cần full RBAC editor trong MVP.
 
-Priority: Could
+Độ ưu tiên: Có thể có
 
 ### Audit Log
 
-Purpose: Review các thay đổi quan trọng.
+Mục đích: Review các thay đổi quan trọng.
 
-Content:
+Nội dung:
 
 - Actor.
 - Action.
@@ -451,26 +451,26 @@ Content:
 - Timestamp.
 - Metadata summary.
 
-Acceptance criteria:
+Tiêu chí chấp nhận:
 
 - Có filter theo entity type/action.
 - Có empty state.
 - Audit events từ appointment actions xuất hiện trong log.
 
-Priority: Should
+Độ ưu tiên: Nên có
 
-## Workflows
+## Luồng Nghiệp Vụ
 
-### Patient Appointment Request
+### Patient Request Appointment
 
-Actor: Patient
+Tác nhân: Patient
 
-Preconditions:
+Tiền điều kiện:
 
 - Patient đã sign in bằng mock user.
 - Có active services, active doctors và available slots.
 
-Main flow:
+Luồng chính:
 
 1. Patient mở booking flow.
 2. Chọn service.
@@ -480,7 +480,7 @@ Main flow:
 6. Review và submit.
 7. System tạo appointment ở status `requested`.
 
-Expected result:
+Kết quả mong đợi:
 
 - Appointment xuất hiện trong My Appointments.
 - Staff queue nhận appointment mới.
@@ -488,34 +488,34 @@ Expected result:
 
 ### Reception Check-In
 
-Actor: Receptionist/Nurse
+Tác nhân: Receptionist/Nurse
 
-Preconditions:
+Tiền điều kiện:
 
 - Appointment ở status `confirmed`.
 
-Main flow:
+Luồng chính:
 
 1. Staff mở appointment queue.
 2. Chọn appointment.
 3. Bấm check-in.
 4. System chuyển status sang `checked_in`.
 
-Expected result:
+Kết quả mong đợi:
 
 - Appointment vào waiting queue.
 - Doctor dashboard thấy patient đang chờ.
 - Audit event `appointment_checked_in` được ghi.
 
-### Doctor Start And Complete
+### Doctor Start Và Complete
 
-Actor: Doctor
+Tác nhân: Doctor
 
-Preconditions:
+Tiền điều kiện:
 
 - Appointment ở status `checked_in`.
 
-Main flow:
+Luồng chính:
 
 1. Doctor mở day schedule.
 2. Chọn appointment đang chờ.
@@ -525,7 +525,7 @@ Main flow:
 6. Bấm complete.
 7. System chuyển status sang `completed`.
 
-Expected result:
+Kết quả mong đợi:
 
 - Appointment rời active queue.
 - Dashboard count cập nhật.
@@ -533,13 +533,13 @@ Expected result:
 
 ### Reschedule Appointment
 
-Actor: Patient hoặc Staff
+Tác nhân: Patient hoặc Staff
 
-Preconditions:
+Tiền điều kiện:
 
 - Appointment chưa `completed`, `cancelled` hoặc `no_show`.
 
-Main flow:
+Luồng chính:
 
 1. Actor chọn reschedule.
 2. Chọn slot mới.
@@ -547,33 +547,33 @@ Main flow:
 4. System cập nhật `startAt` và `endAt`.
 5. System ghi audit event.
 
-Expected result:
+Kết quả mong đợi:
 
 - Appointment giữ nguyên `id`.
 - Lịch hiển thị thời gian mới.
 
 ### Cancel Appointment
 
-Actor: Patient hoặc Staff
+Tác nhân: Patient hoặc Staff
 
-Preconditions:
+Tiền điều kiện:
 
 - Appointment chưa `completed`, `cancelled` hoặc `no_show`.
 
-Main flow:
+Luồng chính:
 
 1. Actor chọn cancel.
 2. Xác nhận hành động.
 3. Staff nhập `cancellationReason` nếu thao tác từ staff/admin side.
 4. System chuyển status sang `cancelled`.
 
-Expected result:
+Kết quả mong đợi:
 
 - Appointment vẫn hiển thị trong history.
 - Slot không còn bị chiếm.
 - Audit event `appointment_cancelled` được ghi.
 
-## Frontend State Requirements
+## Yêu Cầu Frontend State
 
 ### Auth State
 
@@ -599,11 +599,11 @@ Mỗi list/form quan trọng cần có:
 - Success feedback.
 - Disabled state khi action không hợp lệ.
 
-## Mock Data Requirements
+## Yêu Cầu Mock Data
 
 Mock data phải dựa trên `docs/03-architecture/data-model.md`.
 
-Minimum dataset:
+Dataset tối thiểu:
 
 - 4 users theo 4 role chính.
 - 8-12 patients.
@@ -624,11 +624,11 @@ Dataset cần bao phủ:
 - Cancelled/no-show history.
 - Empty filter result.
 
-## Visual And UX Direction
+## Định Hướng Visual Và UX
 
 CareFlow nên có cảm giác sạch, tin cậy, bình tĩnh và thực dụng. UI là công cụ vận hành, không phải landing page.
 
-Principles:
+Nguyên tắc:
 
 - Ưu tiên dashboard/list/calendar dễ scan.
 - Không dùng hero marketing làm màn hình đầu.
@@ -640,7 +640,7 @@ Principles:
 
 Design system chi tiết sẽ được viết ở `docs/03-architecture/frontend-design-system.md`.
 
-## Accessibility And Responsive Requirements
+## Yêu Cầu Accessibility Và Responsive
 
 - Touch target tối thiểu 44px cho action chính.
 - Focus state phải nhìn thấy.
@@ -651,9 +651,9 @@ Design system chi tiết sẽ được viết ở `docs/03-architecture/frontend
 - Calendar mobile phải có list/timeline fallback.
 - Tôn trọng `prefers-reduced-motion`.
 
-## MoSCoW Priority
+## Độ Ưu Tiên MoSCoW
 
-### Must Have
+### Phải Có
 
 - Mock sign in và role-based navigation.
 - Patient booking flow.
@@ -665,7 +665,7 @@ Design system chi tiết sẽ được viết ở `docs/03-architecture/frontend
 - Conceptual audit log cho appointment actions.
 - Responsive mobile/desktop layout.
 
-### Should Have
+### Nên Có
 
 - Week schedule.
 - Operations calendar.
@@ -674,13 +674,13 @@ Design system chi tiết sẽ được viết ở `docs/03-architecture/frontend
 - Notifications panel.
 - Filter/search cho appointment list và audit log.
 
-### Could Have
+### Có Thể Có
 
 - Staff management prototype.
 - Advanced doctor workload visualization.
 - Export mock CSV.
 
-### Won't Have In Frontend MVP
+### Không Làm Trong Frontend MVP
 
 - Backend thật.
 - Real authentication.
@@ -692,7 +692,7 @@ Design system chi tiết sẽ được viết ở `docs/03-architecture/frontend
 - SMS/email/push notification integration.
 - Theme switcher.
 
-## Acceptance Criteria
+## Tiêu Chí Chấp Nhận
 
 Frontend MVP được xem là đạt khi:
 
@@ -710,7 +710,7 @@ Frontend MVP được xem là đạt khi:
 - UI hoạt động tốt ở mobile và desktop.
 - Không có plaintext password trong persisted mock data.
 
-## Verification Notes
+## Ghi Chú Kiểm Tra
 
 Khi triển khai frontend, cần có verification commands tối thiểu:
 
@@ -734,7 +734,7 @@ Browser verification cần kiểm tra tối thiểu:
 - Desktop width 1280px.
 - Wide desktop width 1440px.
 
-## Out Of Scope
+## Ngoài Phạm Vi
 
 - Backend API thật.
 - Database schema/ERD.
@@ -744,7 +744,7 @@ Browser verification cần kiểm tra tối thiểu:
 - External notification providers.
 - Multi-branch clinic management.
 
-## Resolved Product Decisions
+## Quyết Định Product Đã Chốt
 
 ### Appointment Status Khi Tạo Mới
 

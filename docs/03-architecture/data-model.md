@@ -13,7 +13,7 @@ Tài liệu này chưa phải ERD hoặc database schema cuối cùng. Mục ti�
 - Frontend không tự quyết định authorization thật; mock role chỉ phục vụ prototype.
 - Backend sau này là source of truth cho appointment conflict, ownership, authorization và audit log.
 
-## Core Entities
+## Entity Chính
 
 ### User
 
@@ -29,7 +29,7 @@ Tài liệu này chưa phải ERD hoặc database schema cuối cùng. Mục ti�
 - createdAt
 - updatedAt
 
-Relationships:
+Quan hệ:
 
 - Một `User` có thể liên kết với một `Patient`, `Staff` hoặc `Doctor` tùy vai trò.
 - `role` quyết định navigation và actions hiển thị trong frontend prototype.
@@ -51,7 +51,7 @@ Hồ sơ người đặt lịch hoặc người được khám.
 - createdAt
 - updatedAt
 
-Relationships:
+Quan hệ:
 
 - Một `Patient` có nhiều `Appointment`.
 - `userId` có thể rỗng trong trường hợp receptionist tạo patient cho walk-in hoặc đặt lịch qua điện thoại.
@@ -70,7 +70,7 @@ Hồ sơ nhân sự vận hành phòng khám.
 - createdAt
 - updatedAt
 
-Relationships:
+Quan hệ:
 
 - Một `Staff` có thể tạo, cập nhật hoặc hủy `Appointment`.
 - Một `Staff` có thể là receptionist, nurse hoặc admin.
@@ -92,7 +92,7 @@ Hồ sơ bác sĩ.
 - createdAt
 - updatedAt
 
-Relationships:
+Quan hệ:
 
 - Một `Doctor` thuộc một `Specialty`.
 - Một `Doctor` có thể phụ trách nhiều `Service`.
@@ -110,7 +110,7 @@ Chuyên khoa dùng để nhóm doctors và services.
 - createdAt
 - updatedAt
 
-Relationships:
+Quan hệ:
 
 - Một `Specialty` có nhiều `Doctor`.
 - Một `Specialty` có nhiều `Service`.
@@ -130,7 +130,7 @@ Loại dịch vụ có thể đặt lịch.
 - createdAt
 - updatedAt
 
-Relationships:
+Quan hệ:
 
 - Một `Service` thuộc một `Specialty`.
 - Một `Service` có thể được nhiều `Doctor` phụ trách.
@@ -152,7 +152,7 @@ Khung lịch làm việc hoặc lịch nghỉ của doctor.
 - createdAt
 - updatedAt
 
-Relationships:
+Quan hệ:
 
 - Một `DoctorSchedule` thuộc một `Doctor`.
 - Frontend dùng entity này để render lịch trống, lịch làm việc và trạng thái không khả dụng.
@@ -180,7 +180,7 @@ Lịch khám giữa patient và doctor cho một service cụ thể.
 - createdAt
 - updatedAt
 
-Relationships:
+Quan hệ:
 
 - Một `Appointment` thuộc một `Patient`.
 - Một `Appointment` thuộc một `Doctor`.
@@ -200,7 +200,7 @@ Lịch sử chuyển trạng thái của appointment.
 - note
 - changedAt
 
-Relationships:
+Quan hệ:
 
 - Một `AppointmentStatusHistory` thuộc một `Appointment`.
 - `actorUserId` trỏ đến `User` thực hiện thay đổi.
@@ -219,7 +219,7 @@ Thông báo trong app cho prototype.
 - readAt
 - createdAt
 
-Relationships:
+Quan hệ:
 
 - Một `Notification` thuộc một `User`.
 - `referenceType` và `referenceId` có thể trỏ đến `Appointment`, `DoctorSchedule` hoặc `AuditEvent`.
@@ -236,16 +236,16 @@ Audit log cho hành động quan trọng.
 - timestamp
 - metadata
 
-Relationships:
+Quan hệ:
 
 - Một `AuditEvent` do một `User` tạo ra thông qua hành động trên hệ thống.
 - `entityType` có thể là `appointment`, `patient`, `doctor`, `service`, `schedule`, `user`.
 
-## Auth And Security Model
+## Mô Hình Auth Và Security
 
 Phần này mô tả các entity liên quan đến authentication/session ở mức conceptual. Đây chưa phải security design cuối cùng, nhưng đủ để frontend spec và backend phase không hiểu nhầm rằng hệ thống lưu plaintext password.
 
-### User Authentication Fields
+### Trường User Authentication
 
 Các field auth nên thuộc `User` hoặc bảng auth riêng khi thiết kế backend:
 
@@ -257,7 +257,7 @@ Các field auth nên thuộc `User` hoặc bảng auth riêng khi thiết kế b
 - failedLoginCount
 - lockedUntil
 
-Rules:
+Quy tắc:
 
 - Không lưu field `password` trong database.
 - `password` chỉ tồn tại tạm thời trong request đăng ký, đăng nhập, đổi mật khẩu hoặc reset mật khẩu.
@@ -279,7 +279,7 @@ Rules:
 - revokedAt
 - createdAt
 
-Rules:
+Quy tắc:
 
 - Không lưu raw refresh token trong database; chỉ lưu `tokenHash`.
 - Refresh token nên có expiry và cơ chế revoke khi logout.
@@ -296,7 +296,7 @@ Token dùng cho forgot/reset password.
 - usedAt
 - createdAt
 
-Rules:
+Quy tắc:
 
 - Token reset password phải có thời hạn.
 - Token đã dùng không được dùng lại.
@@ -316,7 +316,7 @@ Mã xác thực dùng cho email/phone verification hoặc OTP flow.
 - usedAt
 - createdAt
 
-Rules:
+Quy tắc:
 
 - Không lưu plaintext OTP/code lâu dài.
 - Cần giới hạn số lần thử.
@@ -375,7 +375,7 @@ Rules:
 - `appointment_completed`
 - `system`
 
-## Relationship Summary
+## Tóm Tắt Quan Hệ
 
 ```text
 User 1--0..1 Patient
@@ -400,7 +400,7 @@ User 1--many Notification
 User 1--many AuditEvent
 ```
 
-## Business Rules
+## Quy Tắc Nghiệp Vụ
 
 ### Appointment
 
@@ -420,7 +420,7 @@ User 1--many AuditEvent
 - Phone nên unique trong phạm vi prototype để giảm trùng hồ sơ.
 - Patient notes trong MVP chỉ là ghi chú vận hành nhẹ, không phải medical record.
 
-### Doctor And Schedule
+### Doctor Và Schedule
 
 - Doctor phải thuộc một specialty.
 - Doctor chỉ nhận appointment cho services mà doctor phụ trách.
@@ -433,14 +433,14 @@ User 1--many AuditEvent
 - AuditEvent là append-only trong backend sau này.
 - Frontend prototype có thể render audit từ `mock data`, nhưng không tự xem đó là security boundary.
 
-### Auth And Session
+### Auth Và Session
 
 - Register, login, logout, refresh token, forgot password và reset password là workflows riêng của auth domain.
 - Frontend chỉ hiển thị form và gửi request; backend chịu trách nhiệm hash password, issue token, revoke token và validate reset token.
 - Role-based navigation trong frontend chỉ là UX. Backend vẫn phải enforce authorization.
 - Session state trong frontend prototype nên nằm trong memory hoặc mock store, không lưu credential nhạy cảm.
 
-## Mock Data Guidance
+## Hướng Dẫn Mock Data
 
 Frontend MVP nên có bộ `mock data` tối thiểu:
 
@@ -464,7 +464,7 @@ Mock data phải thể hiện được các trạng thái UI:
 - Doctor không khả dụng.
 - Mobile calendar/list view.
 
-## Backend Design Notes
+## Ghi Chú Backend Design
 
 Khi chuyển sang backend phase, data model này cần được nâng cấp thành ERD/database schema. Các quyết định backend cần chốt riêng:
 

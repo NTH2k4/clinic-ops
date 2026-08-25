@@ -1,6 +1,6 @@
-# Implementation Plan
+# Kế Hoạch Triển Khai
 
-Implementation plan sẽ được viết sau khi MVP requirements và product workflows được review.
+Kế hoạch triển khai sẽ được viết sau khi MVP requirements và product workflow được review.
 
 Plan đầu tiên dự kiến là frontend prototype plan:
 

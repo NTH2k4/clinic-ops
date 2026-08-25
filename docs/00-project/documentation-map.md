@@ -1,4 +1,4 @@
-# Documentation Map
+# Bản Đồ Tài Liệu
 
 Tài liệu này ghi rõ CareFlow đang học theo bộ tài liệu mẫu ở mức nào, phần nào đã có, phần nào chưa có và thứ tự nên bổ sung.
 
@@ -48,7 +48,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 ### Còn Thiếu So Với Mẫu
 
-- Chưa có `Document Control` và `Revision History` trong từng tài liệu quan trọng.
+- Chưa có phần kiểm soát tài liệu và lịch sử phiên bản trong từng tài liệu quan trọng.
 - Chưa có BRD/SRS chuẩn theo template riêng; frontend MVP spec hiện đóng vai trò PRD gọn cho phase đầu.
 - Đã có persona chi tiết ở `docs/02-product/frontend-mvp-spec.md`, nhưng chưa có stakeholder matrix riêng.
 - Đã có MoSCoW priority và acceptance criteria cho frontend MVP, nhưng chưa có trace đầy đủ theo từng requirement/user story.

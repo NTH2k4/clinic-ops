@@ -1,17 +1,17 @@
-# MVP Requirements
+# Yêu Cầu MVP
 
 ## Tổng Quan
 
-MVP là ứng dụng vận hành phòng khám theo hướng frontend-first. Ứng dụng cần có interface thực tế, polished, dùng `mock data` trước, sau đó hỗ trợ tích hợp backend khi workflows đã được kiểm chứng.
+MVP là ứng dụng vận hành phòng khám theo hướng frontend-first. Ứng dụng cần có interface thực tế, polished, dùng `mock data` trước, sau đó hỗ trợ tích hợp backend khi workflow đã được kiểm chứng.
 
 ## Vai Trò
 
 - Patient
 - Doctor
-- Receptionist or nurse
+- Receptionist hoặc nurse
 - Admin
 
-## Functional Requirements
+## Yêu Cầu Chức Năng
 
 ### Patient
 
@@ -60,7 +60,7 @@ MVP là ứng dụng vận hành phòng khám theo hướng frontend-first. Ứn
 - Ghi lại các hành động quan trọng trên appointment.
 - Hiển thị actor, action, timestamp và appointment bị ảnh hưởng.
 
-## Data Requirements
+## Yêu Cầu Dữ Liệu
 
 Giai đoạn frontend-first cần dùng typed `mock data` cho:
 

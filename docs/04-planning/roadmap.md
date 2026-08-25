@@ -1,6 +1,6 @@
 # Roadmap
 
-## Phase 0: Documentation Baseline
+## Phase 0: Baseline Tài Liệu
 
 - Tạo cấu trúc tài liệu dự án.
 - Định nghĩa MVP scope.
@@ -26,7 +26,7 @@
 - Triển khai schedule conflict checks.
 - Triển khai audit logging.
 
-## Phase 4: Integration
+## Phase 4: Tích Hợp
 
 - Thay mock services bằng backend API client.
 - Thêm end-to-end workflow verification.

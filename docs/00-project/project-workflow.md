@@ -8,7 +8,7 @@ Docs là contract chung cho cả human contributors và agent contributors. Vì 
 
 Quy chuẩn viết docs nằm tại `docs/00-project/documentation-standards.md`.
 
-## Documentation Language
+## Ngôn Ngữ Tài Liệu
 
 CareFlow hướng đến người dùng Việt Nam, nên tài liệu hướng dự án sẽ dùng tiếng Việt theo mặc định. Technical terms, framework names, API names và thuật ngữ chuyên ngành phổ biến có thể giữ bằng tiếng Anh khi dịch sang tiếng Việt làm giảm độ rõ nghĩa.
 

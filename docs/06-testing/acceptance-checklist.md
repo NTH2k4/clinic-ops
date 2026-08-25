@@ -1,4 +1,4 @@
-# Acceptance Checklist
+# Checklist Chấp Nhận
 
 ## Frontend MVP
 
