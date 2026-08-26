@@ -1,6 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { MetricCard } from "../../components/MetricCard";
 import { toDateInputValue } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
+import { catalogQueryOptions } from "../catalog/catalogService";
 
 const ADMIN_PROTOTYPE_TODAY = "2026-08-25";
 
@@ -9,8 +11,12 @@ function percent(value: number) {
 }
 
 export function AdminDashboard() {
-  const activeDoctors = mockStore.doctors.filter((doctor) => doctor.status === "active");
-  const activeServices = mockStore.services.filter((service) => service.status === "active");
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors({ status: "active" }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices({ status: "active" }));
+  const activeDoctors = doctorResponse?.data ?? [];
+  const activeServices = serviceResponse?.data ?? [];
+  const activeDoctorTotal = doctorResponse?.meta.total ?? 0;
+  const activeServiceTotal = serviceResponse?.meta.total ?? 0;
   const today = ADMIN_PROTOTYPE_TODAY;
   const appointmentsToday = mockStore.appointments.filter((appointment) => toDateInputValue(appointment.startAt) === today);
   const cancellationRate = mockStore.appointments.length
@@ -30,8 +36,8 @@ export function AdminDashboard() {
       <p className="text-sm font-medium text-primary">Quản trị phòng khám</p>
       <h1 className="mt-1 text-2xl font-semibold text-text">Admin dashboard</h1>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard helper="Sẵn sàng tiếp nhận lịch hẹn đang hoạt động." label="Doctors active" value={activeDoctors.length} />
-        <MetricCard helper="Danh mục dịch vụ đang mở cho booking." label="Services active" value={activeServices.length} />
+        <MetricCard helper="Sẵn sàng tiếp nhận lịch hẹn đang hoạt động." label="Doctors active" value={activeDoctorTotal} />
+        <MetricCard helper="Danh mục dịch vụ đang mở cho booking." label="Services active" value={activeServiceTotal} />
         <MetricCard helper={`Ngày vận hành ${today.split("-").reverse().join("/")}.`} label="Lịch hẹn hôm nay" value={appointmentsToday.length} />
         <MetricCard helper="Tỷ lệ lịch đã hủy trên toàn bộ mock data." label="Cancellation rate" value={percent(cancellationRate)} />
       </div>
@@ -48,7 +54,7 @@ export function AdminDashboard() {
         <section aria-labelledby="workload-heading">
           <div className="flex items-end justify-between gap-3">
             <h2 className="text-lg font-semibold text-text" id="workload-heading">Khối lượng lịch theo bác sĩ</h2>
-            <p className="text-sm font-medium text-text-muted">{workload.length} bác sĩ đang active</p>
+            <p className="text-sm font-medium text-text-muted">{activeDoctorTotal} bác sĩ đang active</p>
           </div>
           {workload.length > 1 && workload.some((item) => item.appointments > 0) ? <ul className="mt-3 divide-y divide-border rounded-md border border-border bg-surface">
             {workload.map(({ doctor, appointments }) => <li className="flex items-center justify-between gap-3 p-3 text-sm" key={doctor.id}><span className="font-medium text-text">{doctor.fullName}</span><span className="shrink-0 text-text-muted">{appointments} lịch hẹn</span></li>)}

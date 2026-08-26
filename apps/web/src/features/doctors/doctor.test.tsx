@@ -28,14 +28,14 @@ function DoctorFlowHarness() {
     return checkedIn;
   });
 
-  return <DetailDrawer actorUserId="user-doctor-1" appointment={appointment} onClose={() => undefined} onUpdated={setAppointment} />;
+  return <DetailDrawer actorRole="doctor" actorUserId="user-doctor-1" appointment={appointment} onClose={() => undefined} onUpdated={setAppointment} />;
 }
 
 function TerminalAppointmentHarness() {
   const completed = mockStore.appointments.find((candidate) => candidate.status === "completed");
   if (!completed) throw new Error("Missing completed fixture");
 
-  return <DetailDrawer actorUserId="user-doctor-1" appointment={completed} onClose={() => undefined} onUpdated={() => undefined} />;
+  return <DetailDrawer actorRole="doctor" actorUserId="user-doctor-1" appointment={completed} onClose={() => undefined} onUpdated={() => undefined} />;
 }
 
 function ClinicDateTimeHarness() {
@@ -44,7 +44,14 @@ function ClinicDateTimeHarness() {
   );
   if (!appointment) throw new Error("Missing clinic date-time fixture");
 
-  return <DetailDrawer actorUserId="user-doctor-1" appointment={appointment} onClose={() => undefined} onUpdated={() => undefined} />;
+  return <DetailDrawer actorRole="doctor" actorUserId="user-doctor-1" appointment={appointment} onClose={() => undefined} onUpdated={() => undefined} />;
+}
+
+function ConfirmedAppointmentHarness() {
+  const confirmed = mockStore.appointments.find((candidate) => candidate.status === "confirmed");
+  if (!confirmed) throw new Error("Missing confirmed fixture");
+
+  return <DetailDrawer actorRole="doctor" actorUserId="user-doctor-1" appointment={confirmed} onClose={() => undefined} onUpdated={() => undefined} />;
 }
 
 describe("doctor workspace", () => {
@@ -139,6 +146,12 @@ describe("doctor workspace", () => {
     renderWithProviders(<TerminalAppointmentHarness />);
 
     expect(screen.queryByRole("button", { name: /appointment/i })).not.toBeInTheDocument();
+  });
+
+  it("does not offer doctors the receptionist check-in transition", () => {
+    renderWithProviders(<ConfirmedAppointmentHarness />);
+
+    expect(screen.queryByRole("button", { name: /Check in appointment/i })).not.toBeInTheDocument();
   });
 
   it("renders drawer date-time in Vietnam clinic time", () => {

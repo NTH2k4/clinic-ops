@@ -1,7 +1,7 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import { useNavigate } from "react-router-dom";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
 import { renderWithProviders } from "../../test/render";
 
@@ -29,7 +29,30 @@ function GoToAdmin() {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+  vi.resetModules();
 });
+
+async function renderApiApp() {
+  vi.resetModules();
+  vi.stubEnv("VITE_DATA_SOURCE", "api");
+
+  const [{ App: ApiApp }, { renderWithProviders: renderApiWithProviders }] = await Promise.all([
+    import("../../app/App"),
+    import("../../test/render"),
+  ]);
+
+  return renderApiWithProviders(<ApiApp />);
+}
+
+function successResponse(data: unknown) {
+  return new Response(JSON.stringify({ data, meta: { requestId: "req-1" } }), { status: 200 });
+}
+
+function storageValues(storage: Storage) {
+  return Array.from({ length: storage.length }, (_, index) => storage.getItem(storage.key(index)!));
+}
 
 describe("authentication and role routing", () => {
   it("signs in with the patient demo and switches to the doctor workspace", async () => {
@@ -213,5 +236,145 @@ describe("authentication and role routing", () => {
 
     expect(screen.getByRole("heading", { name: "Lịch tuần" })).toBeInTheDocument();
     expect(within(mainNavigation).getByRole("link", { name: "Lịch tuần" })).toHaveAttribute("aria-current", "page");
+  });
+});
+
+describe("API authentication", () => {
+  it("returns to login when a catalog request reports an expired session", async () => {
+    const user = userEvent.setup();
+    let sessionExpired = false;
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/auth/login")) {
+        return successResponse({
+          sessionToken: "expired-session-token",
+          currentUser: {
+            id: "user-patient-1",
+            displayName: "API Patient",
+            email: "patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-1" },
+        });
+      }
+      if (sessionExpired && url.includes("/services")) {
+        return new Response(JSON.stringify({
+          error: { code: "UNAUTHENTICATED", message: "Session expired." },
+          meta: { requestId: "req-expired" },
+        }), { status: 401 });
+      }
+      return new Response(JSON.stringify({
+        data: [],
+        meta: { requestId: "req-list", page: 1, pageSize: 100, total: 0 },
+      }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetcher);
+
+    await renderApiApp();
+    await user.type(screen.getByLabelText("Email"), "patient@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "secret");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByRole("heading", { name: "Trang chính patient" })).toBeInTheDocument();
+
+    const { queryClient } = await import("../../lib/queryClient");
+    const { getApiSessionToken } = await import("../../lib/api/session");
+    const { catalogService } = await import("../catalog/catalogService");
+    queryClient.setQueryData(["session-sensitive"], { value: "stale" });
+    sessionExpired = true;
+
+    await expect(catalogService.listServices()).rejects.toMatchObject({ code: "UNAUTHENTICATED" });
+
+    expect(await screen.findByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
+    expect(getApiSessionToken()).toBeNull();
+    expect(queryClient.getQueryData(["session-sensitive"])).toBeUndefined();
+  });
+
+  it("signs in through the API without persisting the session token and hides demo role switching", async () => {
+    const user = userEvent.setup();
+    const sessionToken = "api-session-token";
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/auth/login")) {
+        return successResponse({
+          sessionToken,
+          currentUser: {
+            id: "user-patient-1",
+            displayName: "API Patient",
+            email: "patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-1" },
+        });
+      }
+      if (url.includes("/services") || url.includes("/doctors") || url.includes("/specialties")) {
+        return new Response(JSON.stringify({ data: [], meta: { requestId: "req-list", page: 1, pageSize: 100, total: 0 } }), { status: 200 });
+      }
+      return successResponse({});
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+    localStorage.clear();
+    sessionStorage.clear();
+
+    await renderApiApp();
+
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Mật khẩu")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Patient Demo/i })).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Email"), "patient@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "secret");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+
+    expect(await screen.findByText("Trang chính patient")).toBeInTheDocument();
+    expect(fetcher).toHaveBeenNthCalledWith(
+      1,
+      "/api/v1/auth/login",
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ email: "patient@example.test", password: "secret" }) }),
+    );
+    expect(setItem).not.toHaveBeenCalled();
+    expect([...storageValues(localStorage), ...storageValues(sessionStorage)]).not.toContain(sessionToken);
+    expect(screen.queryByLabelText("Chuyển vai trò")).not.toBeInTheDocument();
+    await waitFor(() => {
+      const catalogCall = fetcher.mock.calls.find(([url]) => String(url).includes("/services"));
+      expect(catalogCall).toBeDefined();
+      expect(new Headers(catalogCall?.[1]?.headers).get("Authorization")).toBe(`Bearer ${sessionToken}`);
+    });
+
+    const { queryClient } = await import("../../lib/queryClient");
+    queryClient.setQueryData(["auth-cache"], { value: "stale" });
+
+    await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
+
+    await waitFor(() => expect(fetcher).toHaveBeenCalledWith(
+      "/api/v1/auth/logout",
+      expect.objectContaining({ method: "POST" }),
+    ));
+    await waitFor(() => expect(queryClient.getQueryData(["auth-cache"])).toBeUndefined());
+  });
+
+  it("shows the backend login error without exposing a token", async () => {
+    const user = userEvent.setup();
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error: { code: "INVALID_CREDENTIALS", message: "Email or password is incorrect." },
+          meta: { requestId: "req-401" },
+        }),
+        { status: 401 },
+      ),
+    );
+    vi.stubGlobal("fetch", fetcher);
+
+    await renderApiApp();
+
+    await user.type(screen.getByLabelText("Email"), "patient@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "incorrect");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+
+    expect(await screen.findByText("Email or password is incorrect.")).toBeInTheDocument();
+    expect(screen.queryByText("api-session-token")).not.toBeInTheDocument();
   });
 });

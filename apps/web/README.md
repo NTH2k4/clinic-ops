@@ -1,6 +1,6 @@
 # CareFlow Web
 
-CareFlow Web là frontend-first MVP cho quy trình đặt lịch khám, doctor workspace, operations workspace và admin views. App chạy hoàn toàn với `mock data`; không cần backend để phát triển, test hoặc demo.
+CareFlow Web là frontend-first MVP cho quy trình đặt lịch khám, doctor workspace, operations workspace và admin views. Mặc định app chạy với `mock data`; không cần backend để phát triển, test hoặc demo.
 
 ## Requirements
 
@@ -31,7 +31,7 @@ API integration dùng `VITE_DATA_SOURCE=mock|api` và `VITE_API_BASE_URL=/api/v1
 
 ## Auth Và Session
 
-Mock mode dùng mock auth để demo theo role. API mode sẽ dùng `POST /api/v1/auth/login`, `POST /api/v1/auth/logout` và `GET /api/v1/auth/me`; bearer session token chỉ giữ trong React state. Cả hai mode đều không lưu password hoặc session token trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
+Mock mode dùng mock auth để demo theo role. API mode dùng `POST /api/v1/auth/login` để lấy `currentUser`, `linkedProfile` và bearer session token, rồi dùng `POST /api/v1/auth/logout` khi đăng xuất; `GET /api/v1/auth/me` vẫn thuộc backend contract nhưng frontend không dùng để hydrate session vì token không được persist. Cả hai mode đều không lưu password hoặc session token trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
 
 ## Scripts
 
@@ -42,7 +42,10 @@ Mock mode dùng mock auth để demo theo role. API mode sẽ dùng `POST /api/v
 | `npm run typecheck` | Kiểm tra TypeScript project references. |
 | `npm run lint` | Chạy ESLint. |
 | `npm run build` | Typecheck và build production bundle. |
-| `npm run e2e` | Chạy Playwright smoke tests và tự khởi động Vite server. |
+| `npm run e2e` | Chạy Playwright mock smoke tests và tự khởi động Vite server. |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` | Migrate/seed API local rồi chạy Playwright API regression tests. |
+
+`npm run e2e` giữ mock mode là mặc định và không cần backend. `e2e:api` cần PostgreSQL local, dependencies đã cài trong `apps/api`, và `DATABASE_URL`; runner sẽ generate Prisma client, apply migrations, seed dữ liệu demo, khởi động API ở port 3000, rồi chạy Vite API mode ở port 4174. Vite proxy `/api/v1` tới API local để browser test dùng cùng origin. Production vẫn dùng mock mode cho đến khi API hosting và CORS production được cấu hình.
 
 ## Responsive QA Và Verification
 
@@ -54,6 +57,7 @@ npm run typecheck
 npm run lint
 npm run build
 npm run e2e
+DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api
 git diff --check
 ```
 
@@ -78,7 +82,7 @@ Manual responsive follow-up vẫn nên dùng `npm run dev -- --host 0.0.0.0` đ�
 
 GitHub Actions dùng hai workflow:
 
-- `Web CI`: chạy khi có Pull Request vào `main` hoặc push lên `main`, kiểm tra test, typecheck, lint, build, e2e và upload artifact `careflow-web-dist`.
+- `Web CI`: chạy khi có Pull Request vào `main` hoặc push lên `main`, kiểm tra test, typecheck, lint, build, mock e2e, API-mode e2e với PostgreSQL service, và upload artifact `careflow-web-dist`.
 - `Web Pages`: chạy khi `main` thay đổi hoặc chạy thủ công bằng `workflow_dispatch`, build với `mode github-pages` rồi deploy `apps/web/dist` lên GitHub Pages.
 
 GitHub Pages cần bật source **GitHub Actions** trong repository settings. Khi deploy thành công, app có URL dạng:

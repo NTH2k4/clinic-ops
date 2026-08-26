@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { isApiMode } from "../lib/dataSource";
 import { roleHomePath } from "../routes/RoleHomeRedirect";
 import type { UserRole } from "../types/models";
 import { useAuth } from "../features/auth/AuthProvider";
@@ -15,7 +16,7 @@ export function RoleSwitcher() {
   const navigate = useNavigate();
   const { switchRole, user } = useAuth();
 
-  if (!user) {
+  if (isApiMode || !user) {
     return null;
   }
 

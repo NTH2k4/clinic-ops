@@ -1,25 +1,34 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { DetailDrawer } from "../../components/DetailDrawer";
 import { EmptyState } from "../../components/EmptyState";
-import { addDays, formatDateInputValue, isDateInputValue, toDateInputValue } from "../../lib/dateTime";
-import { mockStore } from "../../mocks/mockStore";
+import { addDays, formatDateInputValue, isDateInputValue } from "../../lib/dateTime";
 import type { Appointment } from "../../types/models";
+import { appointmentDateRange, appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
+import { catalogQueryOptions } from "../catalog/catalogService";
 import { DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
 
 export function DoctorDaySchedule() {
-  const { user } = useAuth();
-  const doctor = mockStore.doctors.find((candidate) => candidate.userId === user?.id);
+  const { linkedProfile, user } = useAuth();
+  const queryClient = useQueryClient();
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
+  const doctor = doctorResponse?.data.find((candidate) => candidate.id === (linkedProfile?.type === "doctor" ? linkedProfile.id : undefined) || candidate.userId === user?.id);
+  const services = serviceResponse?.data ?? [];
   const [date, setDate] = useState(DOCTOR_PROTOTYPE_TODAY);
-  const [appointments, setAppointments] = useState<Appointment[]>(() => mockStore.appointments.filter((appointment) => appointment.doctorId === doctor?.id).sort((left, right) => left.startAt.localeCompare(right.startAt)));
+  const appointmentOptions = appointmentQueryOptions.list({ ...appointmentDateRange(date), doctorId: doctor?.id });
+  const { data: appointments = [] } = useQuery(appointmentOptions);
+  const patients = patientsFromAppointments(appointments);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const visibleAppointments = appointments.filter((appointment) => toDateInputValue(appointment.startAt) === date);
+  const visibleAppointments = appointments.slice().sort((left, right) => left.startAt.localeCompare(right.startAt));
 
   function updateAppointment(updated: Appointment) {
-    setAppointments((current) => current.map((appointment) => appointment.id === updated.id ? updated : appointment));
+    queryClient.setQueryData<Appointment[]>(appointmentOptions.queryKey, (current = []) =>
+      current.map((appointment) => appointment.id === updated.id ? updated : appointment));
     setSelectedAppointment(updated);
   }
 
@@ -57,8 +66,8 @@ export function DoctorDaySchedule() {
           </div>
         </div>
       </div>
-      <div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={mockStore.patients} services={mockStore.services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div>
-      <DetailDrawer actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
+      <div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={patients} services={services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div>
+      <DetailDrawer actorRole={user?.role ?? "doctor"} actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
@@ -10,13 +10,184 @@ import { MetricCard } from "./MetricCard";
 import { SegmentedControl } from "./SegmentedControl";
 import { StatusBadge } from "./StatusBadge";
 import { renderWithProviders } from "../test/render";
-import type { AppointmentStatus } from "../types/models";
+import { mockStore } from "../mocks/mockStore";
+import type { Appointment, AppointmentStatus } from "../types/models";
 
 afterEach(() => {
   cleanup();
+  mockStore.reset();
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+  vi.resetModules();
 });
 
+function apiSuccess(data: unknown) {
+  return new Response(JSON.stringify({ data, meta: { requestId: "req-api" } }), { status: 200 });
+}
+
+function apiListResponse(data: unknown[]) {
+  return new Response(JSON.stringify({ data, meta: { requestId: "req-list", page: 1, pageSize: 100, total: data.length } }), { status: 200 });
+}
+
+const apiNotification = {
+  id: "notification-api-1",
+  recipientUserId: "user-admin-1",
+  type: "appointment_confirmed",
+  title: "API notification",
+  message: "Loaded from the notifications API.",
+  referenceType: "audit_event",
+  referenceId: "audit-api-1",
+  readAt: null,
+  createdAt: "2026-08-24T02:00:00.000Z",
+};
+
+const apiAppointment: Appointment = {
+  id: "appointment-api-1",
+  patientId: "patient-api-1",
+  doctorId: "doctor-api-1",
+  serviceId: "service-api-1",
+  startAt: "2026-08-25T08:00:00+07:00",
+  endAt: "2026-08-25T08:30:00+07:00",
+  status: "confirmed" as const,
+  reason: "API appointment",
+  createdByUserId: "user-admin-1",
+  createdAt: "2026-08-24T00:00:00.000Z",
+  updatedAt: "2026-08-24T00:00:00.000Z",
+  patient: {
+    id: "patient-api-1",
+    fullName: "API Patient",
+    phone: "0900000000",
+    dateOfBirth: "1990-01-01",
+    gender: "female",
+    status: "active",
+    createdAt: "2026-08-24T00:00:00.000Z",
+    updatedAt: "2026-08-24T00:00:00.000Z",
+  },
+  statusHistory: [],
+};
+
+async function prepareApiMode(fetcher: typeof fetch) {
+  vi.resetModules();
+  vi.stubEnv("VITE_DATA_SOURCE", "api");
+  vi.stubGlobal("fetch", fetcher);
+  return Promise.all([import("../test/render"), import("../app/App")]);
+}
+
 describe("shared UI components", () => {
+  it("loads notifications for the signed-in API user and marks one read", async () => {
+    let notificationRead = false;
+    const fetcher = vi.fn<typeof fetch>(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith("/auth/login")) {
+        return apiSuccess({
+          sessionToken: "api-session-token",
+          currentUser: { id: "user-admin-1", displayName: "API Admin", email: "admin@example.test", role: "admin", status: "active" },
+        });
+      }
+      if (url.includes("/notifications/notification-api-1/read")) {
+        notificationRead = true;
+        expect(init?.method).toBe("POST");
+        return apiSuccess({ ...apiNotification, readAt: "2026-08-24T03:00:00.000Z" });
+      }
+      if (url.includes("/notifications")) return apiListResponse([{ ...apiNotification, readAt: notificationRead ? "2026-08-24T03:00:00.000Z" : null }]);
+      if (url.includes("/audit-events")) return apiListResponse([]);
+      return apiListResponse([]);
+    });
+    const [{ renderWithProviders: renderApiWithProviders }, { App: ApiApp }] = await prepareApiMode(fetcher);
+    const user = userEvent.setup();
+
+    renderApiWithProviders(<ApiApp />);
+    await user.type(screen.getByLabelText("Email"), "admin@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "secret");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    await user.click(await screen.findByRole("button", { name: "Thông báo" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "Thông báo" });
+    expect(within(dialog).getByText("API notification")).toBeInTheDocument();
+    expect(within(dialog).getByText("1 thông báo, 1 chưa đọc")).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Đánh dấu API notification là đã đọc" }));
+
+    expect(await within(dialog).findByText("1 thông báo, 0 chưa đọc")).toBeInTheDocument();
+    expect(fetcher.mock.calls.map(([url]) => String(url))).toContain("/api/v1/notifications/notification-api-1/read");
+  });
+
+  it("loads appointment audit events in the detail drawer in API mode", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+      if (url.includes("/audit-events")) {
+        return apiListResponse([{
+          id: "audit-api-1",
+          actorUserId: "user-admin-1",
+          entityType: "appointment",
+          entityId: "appointment-api-1",
+          action: "appointment_updated",
+          timestamp: "2026-08-24T02:00:00.000Z",
+          metadata: null,
+        }]);
+      }
+      if (url.includes("/doctors")) return apiListResponse([]);
+      if (url.includes("/services")) return apiListResponse([]);
+      return apiListResponse([]);
+    });
+    const [{ renderWithProviders: renderApiWithProviders }] = await prepareApiMode(fetcher);
+    const { DetailDrawer } = await import("./DetailDrawer");
+
+    renderApiWithProviders(
+      <DetailDrawer
+        actorRole="admin"
+        actorUserId="user-admin-1"
+        appointment={apiAppointment}
+        onClose={() => undefined}
+        onUpdated={() => undefined}
+      />,
+    );
+
+    expect(await screen.findByText("appointment_updated")).toBeInTheDocument();
+    expect(fetcher.mock.calls.map(([url]) => String(url))).toContain(
+      "/api/v1/audit-events?entityId=appointment-api-1&page=1&pageSize=100",
+    );
+  });
+
+  it("lists mock appointment audit events newest first in the detail drawer", async () => {
+    const { DetailDrawer } = await import("./DetailDrawer");
+    const { mockStore: drawerMockStore } = await import("../mocks/mockStore");
+    const appointment = drawerMockStore.appointments[0];
+    drawerMockStore.auditEvents = [
+      {
+        id: "audit-old",
+        actorUserId: "user-receptionist-1",
+        entityType: "appointment",
+        entityId: appointment.id,
+        action: "older event",
+        timestamp: "2026-08-20T09:00:00+07:00",
+      },
+      {
+        id: "audit-new",
+        actorUserId: "user-receptionist-1",
+        entityType: "appointment",
+        entityId: appointment.id,
+        action: "newer event",
+        timestamp: "2026-08-21T09:00:00+07:00",
+      },
+    ];
+
+    renderWithProviders(
+      <DetailDrawer
+        actorRole="receptionist"
+        actorUserId="user-receptionist-1"
+        appointment={appointment}
+        onClose={() => undefined}
+        onUpdated={() => undefined}
+      />,
+    );
+
+    const auditSection = screen.getByRole("heading", { name: "Nhật ký kiểm toán" }).closest("section");
+    expect(within(auditSection!).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      expect.stringContaining("newer event"),
+      expect.stringContaining("older event"),
+    ]);
+  });
+
   it("renders appointment status with text and accessible label", () => {
     renderWithProviders(<StatusBadge status={"requested" satisfies AppointmentStatus} />);
 

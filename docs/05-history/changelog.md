@@ -4,6 +4,7 @@
 
 - Added backend as-built documentation in English: `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/database-schema.md`, `apps/api/README.md` and `docs/04-planning/backend-next-steps.md`.
 - Updated documentation standards to make English the default for new and materially revised docs, with agent/subagent plans explicitly written in English.
+- Bổ sung Playwright API-mode regression gate cho login/booking conflict, operations check-in, doctor workflow, audit/notification navigation và RBAC redirect; mock e2e vẫn là mặc định, CI web khởi tạo PostgreSQL/API riêng cho gate này.
 - Triển khai Backend Task 3 auth/RBAC foundation: thêm API error envelope/filter, auth login/logout/me, bearer session guard, role guard và e2e coverage cho `UNAUTHENTICATED`/`FORBIDDEN`.
 - Triển khai Backend Task 2 database foundation: thêm Prisma schema, PrismaModule/PrismaService, seed demo deterministic, database smoke e2e test và initial migration cho PostgreSQL.
 - Triển khai Backend Task 1 scaffold: tạo `apps/api` NestJS, health endpoint `/api/v1/health`, API envelope helper, Jest/Supertest tests, lint/typecheck/build config và local PostgreSQL compose.

@@ -1,3 +1,5 @@
 # Ghi Chú Phát Hành
 
-Ghi chú phát hành sẽ được viết khi có phiên bản đầu tiên chạy được.
+## 2026-08-26
+
+- Thêm API-mode Playwright regression gate; mock mode vẫn là mặc định cho local development và demo cho đến khi API production hosting/CORS được cấu hình.

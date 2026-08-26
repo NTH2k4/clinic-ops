@@ -1,14 +1,17 @@
-import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { auditQueryOptions } from "../audit/auditService";
 import { formatDateTime } from "../../lib/dateTime";
-import { mockStore } from "../../mocks/mockStore";
 import type { AuditEntityType } from "../../types/models";
 
 export function AuditLog() {
   const [entityType, setEntityType] = useState<"" | AuditEntityType>("");
   const [action, setAction] = useState("");
-  const actions = useMemo(() => [...new Set(mockStore.auditEvents.map((event) => event.action))], []);
-  const events = mockStore.auditEvents.filter((event) => (!entityType || event.entityType === entityType) && (!action || event.action === action));
-  const entityTypes = [...new Set(mockStore.auditEvents.map((event) => event.entityType))];
+  const filters = { entityType: entityType || undefined, action: action || undefined, page: 1, pageSize: 100 };
+  const { data: auditResponse } = useQuery(auditQueryOptions.list(filters));
+  const events = auditResponse?.data ?? [];
+  const actions = [...new Set(events.map((event) => event.action))];
+  const entityTypes = [...new Set(events.map((event) => event.entityType))];
 
   function resetFilters() {
     setEntityType("");

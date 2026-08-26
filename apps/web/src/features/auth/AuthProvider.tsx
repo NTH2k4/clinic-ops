@@ -1,12 +1,20 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { PropsWithChildren } from "react";
+import { createAuthApi } from "../../lib/api/auth";
+import type { CurrentUser, LinkedProfileRef } from "../../lib/api/auth";
+import { clearApiSession, createSessionApiHttpClient, setApiSessionToken, subscribeToApiSessionCleared } from "../../lib/api/session";
+import { isApiMode } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import type { User, UserRole } from "../../types/models";
 
+type SignInInput = string | { email: string; password: string };
+
 type AuthContextValue = {
-  user: User | null;
-  signIn: (userId: string) => void;
-  signOut: () => void;
+  user: CurrentUser | null;
+  linkedProfile: LinkedProfileRef;
+  authError: string | null;
+  signIn: (input: SignInInput) => Promise<CurrentUser | null>;
+  signOut: () => Promise<void>;
   switchRole: (role: UserRole) => void;
 };
 
@@ -28,22 +36,80 @@ function userForRole(role: UserRole): User | undefined {
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  const [linkedProfile, setLinkedProfile] = useState<LinkedProfileRef>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const clearApiAuthState = useCallback(() => {
+    setUser(null);
+    setLinkedProfile(null);
+  }, []);
+
+  useEffect(() => subscribeToApiSessionCleared(clearApiAuthState), [clearApiAuthState]);
+
+  const authApi = useMemo(() => {
+    const client = createSessionApiHttpClient();
+
+    return createAuthApi(client.request);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      signIn(userId) {
-        setUser(mockStore.users.find((candidate) => candidate.id === userId) ?? null);
+      linkedProfile,
+      authError,
+      async signIn(input) {
+        setAuthError(null);
+
+        if (!isApiMode) {
+          if (typeof input !== "string") {
+            return null;
+          }
+
+          const selectedUser = mockStore.users.find((candidate) => candidate.id === input) ?? null;
+          setUser(selectedUser);
+          return selectedUser;
+        }
+
+        if (typeof input === "string") {
+          return null;
+        }
+
+        try {
+          const session = await authApi.login(input);
+          setApiSessionToken(session.sessionToken);
+          setUser(session.currentUser);
+          setLinkedProfile(session.linkedProfile);
+          return session.currentUser;
+        } catch (error) {
+          setAuthError(error instanceof Error ? error.message : "Unable to sign in.");
+          return null;
+        }
       },
-      signOut() {
+      async signOut() {
+        setAuthError(null);
+
+        if (isApiMode) {
+          try {
+            await authApi.logout();
+          } catch (error) {
+            setAuthError(error instanceof Error ? error.message : "Unable to sign out.");
+          }
+          clearApiSession();
+          return;
+        }
+
         setUser(null);
+        setLinkedProfile(null);
       },
       switchRole(role) {
+        if (isApiMode) {
+          throw new Error("Role switching is unavailable in API mode.");
+        }
         setUser(userForRole(role) ?? null);
       },
     }),
-    [user],
+    [authApi, authError, linkedProfile, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

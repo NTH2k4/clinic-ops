@@ -129,13 +129,15 @@ export interface Appointment {
   internalNote?: string;
   cancellationReason?: string;
   createdByUserId: string;
-  updatedByUserId: string;
+  updatedByUserId?: string;
   checkedInAt?: string;
   startedAt?: string;
   completedAt?: string;
   cancelledAt?: string;
   createdAt: string;
   updatedAt: string;
+  patient?: Patient;
+  statusHistory?: AppointmentStatusHistory[];
 }
 
 export interface AppointmentStatusHistory {
