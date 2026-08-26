@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
@@ -6,8 +6,8 @@ import { ClinicDateField } from "../../components/ClinicDateField";
 import { DetailDrawer } from "../../components/DetailDrawer";
 import { EmptyState } from "../../components/EmptyState";
 import { addDays, formatDate, formatDateRange, getIsoWeekNumber, getWeekStartDate, isDateInputValue, toDateInputValue } from "../../lib/dateTime";
-import { mockStore } from "../../mocks/mockStore";
 import type { Appointment } from "../../types/models";
+import { appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
 import { DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
@@ -18,19 +18,26 @@ function weekDates(startDate: string) {
 }
 
 export function DoctorWeekSchedule() {
-  const { user } = useAuth();
+  const { linkedProfile, user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
-  const doctor = doctorResponse?.data.find((candidate) => candidate.userId === user?.id);
+  const doctor = doctorResponse?.data.find((candidate) => candidate.id === (linkedProfile?.type === "doctor" ? linkedProfile.id : undefined) || candidate.userId === user?.id);
   const services = serviceResponse?.data ?? [];
   const currentWeekStart = getWeekStartDate(DOCTOR_PROTOTYPE_TODAY);
   const [weekStart, setWeekStart] = useState(currentWeekStart);
   const dates = useMemo(() => weekDates(weekStart), [weekStart]);
   const [selectedDate, setSelectedDate] = useState(weekStart);
-  const [allAppointments, setAppointments] = useState<Appointment[]>(() => mockStore.appointments);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const visibleAppointments = allAppointments.filter((appointment) => appointment.doctorId === doctor?.id && toDateInputValue(appointment.startAt) === selectedDate).sort((left, right) => left.startAt.localeCompare(right.startAt));
   const weekEnd = dates[6];
+  const appointmentOptions = appointmentQueryOptions.list({
+    doctorId: doctor?.id,
+    startAt: `${weekStart}T00:00:00+07:00`,
+    endAt: `${weekEnd}T23:59:59.999+07:00`,
+  });
+  const { data: appointments = [] } = useQuery(appointmentOptions);
+  const patients = patientsFromAppointments(appointments);
+  const visibleAppointments = appointments.filter((appointment) => toDateInputValue(appointment.startAt) === selectedDate).sort((left, right) => left.startAt.localeCompare(right.startAt));
   const weekLabel = `Tuần ${getIsoWeekNumber(weekStart)}, ${formatDateRange(weekStart, weekEnd)}`;
 
   function updateWeekStart(value: string) {
@@ -45,7 +52,8 @@ export function DoctorWeekSchedule() {
   }
 
   function updateAppointment(updated: Appointment) {
-    setAppointments((current) => current.map((appointment) => appointment.id === updated.id ? updated : appointment));
+    queryClient.setQueryData<Appointment[]>(appointmentOptions.queryKey, (current = []) =>
+      current.map((appointment) => appointment.id === updated.id ? updated : appointment));
     setSelectedAppointment(updated);
   }
 
@@ -79,7 +87,7 @@ export function DoctorWeekSchedule() {
         </div>
       </div>
       <div aria-label="Chọn ngày trong tuần" className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">{dates.map((date) => <button aria-pressed={selectedDate === date} className="min-h-14 rounded-md border border-border bg-surface px-2 py-2 text-left text-sm font-medium text-text aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" key={date} onClick={() => setSelectedDate(date)} type="button">{formatDate(`${date}T00:00:00+07:00`)}</button>)}</div>
-      <div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={mockStore.patients} services={services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div>
+      <div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={patients} services={services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div>
       <DetailDrawer actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
     </section>
   );

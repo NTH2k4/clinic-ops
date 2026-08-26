@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { mockStore } from "../../mocks/mockStore";
 import { appointmentService } from "./appointmentService";
 
@@ -20,7 +20,41 @@ const staffInput = {
 
 afterEach(() => {
   mockStore.reset();
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+  vi.resetModules();
 });
+
+const apiAppointment = {
+  id: "appointment-api-1",
+  patientId: "patient-1",
+  doctorId: "doctor-1",
+  serviceId: "service-general-consult",
+  startAt: "2026-08-25T08:00:00.000Z",
+  endAt: "2026-08-25T08:30:00.000Z",
+  status: "requested",
+  reason: "Khám theo yêu cầu.",
+  internalNote: null,
+  cancellationReason: null,
+  createdByUserId: "user-patient-1",
+  updatedByUserId: null,
+  checkedInAt: null,
+  startedAt: null,
+  completedAt: null,
+  cancelledAt: null,
+  createdAt: "2026-08-24T08:00:00.000Z",
+  updatedAt: "2026-08-24T08:00:00.000Z",
+};
+
+function apiSuccess(data: unknown): Response {
+  return new Response(JSON.stringify({ data, meta: { requestId: "req-appointment" } }), { status: 200 });
+}
+
+async function apiModeService(fetcher: typeof fetch) {
+  vi.stubEnv("VITE_DATA_SOURCE", "api");
+  vi.stubGlobal("fetch", fetcher);
+  return (await import("./appointmentService")).appointmentService;
+}
 
 describe("appointmentService", () => {
   it("creates patient appointments as requested and records an audit event", async () => {
@@ -216,5 +250,112 @@ describe("appointmentService", () => {
 
     expect(mockStore.appointments.find((appointment) => appointment.id === cancelled.id)?.cancelledAt)
       .not.toBe("2026-08-25T16:00:00+07:00");
+  });
+});
+
+describe("appointmentService in API mode", () => {
+  it("creates a patient appointment without sending endAt or actorUserId", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(apiSuccess(apiAppointment));
+    const service = await apiModeService(fetcher);
+
+    await expect(service.createPatientAppointment({ ...patientInput, internalNote: "Do not expose this field" })).resolves.toMatchObject({
+      id: "appointment-api-1",
+      endAt: "2026-08-25T08:30:00.000Z",
+      status: "requested",
+    });
+
+    expect(fetcher).toHaveBeenCalledWith("/api/v1/appointments", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({
+        patientId: "patient-1",
+        doctorId: "doctor-1",
+        serviceId: "service-general-consult",
+        startAt: "2026-08-25T15:00:00+07:00",
+        reason: "Khám theo yêu cầu.",
+      }),
+    }));
+  });
+
+  it("creates a staff appointment and uses the backend confirmed status", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(apiSuccess({ ...apiAppointment, status: "confirmed" }));
+    const service = await apiModeService(fetcher);
+
+    await expect(service.createStaffAppointment(staffInput)).resolves.toMatchObject({ status: "confirmed" });
+    expect(fetcher).toHaveBeenCalledWith("/api/v1/appointments", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({
+        patientId: "patient-2",
+        doctorId: "doctor-1",
+        serviceId: "service-general-consult",
+        startAt: "2026-08-25T15:30:00+07:00",
+        reason: "Khám theo yêu cầu.",
+      }),
+    }));
+  });
+
+  it("surfaces backend appointment conflicts through the service error contract", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      error: { code: "APPOINTMENT_CONFLICT", message: "The doctor already has an active appointment during this slot." },
+      meta: { requestId: "req-conflict" },
+    }), { status: 409 }));
+    const service = await apiModeService(fetcher);
+
+    await expect(service.createPatientAppointment(patientInput)).rejects.toMatchObject({
+      code: "APPOINTMENT_CONFLICT",
+      message: "The doctor already has an active appointment during this slot.",
+    });
+  });
+
+  it.each([
+    ["confirmed", "confirm"],
+    ["checked_in", "check-in"],
+    ["in_progress", "start"],
+    ["completed", "complete"],
+    ["no_show", "no-show"],
+  ] as const)("maps %s status updates to the %s endpoint", async (status, endpoint) => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(apiSuccess({ ...apiAppointment, status }));
+    const service = await apiModeService(fetcher);
+
+    await expect(service.updateAppointmentStatus("appointment-api-1", status, "user-staff-1"))
+      .resolves.toMatchObject({ status });
+    expect(fetcher).toHaveBeenCalledWith(`/api/v1/appointments/appointment-api-1/${endpoint}`, expect.objectContaining({
+      method: "POST",
+      body: "{}",
+    }));
+  });
+
+  it("cancels through the dedicated endpoint", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(apiSuccess({ ...apiAppointment, status: "cancelled" }));
+    const service = await apiModeService(fetcher);
+
+    await service.cancelAppointment("appointment-api-1", {
+      actorUserId: "user-staff-1",
+      cancellationReason: "Bệnh nhân đổi lịch.",
+    });
+
+    expect(fetcher).toHaveBeenCalledWith("/api/v1/appointments/appointment-api-1/cancel", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ cancellationReason: "Bệnh nhân đổi lịch." }),
+    }));
+  });
+
+  it("reschedules with PATCH and leaves endAt to the backend", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(apiSuccess({
+      ...apiAppointment,
+      startAt: "2026-08-26T09:00:00.000Z",
+      endAt: "2026-08-26T09:30:00.000Z",
+    }));
+    const service = await apiModeService(fetcher);
+
+    await expect(service.rescheduleAppointment("appointment-api-1", {
+      startAt: "2026-08-26T16:00:00+07:00",
+      doctorId: "doctor-2",
+      actorUserId: "user-staff-1",
+    })).resolves.toMatchObject({ endAt: "2026-08-26T09:30:00.000Z" });
+
+    expect(fetcher).toHaveBeenCalledWith("/api/v1/appointments/appointment-api-1", expect.objectContaining({
+      method: "PATCH",
+      body: JSON.stringify({ startAt: "2026-08-26T16:00:00+07:00", doctorId: "doctor-2" }),
+    }));
   });
 });

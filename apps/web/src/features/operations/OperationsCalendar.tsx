@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { StatusBadge } from "../../components/StatusBadge";
-import { formatDateInputValue, formatTime, toDateInputValue } from "../../lib/dateTime";
-import { mockStore } from "../../mocks/mockStore";
+import { formatDateInputValue, formatTime } from "../../lib/dateTime";
 import type { AppointmentStatus } from "../../types/models";
+import { appointmentDateRange, appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
 import { catalogQueryOptions } from "../catalog/catalogService";
 
 const OPERATIONS_TODAY = "2026-08-25";
@@ -18,10 +18,18 @@ export function OperationsCalendar() {
   const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors({ specialtyId: specialtyId || undefined }));
   const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties());
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
+  const { data: appointmentResponse = [] } = useQuery(appointmentQueryOptions.list({
+    ...appointmentDateRange(date),
+    doctorId: doctorId || undefined,
+    status: status || undefined,
+  }));
   const doctors = useMemo(() => doctorResponse?.data ?? [], [doctorResponse?.data]);
   const specialties = specialtyResponse?.data ?? [];
   const services = serviceResponse?.data ?? [];
-  const appointments = useMemo(() => mockStore.appointments.filter((appointment) => toDateInputValue(appointment.startAt) === date && (!doctorId || appointment.doctorId === doctorId) && (!specialtyId || doctors.find((doctor) => doctor.id === appointment.doctorId)?.specialtyId === specialtyId) && (!status || appointment.status === status)).sort((left, right) => left.startAt.localeCompare(right.startAt)), [date, doctorId, doctors, specialtyId, status]);
+  const appointments = useMemo(() => appointmentResponse
+    .filter((appointment) => !specialtyId || doctors.some((doctor) => doctor.id === appointment.doctorId))
+    .sort((left, right) => left.startAt.localeCompare(right.startAt)), [appointmentResponse, doctors, specialtyId]);
+  const patients = useMemo(() => patientsFromAppointments(appointments), [appointments]);
   const doctor = doctors.find((candidate) => candidate.id === doctorId);
   const specialty = specialties.find((candidate) => candidate.id === specialtyId);
   const selectedStatus = statuses.find((candidate) => candidate.value === status);
@@ -65,7 +73,7 @@ export function OperationsCalendar() {
           {status && selectedStatus ? renderFilterChip("Trạng thái", selectedStatus.label, () => setStatus("")) : null}
         </div>
       </fieldset>
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface shadow-panel"><table className="hidden min-w-full text-left text-sm md:table"><thead className="bg-surface-muted text-text-muted"><tr><th className="p-3 font-medium">Giờ</th><th className="p-3 font-medium">Bệnh nhân</th><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Dịch vụ</th><th className="p-3 font-medium">Trạng thái</th></tr></thead><tbody>{appointments.map((appointment) => { const patient = mockStore.patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); const service = services.find((candidate) => candidate.id === appointment.serviceId); return <tr className="border-t border-border" key={appointment.id}><td className="p-3 font-semibold text-primary">{formatTime(appointment.startAt)}</td><td className="p-3 font-medium text-text">{patient?.fullName}</td><td className="p-3 text-text">{appointmentDoctor?.fullName}</td><td className="p-3 text-text-muted">{service?.name}</td><td className="p-3"><StatusBadge status={appointment.status} /></td></tr>; })}</tbody></table><ul className="divide-y divide-border md:hidden">{appointments.map((appointment) => { const patient = mockStore.patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); return <li className="flex gap-3 p-3" key={appointment.id}><span className="w-12 shrink-0 font-semibold text-primary">{formatTime(appointment.startAt)}</span><div className="min-w-0 flex-1"><p className="font-medium text-text">{patient?.fullName}</p><p className="mt-1 text-sm text-text-muted">{appointmentDoctor?.fullName}</p><div className="mt-2"><StatusBadge status={appointment.status} /></div></div></li>; })}</ul></div>{!appointments.length ? <p className="mt-4 text-sm text-text-muted">Không có lịch hẹn phù hợp.</p> : null}
+      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface shadow-panel"><table className="hidden min-w-full text-left text-sm md:table"><thead className="bg-surface-muted text-text-muted"><tr><th className="p-3 font-medium">Giờ</th><th className="p-3 font-medium">Bệnh nhân</th><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Dịch vụ</th><th className="p-3 font-medium">Trạng thái</th></tr></thead><tbody>{appointments.map((appointment) => { const patient = patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); const service = services.find((candidate) => candidate.id === appointment.serviceId); return <tr className="border-t border-border" key={appointment.id}><td className="p-3 font-semibold text-primary">{formatTime(appointment.startAt)}</td><td className="p-3 font-medium text-text">{patient?.fullName}</td><td className="p-3 text-text">{appointmentDoctor?.fullName}</td><td className="p-3 text-text-muted">{service?.name}</td><td className="p-3"><StatusBadge status={appointment.status} /></td></tr>; })}</tbody></table><ul className="divide-y divide-border md:hidden">{appointments.map((appointment) => { const patient = patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); return <li className="flex gap-3 p-3" key={appointment.id}><span className="w-12 shrink-0 font-semibold text-primary">{formatTime(appointment.startAt)}</span><div className="min-w-0 flex-1"><p className="font-medium text-text">{patient?.fullName}</p><p className="mt-1 text-sm text-text-muted">{appointmentDoctor?.fullName}</p><div className="mt-2"><StatusBadge status={appointment.status} /></div></div></li>; })}</ul></div>{!appointments.length ? <p className="mt-4 text-sm text-text-muted">Không có lịch hẹn phù hợp.</p> : null}
     </section>
   );
 }

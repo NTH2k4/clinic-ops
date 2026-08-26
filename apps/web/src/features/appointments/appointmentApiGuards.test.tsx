@@ -16,45 +16,119 @@ function emptyListResponse() {
   }), { status: 200 });
 }
 
-async function prepareApiMode() {
+const apiPatient = {
+  id: "patient-1",
+  userId: "user-patient-1",
+  fullName: "API Patient",
+  phone: "0900000000",
+  email: "patient@example.test",
+  dateOfBirth: "1990-01-01",
+  gender: "female",
+  address: null,
+  notes: null,
+  status: "active",
+  createdAt: "2026-08-01T00:00:00.000Z",
+  updatedAt: "2026-08-01T00:00:00.000Z",
+};
+
+const apiAppointment = {
+  id: "appointment-api-1",
+  patientId: "patient-1",
+  doctorId: "doctor-1",
+  serviceId: "service-general-consult",
+  startAt: "2026-08-25T08:00:00+07:00",
+  endAt: "2026-08-25T08:30:00+07:00",
+  status: "confirmed",
+  reason: "API appointment",
+  internalNote: null,
+  cancellationReason: null,
+  createdByUserId: "user-receptionist-1",
+  updatedByUserId: null,
+  checkedInAt: null,
+  startedAt: null,
+  completedAt: null,
+  cancelledAt: null,
+  createdAt: "2026-08-24T00:00:00.000Z",
+  updatedAt: "2026-08-24T00:00:00.000Z",
+  patient: apiPatient,
+  statusHistory: [],
+};
+
+function appointmentListResponse() {
+  return new Response(JSON.stringify({
+    data: [apiAppointment],
+    meta: { requestId: "req-appointments", page: 1, pageSize: 100, total: 1 },
+  }), { status: 200 });
+}
+
+async function prepareApiMode(fetcher = vi.fn<typeof fetch>().mockResolvedValue(emptyListResponse())) {
   vi.resetModules();
   vi.stubEnv("VITE_DATA_SOURCE", "api");
-  vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(emptyListResponse()));
+  vi.stubGlobal("fetch", fetcher);
   return import("../../test/render");
 }
 
-describe("API appointment workflow guards", () => {
-  it("does not expose the patient booking workflow before Task 4", async () => {
+describe("API appointment workflows", () => {
+  it("exposes the patient booking workflow", async () => {
     const { renderWithProviders } = await prepareApiMode();
     const { BookAppointmentPage } = await import("../patients/BookAppointmentPage");
 
     renderWithProviders(<BookAppointmentPage />);
 
-    expect(screen.getByRole("heading", { name: "Đặt lịch chưa khả dụng" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Gửi yêu cầu" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Đặt lịch" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeInTheDocument();
   });
 
-  it("does not expose the staff appointment creation workflow before Task 4", async () => {
+  it("exposes the staff appointment creation workflow", async () => {
     const { renderWithProviders } = await prepareApiMode();
     const { CreateAppointmentPage } = await import("../operations/CreateAppointmentPage");
 
     renderWithProviders(<CreateAppointmentPage />);
 
-    expect(screen.getByRole("heading", { name: "Tạo lịch hẹn chưa khả dụng" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Tạo appointment" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tạo appointment" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tạo appointment" })).toBeInTheDocument();
   });
 
-  it("does not expose queue mutation controls before Task 4", async () => {
-    const { renderWithProviders } = await prepareApiMode();
+  it("exposes queue mutation controls for API appointments", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => String(input).includes("/appointments")
+      ? appointmentListResponse()
+      : emptyListResponse());
+    const { renderWithProviders } = await prepareApiMode(fetcher);
     const { QueuePage } = await import("../operations/QueuePage");
 
     renderWithProviders(<QueuePage />);
 
-    expect(screen.getByRole("heading", { name: "Hàng đợi chưa khả dụng" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Check-in" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Check-in" })).toBeEnabled();
   });
 
-  it("disables appointment status changes in the detail drawer before Task 4", async () => {
+  it("renders API appointments and embedded patients in the operations calendar", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => String(input).includes("/appointments")
+      ? appointmentListResponse()
+      : emptyListResponse());
+    const { renderWithProviders } = await prepareApiMode(fetcher);
+    const { OperationsCalendar } = await import("../operations/OperationsCalendar");
+
+    renderWithProviders(<OperationsCalendar />);
+
+    expect(await screen.findByRole("cell", { name: "API Patient" })).toBeInTheDocument();
+    expect(screen.queryByText("Nguyen Minh Anh")).not.toBeInTheDocument();
+  });
+
+  it("renders API appointments and embedded patients in the doctor dashboard", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => String(input).includes("/appointments")
+      ? appointmentListResponse()
+      : emptyListResponse());
+    const { renderWithProviders } = await prepareApiMode(fetcher);
+    const { DoctorDashboard } = await import("../doctors/DoctorDashboard");
+
+    renderWithProviders(<DoctorDashboard />);
+
+    expect(await screen.findByText("API Patient")).toBeInTheDocument();
+    expect(screen.queryByText("Nguyen Minh Anh")).not.toBeInTheDocument();
+  });
+
+  it("enables appointment status changes in the detail drawer", async () => {
     const { renderWithProviders } = await prepareApiMode();
     const { DetailDrawer } = await import("../../components/DetailDrawer");
     const { mockStore } = await import("../../mocks/mockStore");
@@ -70,11 +144,11 @@ describe("API appointment workflow guards", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /Start appointment/i })).toBeDisabled();
-    expect(screen.getByText("Cập nhật lịch hẹn qua API chưa khả dụng.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Start appointment/i })).toBeEnabled();
+    expect(screen.queryByText("Cập nhật lịch hẹn qua API chưa khả dụng.")).not.toBeInTheDocument();
   });
 
-  it("disables patient appointment cancellation before Task 4", async () => {
+  it("enables patient appointment cancellation", async () => {
     vi.resetModules();
     vi.stubEnv("VITE_DATA_SOURCE", "api");
     vi.stubGlobal("fetch", vi.fn<typeof fetch>(async (input) => {
@@ -95,6 +169,7 @@ describe("API appointment workflow guards", () => {
         }), { status: 200 });
       }
 
+      if (String(input).includes("/appointments")) return appointmentListResponse();
       return emptyListResponse();
     }));
     const { renderWithProviders } = await import("../../test/render");
@@ -110,7 +185,7 @@ describe("API appointment workflow guards", () => {
 
     const cancelButtons = await screen.findAllByRole("button", { name: /Hủy lịch/i });
     expect(cancelButtons.length).toBeGreaterThan(0);
-    cancelButtons.forEach((button) => expect(button).toBeDisabled());
-    expect(screen.getByText("Hủy lịch qua API chưa khả dụng.")).toBeInTheDocument();
+    cancelButtons.forEach((button) => expect(button).toBeEnabled());
+    expect(screen.queryByText("Hủy lịch qua API chưa khả dụng.")).not.toBeInTheDocument();
   });
 });

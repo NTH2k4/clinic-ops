@@ -6,28 +6,27 @@ import { ClinicDateField } from "../../components/ClinicDateField";
 import { StatusBadge } from "../../components/StatusBadge";
 import { isApiMode } from "../../lib/dataSource";
 import { formatDate, formatDateInputValue, formatTime } from "../../lib/dateTime";
-import { mockStore } from "../../mocks/mockStore";
-import { ApiAppointmentWorkflowUnavailable } from "../appointments/ApiAppointmentWorkflowUnavailable";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
+import { patientQueryOptions } from "./patientService";
 
 const slotTimes = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
 const bookingDate = "2026-08-26";
 
 export function BookAppointmentPage() {
-  if (isApiMode) {
-    return <ApiAppointmentWorkflowUnavailable title="Đặt lịch chưa khả dụng" />;
-  }
-
-  return <MockBookAppointmentPage />;
+  return <AppointmentBookingForm />;
 }
 
-function MockBookAppointmentPage() {
-  const { user } = useAuth();
+function AppointmentBookingForm() {
+  const { linkedProfile, user } = useAuth();
   const [searchParams] = useSearchParams();
-  const patient = mockStore.patients.find((candidate) => candidate.userId === user?.id);
+  const linkedPatientId = linkedProfile?.type === "patient" ? linkedProfile.id : undefined;
+  const { data: patient } = useQuery({
+    ...patientQueryOptions.current(user?.id ?? "", linkedPatientId),
+    enabled: Boolean(user?.role === "patient" && (!isApiMode || linkedPatientId)),
+  });
   const initialServiceId = searchParams.get("serviceId") ?? "";
   const [serviceId, setServiceId] = useState(initialServiceId);
   const [doctorMode, setDoctorMode] = useState<"any" | "specific">("any");
@@ -51,10 +50,13 @@ function MockBookAppointmentPage() {
   );
   const startAt = slot ? appointmentStart(date, slot) : "";
   const assignedDoctor = eligibleDoctors.find((doctor) => doctor.id === doctorId)
-    ?? (doctorMode === "any" && service && slot
+    ?? (!isApiMode && doctorMode === "any" && service && slot
       ? eligibleDoctors.find((doctor) => isDoctorAvailableForSlot(doctor.id, date, slot, service.durationMinutes))
       : undefined);
-  const canSubmit = Boolean(patient && user && service && assignedDoctor && slot && reason.trim());
+  const hasDoctorSelection = isApiMode
+    ? doctorMode === "any" ? eligibleDoctors.length > 0 : Boolean(doctorId)
+    : Boolean(assignedDoctor);
+  const canSubmit = Boolean(patient && user && service && hasDoctorSelection && slot && reason.trim());
 
   function selectService(nextServiceId: string) {
     setServiceId(nextServiceId);
@@ -65,10 +67,19 @@ function MockBookAppointmentPage() {
   }
 
   async function submit() {
-    if (!patient || !user || !service || !assignedDoctor || !startAt) return;
+    if (!patient || !user || !service || !startAt || !hasDoctorSelection) return;
     setError("");
     try {
-      await appointmentService.createPatientAppointment({ patientId: patient.id, doctorId: assignedDoctor.id, serviceId: service.id, startAt, actorUserId: user.id, reason: reason.trim() });
+      const created = await appointmentService.createPatientAppointment({
+        patientId: patient.id,
+        doctorId: isApiMode ? doctorId || undefined : assignedDoctor?.id,
+        serviceId: service.id,
+        startAt,
+        actorUserId: user.id,
+        reason: reason.trim(),
+        source: "patient_portal",
+      });
+      setDoctorId(created.doctorId);
       setSubmitted(true);
     } catch (submitError) {
       if ((submitError as { code?: string }).code === "APPOINTMENT_CONFLICT") setError("Khung giờ vừa được đặt bởi lịch hẹn khác. Vui lòng chọn khung giờ khác.");
@@ -101,7 +112,7 @@ function MockBookAppointmentPage() {
           </div></fieldset>
           {service && <>
             <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">2. Bác sĩ</legend><div className="mt-3 space-y-3"><label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3" htmlFor="any-available-doctor"><input aria-label="Any available doctor" checked={doctorMode === "any"} id="any-available-doctor" name="doctor-mode" onChange={() => { setDoctorMode("any"); setDoctorId(""); setSlot(""); }} type="radio" value="any" /><span><span className="block font-medium text-text">Any available doctor</span><span className="block text-sm text-text-muted">Tự động chọn bác sĩ còn trống cho khung giờ.</span></span></label><label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3" htmlFor="specific-doctor"><input checked={doctorMode === "specific"} id="specific-doctor" name="doctor-mode" onChange={() => { setDoctorMode("specific"); setDoctorId(""); setSlot(""); }} type="radio" value="specific" /><span className="font-medium text-text">Chọn bác sĩ cụ thể</span></label>{doctorMode === "specific" && <select aria-label="Bác sĩ" className="h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" onChange={(event) => { setDoctorId(event.target.value); setSlot(""); }} value={doctorId}><option value="">Chọn bác sĩ</option>{eligibleDoctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.fullName} - {doctor.title}</option>)}</select>}</div></fieldset>
-            <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">3. Ngày và khung giờ</legend><ClinicDateField controlClassName="sm:max-w-64" id="appointment-date" label="Ngày khám" labelClassName="mt-3 block text-sm font-medium text-text" min={bookingDate} onChange={(nextDate) => { setDate(nextDate); setDoctorId(""); setSlot(""); }} value={date} /><p className="mt-3 text-sm text-text-muted">Khung giờ màu xám là không khả dụng do lịch làm việc hoặc lịch hẹn đã trùng.</p><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">{slotTimes.map((time) => { const unavailable = doctorMode === "specific" ? !doctorId || !isDoctorAvailableForSlot(doctorId, date, time, service.durationMinutes) : !eligibleDoctors.some((doctor) => isDoctorAvailableForSlot(doctor.id, date, time, service.durationMinutes)); return <button aria-pressed={slot === time} className="h-10 rounded-md border border-border text-sm font-medium disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" disabled={unavailable} key={time} onClick={() => { if (doctorMode === "any") setDoctorId(eligibleDoctors.find((doctor) => isDoctorAvailableForSlot(doctor.id, date, time, service.durationMinutes))?.id ?? ""); setSlot(time); setError(""); }} type="button">{time}</button>; })}</div></fieldset>
+            <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">3. Ngày và khung giờ</legend><ClinicDateField controlClassName="sm:max-w-64" id="appointment-date" label="Ngày khám" labelClassName="mt-3 block text-sm font-medium text-text" min={bookingDate} onChange={(nextDate) => { setDate(nextDate); setDoctorId(""); setSlot(""); }} value={date} /><p className="mt-3 text-sm text-text-muted">{isApiMode ? "Khả dụng cuối cùng được xác nhận khi gửi yêu cầu." : "Khung giờ màu xám là không khả dụng do lịch làm việc hoặc lịch hẹn đã trùng."}</p><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">{slotTimes.map((time) => { const unavailable = isApiMode ? (doctorMode === "specific" ? !doctorId : eligibleDoctors.length === 0) : doctorMode === "specific" ? !doctorId || !isDoctorAvailableForSlot(doctorId, date, time, service.durationMinutes) : !eligibleDoctors.some((doctor) => isDoctorAvailableForSlot(doctor.id, date, time, service.durationMinutes)); return <button aria-pressed={slot === time} className="h-10 rounded-md border border-border text-sm font-medium disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" disabled={unavailable} key={time} onClick={() => { if (doctorMode === "any") setDoctorId(isApiMode ? "" : eligibleDoctors.find((doctor) => isDoctorAvailableForSlot(doctor.id, date, time, service.durationMinutes))?.id ?? ""); setSlot(time); setError(""); }} type="button">{time}</button>; })}</div></fieldset>
             <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">4. Lý do khám</legend><label className="sr-only" htmlFor="reason">Lý do khám</label><textarea className="mt-3 min-h-24 w-full rounded-md border border-border p-3 text-sm" id="reason" onChange={(event) => setReason(event.target.value)} placeholder="Mô tả ngắn triệu chứng hoặc nhu cầu khám" value={reason} /></fieldset>
           </>}
         </div>
