@@ -5,7 +5,7 @@ import type { Specialty } from "../../types/models";
 import { catalogQueryOptions } from "../catalog/catalogService";
 
 export function AdminSpecialties() {
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.specialties({ pageSize: 100 }));
+  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties());
   const [draftSpecialties, setDraftSpecialties] = useState<Specialty[]>([]); const [name, setName] = useState(""); const [error, setError] = useState("");
   const specialties = [...(specialtyResponse?.data ?? []), ...draftSpecialties];
   function addSpecialty() { if (!name.trim()) return setError("Vui lòng nhập tên chuyên khoa."); const created: Specialty = { id: `draft-specialty-${specialties.length + 1}`, name: name.trim(), description: "", status: "active", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; setDraftSpecialties((current) => [...current, created]); setName(""); setError(""); }

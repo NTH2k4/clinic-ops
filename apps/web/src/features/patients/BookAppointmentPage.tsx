@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { StatusBadge } from "../../components/StatusBadge";
+import { isApiMode } from "../../lib/dataSource";
 import { formatDate, formatDateInputValue, formatTime } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
+import { ApiAppointmentWorkflowUnavailable } from "../appointments/ApiAppointmentWorkflowUnavailable";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
@@ -15,6 +17,14 @@ const slotTimes = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "13:00"
 const bookingDate = "2026-08-26";
 
 export function BookAppointmentPage() {
+  if (isApiMode) {
+    return <ApiAppointmentWorkflowUnavailable title="Đặt lịch chưa khả dụng" />;
+  }
+
+  return <MockBookAppointmentPage />;
+}
+
+function MockBookAppointmentPage() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const patient = mockStore.patients.find((candidate) => candidate.userId === user?.id);
@@ -27,9 +37,9 @@ export function BookAppointmentPage() {
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ status: "active", pageSize: 100 }));
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.specialties({ status: "active", pageSize: 100 }));
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ status: "active", serviceId: serviceId || undefined, pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices({ status: "active" }));
+  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties({ status: "active" }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors({ status: "active", serviceId: serviceId || undefined }));
   const services = serviceResponse?.data ?? [];
   const specialties = specialtyResponse?.data ?? [];
 

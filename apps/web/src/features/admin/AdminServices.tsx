@@ -5,8 +5,8 @@ import type { Service } from "../../types/models";
 import { catalogQueryOptions } from "../catalog/catalogService";
 
 export function AdminServices() {
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.specialties({ pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
+  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties());
   const [draftServices, setDraftServices] = useState<Service[]>([]); const [name, setName] = useState(""); const [specialtyId, setSpecialtyId] = useState(""); const [error, setError] = useState("");
   const services = [...(serviceResponse?.data ?? []), ...draftServices];
   const specialties = specialtyResponse?.data ?? [];

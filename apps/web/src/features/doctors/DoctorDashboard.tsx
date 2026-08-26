@@ -21,8 +21,8 @@ const statusMetrics: Array<{ label: string; status: AppointmentStatus }> = [
 
 export function DoctorDashboard() {
   const { user } = useAuth();
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const doctor = doctorResponse?.data.find((candidate) => candidate.userId === user?.id);
   const services = serviceResponse?.data ?? [];
   const today = DOCTOR_PROTOTYPE_TODAY;

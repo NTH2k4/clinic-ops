@@ -287,6 +287,11 @@ describe("API authentication", () => {
     expect(setItem).not.toHaveBeenCalled();
     expect([...storageValues(localStorage), ...storageValues(sessionStorage)]).not.toContain(sessionToken);
     expect(screen.queryByLabelText("Chuyển vai trò")).not.toBeInTheDocument();
+    await waitFor(() => {
+      const catalogCall = fetcher.mock.calls.find(([url]) => String(url).includes("/services"));
+      expect(catalogCall).toBeDefined();
+      expect(new Headers(catalogCall?.[1]?.headers).get("Authorization")).toBe(`Bearer ${sessionToken}`);
+    });
 
     const { queryClient } = await import("../../lib/queryClient");
     queryClient.setQueryData(["auth-cache"], { value: "stale" });

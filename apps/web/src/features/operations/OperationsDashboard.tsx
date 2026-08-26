@@ -20,7 +20,7 @@ const metrics: Array<{ label: string; statuses?: AppointmentStatus[] }> = [
 ];
 
 export function OperationsDashboard() {
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const services = serviceResponse?.data ?? [];
   const appointments = mockStore.appointments.filter((appointment) => toDateInputValue(appointment.startAt) === OPERATIONS_TODAY).sort((left, right) => left.startAt.localeCompare(right.startAt));
   const waiting = appointments.filter((appointment) => appointment.status === "confirmed" || appointment.status === "checked_in");

@@ -11,8 +11,8 @@ export function PatientHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const patient = mockStore.patients.find((candidate) => candidate.userId === user?.id);
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
   const nextAppointment = mockStore.appointments
     .filter((appointment) => appointment.patientId === patient?.id && !["completed", "cancelled", "no_show"].includes(appointment.status))
     .sort((left, right) => left.startAt.localeCompare(right.startAt))[0];

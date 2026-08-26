@@ -5,10 +5,11 @@ import type { Doctor } from "../../types/models";
 import { catalogQueryOptions } from "../catalog/catalogService";
 
 export function AdminDoctors() {
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.specialties({ pageSize: 100 }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
+  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties());
   const [draftDoctors, setDraftDoctors] = useState<Doctor[]>([]);
   const doctors = [...(doctorResponse?.data ?? []), ...draftDoctors];
+  const doctorTotal = (doctorResponse?.meta.total ?? 0) + draftDoctors.length;
   const specialties = specialtyResponse?.data ?? [];
   const [name, setName] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
@@ -27,7 +28,7 @@ export function AdminDoctors() {
       <p className="text-sm font-medium text-primary">Quản trị nhân sự</p>
       <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-2xl font-semibold text-text">Doctors</h1>
-        <p className="text-sm font-medium text-text-muted">{doctors.length} bác sĩ trong mock workspace</p>
+        <p className="text-sm font-medium text-text-muted">{doctorTotal} bác sĩ trong mock workspace</p>
       </div>
       <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm" onSubmit={(event) => { event.preventDefault(); addDoctor(); }}>
         <div className="flex flex-col gap-1 border-b border-border pb-3">

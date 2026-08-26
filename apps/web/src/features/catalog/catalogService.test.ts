@@ -129,4 +129,49 @@ describe("catalog service", () => {
     const [, init] = fetcher.mock.calls[0];
     expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer signed-in-token");
   });
+
+  it("returns complete filtered fixture lists from all mock full-list helpers", async () => {
+    const service = createCatalogService({ source: "mock" });
+
+    const [services, specialties, doctors] = await Promise.all([
+      service.listAllServices({ status: "active" }),
+      service.listAllSpecialties({ status: "active" }),
+      service.listAllDoctors({ status: "active" }),
+    ]);
+
+    expect(services.data).toEqual(mockStore.services.filter(({ status }) => status === "active"));
+    expect(services.meta.total).toBe(services.data.length);
+    expect(specialties.data).toEqual(mockStore.specialties.filter(({ status }) => status === "active"));
+    expect(specialties.meta.total).toBe(specialties.data.length);
+    expect(doctors.data).toEqual(mockStore.doctors.filter(({ status }) => status === "active"));
+    expect(doctors.meta.total).toBe(doctors.data.length);
+  });
+
+  it("fetches every API page for full service lists", async () => {
+    const records = ["service-api-1", "service-api-2"].map((id, index) => ({
+      id,
+      name: `Service ${index + 1}`,
+      specialtyId: "specialty-api",
+      durationMinutes: 30,
+      price: "250000.00",
+      currency: "VND",
+      description: null,
+      status: "active",
+      createdAt: "2026-08-20T01:00:00.000Z",
+      updatedAt: "2026-08-21T01:00:00.000Z",
+    }));
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(listResponse([records[0]], 1, 100, 2))
+      .mockResolvedValueOnce(listResponse([records[1]], 2, 100, 2));
+    const service = createCatalogService({ source: "api", fetcher });
+
+    const result = await service.listAllServices({ status: "active" });
+
+    expect(result.data.map(({ id }) => id)).toEqual(["service-api-1", "service-api-2"]);
+    expect(result.meta.total).toBe(2);
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual([
+      "/api/v1/services?status=active&page=1&pageSize=100",
+      "/api/v1/services?status=active&page=2&pageSize=100",
+    ]);
+  });
 });

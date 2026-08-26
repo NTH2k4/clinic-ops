@@ -19,8 +19,8 @@ function weekDates(startDate: string) {
 
 export function DoctorWeekSchedule() {
   const { user } = useAuth();
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const doctor = doctorResponse?.data.find((candidate) => candidate.userId === user?.id);
   const services = serviceResponse?.data ?? [];
   const currentWeekStart = getWeekStartDate(DOCTOR_PROTOTYPE_TODAY);

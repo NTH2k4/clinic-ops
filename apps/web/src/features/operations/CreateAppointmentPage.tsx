@@ -2,10 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Search, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
+import { isApiMode } from "../../lib/dataSource";
 import { formatDateInputValue } from "../../lib/dateTime";
 import { createId } from "../../lib/ids";
 import { mockStore } from "../../mocks/mockStore";
 import type { Patient } from "../../types/models";
+import { ApiAppointmentWorkflowUnavailable } from "../appointments/ApiAppointmentWorkflowUnavailable";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
@@ -19,6 +21,14 @@ function normalized(value: string): string {
 }
 
 export function CreateAppointmentPage() {
+  if (isApiMode) {
+    return <ApiAppointmentWorkflowUnavailable title="Tạo lịch hẹn chưa khả dụng" />;
+  }
+
+  return <MockCreateAppointmentPage />;
+}
+
+function MockCreateAppointmentPage() {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -32,8 +42,8 @@ export function CreateAppointmentPage() {
   const [error, setError] = useState("");
   const [created, setCreated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ status: "active", pageSize: 100 }));
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ status: "active", serviceId: serviceId || undefined, pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices({ status: "active" }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors({ status: "active", serviceId: serviceId || undefined }));
   const services = serviceResponse?.data ?? [];
   const matches = useMemo(() => search.trim() ? mockStore.patients.filter((patient) => normalized(`${patient.fullName} ${patient.phone}`).includes(normalized(search))) : [], [search]);
   const selectedService = services.find((service) => service.id === serviceId);

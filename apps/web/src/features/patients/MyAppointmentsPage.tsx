@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
+import { isApiMode } from "../../lib/dataSource";
 import { formatDateTime } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment, AppointmentStatus } from "../../types/models";
@@ -30,13 +31,13 @@ export function MyAppointmentsPage() {
   const [tab, setTab] = useState<AppointmentTab>("upcoming");
   const [appointments, setAppointments] = useState(() => mockStore.appointments.filter((appointment) => appointment.patientId === patient?.id));
   const [message, setMessage] = useState("");
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
   const services = serviceResponse?.data ?? [];
   const doctors = doctorResponse?.data ?? [];
 
   async function cancel(appointmentId: string) {
-    if (!user || !patient) return;
+    if (isApiMode || !user || !patient) return;
     await appointmentService.cancelAppointment(appointmentId, { actorUserId: user.id, cancellationReason: "Bệnh nhân hủy lịch qua cổng thông tin." });
     setAppointments(await appointmentService.listAppointments({ patientId: patient.id }));
     setMessage("Lịch hẹn đã được hủy.");
@@ -53,6 +54,7 @@ export function MyAppointmentsPage() {
       <p className="text-sm font-medium text-primary">Hồ sơ lịch hẹn</p>
       <h1 className="mt-1 text-2xl font-semibold text-text">Lịch của tôi</h1>
       <p className="mt-2 text-sm text-text-muted">Bạn có {visibleAppointments.length} lịch hẹn {activeTab.summary}.</p>
+      {isApiMode ? <p className="mt-2 text-sm text-text-muted">Hủy lịch qua API chưa khả dụng.</p> : null}
       {message && <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-success" role="status">{message}</p>}
       <div aria-label="Loại lịch hẹn" className="mt-5 flex overflow-x-auto border-b border-border" role="tablist">
         {tabs.map((item) => {
@@ -79,7 +81,7 @@ export function MyAppointmentsPage() {
                 {appointment.reason && <p className="mt-1 text-sm text-text-muted">{appointment.reason}</p>}
                 {appointment.cancellationReason && <p className="mt-2 text-sm text-danger">{appointment.cancellationReason}</p>}
               </div>
-              {cancellable && <button aria-label={`Hủy lịch ${serviceName} ${appointmentTime}`} className="h-10 shrink-0 rounded-md border border-danger px-3 text-sm font-semibold text-danger hover:bg-red-50" onClick={() => void cancel(appointment.id)} type="button">Hủy lịch</button>}
+              {cancellable && <button aria-label={`Hủy lịch ${serviceName} ${appointmentTime}`} className="h-10 shrink-0 rounded-md border border-danger px-3 text-sm font-semibold text-danger hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60" disabled={isApiMode} onClick={() => void cancel(appointment.id)} type="button">Hủy lịch</button>}
             </article>
           );
         })}

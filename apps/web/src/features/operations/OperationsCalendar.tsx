@@ -15,9 +15,9 @@ export function OperationsCalendar() {
   const [doctorId, setDoctorId] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
   const [status, setStatus] = useState<"" | AppointmentStatus>("");
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ specialtyId: specialtyId || undefined, pageSize: 100 }));
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.specialties({ pageSize: 100 }));
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors({ specialtyId: specialtyId || undefined }));
+  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties());
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const doctors = useMemo(() => doctorResponse?.data ?? [], [doctorResponse?.data]);
   const specialties = specialtyResponse?.data ?? [];
   const services = serviceResponse?.data ?? [];

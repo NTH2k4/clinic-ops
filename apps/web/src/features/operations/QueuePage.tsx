@@ -3,10 +3,12 @@ import { useMemo, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
+import { isApiMode } from "../../lib/dataSource";
 import { formatTime, toDateInputValue } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment, AppointmentStatus } from "../../types/models";
 import { appointmentService } from "../appointments/appointmentService";
+import { ApiAppointmentWorkflowUnavailable } from "../appointments/ApiAppointmentWorkflowUnavailable";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
 
@@ -40,8 +42,16 @@ function actionsForStatus(status: AppointmentStatus): Array<{ label: string; nex
 }
 
 export function QueuePage() {
+  if (isApiMode) {
+    return <ApiAppointmentWorkflowUnavailable title="Hàng đợi chưa khả dụng" />;
+  }
+
+  return <MockQueuePage />;
+}
+
+function MockQueuePage() {
   const { user } = useAuth();
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const services = serviceResponse?.data ?? [];
   const [appointments, setAppointments] = useState(queueAppointments);
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);

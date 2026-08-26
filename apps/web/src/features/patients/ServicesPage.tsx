@@ -10,15 +10,14 @@ function formatPrice(value: number) {
 
 export function ServicesPage() {
   const [specialtyId, setSpecialtyId] = useState<string | undefined>();
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.specialties({ status: "active", pageSize: 100 }));
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ status: "active", specialtyId, pageSize: 100 }));
-  const { data: allServiceResponse } = useQuery(catalogQueryOptions.services({ status: "active", pageSize: 100 }));
+  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties({ status: "active" }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices({ status: "active", specialtyId }));
+  const { data: allServiceResponse } = useQuery(catalogQueryOptions.allServices({ status: "active" }));
   const specialties = specialtyResponse?.data ?? [];
   const services = serviceResponse?.data ?? [];
-  const allServices = allServiceResponse?.data ?? [];
   const summary = specialtyId
-    ? `${services.length} dịch vụ phù hợp`
-    : `${allServices.length} dịch vụ đang mở từ ${specialties.length} chuyên khoa`;
+    ? `${serviceResponse?.meta.total ?? 0} dịch vụ phù hợp`
+    : `${allServiceResponse?.meta.total ?? 0} dịch vụ đang mở từ ${specialtyResponse?.meta.total ?? 0} chuyên khoa`;
 
   return (
     <section className="mx-auto max-w-6xl">

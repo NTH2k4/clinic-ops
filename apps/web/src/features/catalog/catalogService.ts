@@ -8,10 +8,15 @@ import { apiBaseUrl, dataSource } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import type { Doctor, Service, Specialty } from "../../types/models";
 
+export type CatalogFullListFilters = Omit<CatalogListFilters, "page" | "pageSize">;
+
 export interface CatalogService {
   listServices(filters?: CatalogListFilters): Promise<ApiListResponse<Service>>;
   listSpecialties(filters?: CatalogListFilters): Promise<ApiListResponse<Specialty>>;
   listDoctors(filters?: CatalogListFilters): Promise<ApiListResponse<Doctor>>;
+  listAllServices(filters?: CatalogFullListFilters): Promise<ApiListResponse<Service>>;
+  listAllSpecialties(filters?: CatalogFullListFilters): Promise<ApiListResponse<Specialty>>;
+  listAllDoctors(filters?: CatalogFullListFilters): Promise<ApiListResponse<Doctor>>;
 }
 
 interface CatalogServiceOptions {
@@ -61,8 +66,33 @@ function mockDoctors(filters: CatalogListFilters = {}): ApiListResponse<Doctor> 
   return paginate(items, filters);
 }
 
-export function createCatalogService(options: CatalogServiceOptions): CatalogService {
+async function listAllPages<T>(
+  listPage: (filters: CatalogListFilters) => Promise<ApiListResponse<T>>,
+  filters: CatalogFullListFilters,
+): Promise<ApiListResponse<T>> {
+  const data: T[] = [];
+  let page = 1;
+  let response: ApiListResponse<T>;
+
+  do {
+    response = await listPage({ ...filters, page, pageSize: 100 });
+    data.push(...response.data);
+
+    if (response.data.length === 0 && data.length < response.meta.total) {
+      throw new Error("Catalog pagination ended before the reported total was loaded.");
+    }
+
+    page += 1;
+  } while (data.length < response.meta.total);
+
   return {
+    data,
+    meta: { ...response.meta, page: 1, pageSize: Math.max(data.length, 1) },
+  };
+}
+
+export function createCatalogService(options: CatalogServiceOptions): CatalogService {
+  const service: CatalogService = {
     async listServices(filters = {}) {
       if (options.source === "mock") {
         return mockServices(filters);
@@ -87,7 +117,18 @@ export function createCatalogService(options: CatalogServiceOptions): CatalogSer
       const response = await (options.api ?? defaultApi(options.fetcher)).listDoctors(filters);
       return { data: response.data.map(mapDoctor), meta: response.meta };
     },
+    listAllServices(filters = {}) {
+      return listAllPages((pageFilters) => service.listServices(pageFilters), filters);
+    },
+    listAllSpecialties(filters = {}) {
+      return listAllPages((pageFilters) => service.listSpecialties(pageFilters), filters);
+    },
+    listAllDoctors(filters = {}) {
+      return listAllPages((pageFilters) => service.listDoctors(pageFilters), filters);
+    },
   };
+
+  return service;
 }
 
 export const catalogService = createCatalogService({ source: dataSource });
@@ -107,5 +148,26 @@ export const catalogQueryOptions = {
     queryKey: ["catalog", "doctors", filters] as const,
     queryFn: () => catalogService.listDoctors(filters),
     initialData: dataSource === "mock" ? mockDoctors(filters) : undefined,
+  }),
+  allServices: (filters: CatalogFullListFilters = {}) => ({
+    queryKey: ["catalog", "services", "all", filters] as const,
+    queryFn: () => catalogService.listAllServices(filters),
+    initialData: dataSource === "mock"
+      ? mockServices({ ...filters, page: 1, pageSize: Math.max(mockStore.services.length, 1) })
+      : undefined,
+  }),
+  allSpecialties: (filters: CatalogFullListFilters = {}) => ({
+    queryKey: ["catalog", "specialties", "all", filters] as const,
+    queryFn: () => catalogService.listAllSpecialties(filters),
+    initialData: dataSource === "mock"
+      ? mockSpecialties({ ...filters, page: 1, pageSize: Math.max(mockStore.specialties.length, 1) })
+      : undefined,
+  }),
+  allDoctors: (filters: CatalogFullListFilters = {}) => ({
+    queryKey: ["catalog", "doctors", "all", filters] as const,
+    queryFn: () => catalogService.listAllDoctors(filters),
+    initialData: dataSource === "mock"
+      ? mockDoctors({ ...filters, page: 1, pageSize: Math.max(mockStore.doctors.length, 1) })
+      : undefined,
   }),
 };
