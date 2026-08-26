@@ -47,3 +47,11 @@ Ngày: 2026-08-25
 Quyết định: Patient-created appointment mặc định là `requested`; staff-created appointment mặc định là `confirmed`; patient có thể chọn doctor cụ thể hoặc any available doctor; receptionist/nurse dùng chung operations workspace; theme switcher không nằm trong frontend MVP.
 
 Lý do: Các quyết định này giảm scope và edge case cho MVP nhưng vẫn phản ánh vận hành thực tế của phòng khám. Frontend có thể tập trung vào booking flow, queue, dashboard và responsive UX trước khi mở rộng role separation hoặc theming.
+
+## DEC-007: Backend Stack
+
+Ngày: 2026-08-26
+
+Quyết định: Dùng Node.js 22+, NestJS, TypeScript, Prisma và PostgreSQL cho backend CareFlow.
+
+Lý do: NestJS phù hợp API contract-first, guard/interceptor/DTO validation và module boundaries theo domain như auth, catalog, appointments, audit và notifications. Prisma giúp schema/migration rõ ràng, TypeScript type-safe và dễ seed dữ liệu demo từ frontend mock dataset. PostgreSQL phù hợp dữ liệu quan hệ như appointments, schedules, audit events và transactional conflict validation.

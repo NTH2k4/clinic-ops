@@ -2,6 +2,7 @@
 
 ## 2026-08-26
 
+- Chốt backend stack trong `decision-log.md` và thêm `backend-implementation-plan.md` cho Phase 3 backend theo Node.js/NestJS/Prisma/PostgreSQL.
 - Bắt đầu Phase 2 API Contract: mở rộng `api-contract.md` thành contract v1 và thêm `api-contract-plan.md` để chuẩn bị backend implementation plan.
 - Hoàn thiện P6 responsive/accessibility QA automated scope: Playwright smoke ở 360/768/1280/1440, kiểm tra page-level overflow và keyboard interactions cho role switcher/notification/drawer; đồng thời thu gọn TopBar notification label trên mobile để hết overflow 360px.
 - Hoàn thiện P5 Admin Workspace polish ở automated scope: dashboard metric helpers, admin doctors form/list hierarchy và Audit log filter summary/reset.

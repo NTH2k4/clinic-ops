@@ -22,10 +22,11 @@
 
 ## Phase 3: Backend
 
+- Triển khai Node.js/NestJS/Prisma/PostgreSQL backend theo `backend-implementation-plan.md`.
 - Triển khai authentication và role access.
-- Triển khai appointment domain.
-- Triển khai schedule conflict checks.
-- Triển khai audit logging.
+- Triển khai catalog resources và admin deactivate workflow.
+- Triển khai appointment domain, schedule conflict checks và status transitions.
+- Triển khai audit logging và notifications.
 
 ## Phase 4: Tích Hợp
 
