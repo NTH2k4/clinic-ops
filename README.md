@@ -31,3 +31,19 @@ Sau khi bật Pages source là **GitHub Actions** trong repository settings, app
 ```text
 https://nth2k4.github.io/clinic-ops/
 ```
+
+## Backend
+
+Backend bắt đầu ở `apps/api` và dùng Node.js + NestJS + TypeScript. Scaffold hiện có health endpoint tại `/api/v1/health`; PostgreSQL local được khai báo trong `docker-compose.yml`.
+
+Các lệnh kiểm tra backend:
+
+```bash
+cd apps/api
+npm test -- --runInBand
+npm run test:e2e -- --runInBand
+npm run typecheck
+npm run lint
+npm run build
+npm audit
+```
