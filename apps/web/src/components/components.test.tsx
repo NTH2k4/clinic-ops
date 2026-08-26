@@ -10,10 +10,12 @@ import { MetricCard } from "./MetricCard";
 import { SegmentedControl } from "./SegmentedControl";
 import { StatusBadge } from "./StatusBadge";
 import { renderWithProviders } from "../test/render";
+import { mockStore } from "../mocks/mockStore";
 import type { Appointment, AppointmentStatus } from "../types/models";
 
 afterEach(() => {
   cleanup();
+  mockStore.reset();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.resetModules();
@@ -143,6 +145,45 @@ describe("shared UI components", () => {
     expect(fetcher.mock.calls.map(([url]) => String(url))).toContain(
       "/api/v1/audit-events?entityId=appointment-api-1&page=1&pageSize=100",
     );
+  });
+
+  it("lists mock appointment audit events newest first in the detail drawer", async () => {
+    const { DetailDrawer } = await import("./DetailDrawer");
+    const { mockStore: drawerMockStore } = await import("../mocks/mockStore");
+    const appointment = drawerMockStore.appointments[0];
+    drawerMockStore.auditEvents = [
+      {
+        id: "audit-old",
+        actorUserId: "user-receptionist-1",
+        entityType: "appointment",
+        entityId: appointment.id,
+        action: "older event",
+        timestamp: "2026-08-20T09:00:00+07:00",
+      },
+      {
+        id: "audit-new",
+        actorUserId: "user-receptionist-1",
+        entityType: "appointment",
+        entityId: appointment.id,
+        action: "newer event",
+        timestamp: "2026-08-21T09:00:00+07:00",
+      },
+    ];
+
+    renderWithProviders(
+      <DetailDrawer
+        actorUserId="user-receptionist-1"
+        appointment={appointment}
+        onClose={() => undefined}
+        onUpdated={() => undefined}
+      />,
+    );
+
+    const auditSection = screen.getByRole("heading", { name: "Nhật ký kiểm toán" }).closest("section");
+    expect(within(auditSection!).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      expect.stringContaining("newer event"),
+      expect.stringContaining("older event"),
+    ]);
   });
 
   it("renders appointment status with text and accessible label", () => {

@@ -42,7 +42,8 @@ function mockAuditEvents(filters: AuditEventListFilters = {}): ApiListResponse<A
     && (!filters.actorUserId || event.actorUserId === filters.actorUserId)
     && (!filters.action || event.action === filters.action)
     && (!filters.from || event.timestamp >= filters.from)
-    && (!filters.to || event.timestamp <= filters.to));
+    && (!filters.to || event.timestamp <= filters.to))
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 100;
   const start = (page - 1) * pageSize;
