@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Search, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
@@ -21,6 +21,7 @@ export function CreateAppointmentPage() {
 
 function AppointmentCreationForm() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showNewPatient, setShowNewPatient] = useState(false);
@@ -74,14 +75,16 @@ function AppointmentCreationForm() {
     setError("");
     setIsSubmitting(true);
     try {
-      setCreated(await appointmentService.createStaffAppointment({
+      const appointment = await appointmentService.createStaffAppointment({
         patientId: selectedPatient.id,
         doctorId,
         serviceId,
         startAt: appointmentStart(date, time),
         actorUserId,
         source: "operations",
-      }));
+      });
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      setCreated(appointment);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Không thể tạo lịch hẹn.");
     } finally {

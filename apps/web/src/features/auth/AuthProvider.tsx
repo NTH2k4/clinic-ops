@@ -1,10 +1,9 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { PropsWithChildren } from "react";
 import { createAuthApi } from "../../lib/api/auth";
 import type { CurrentUser, LinkedProfileRef } from "../../lib/api/auth";
-import { createApiHttpClient } from "../../lib/api/http";
-import { clearApiSession, getApiSessionToken, setApiSessionToken } from "../../lib/api/session";
-import { apiBaseUrl, isApiMode } from "../../lib/dataSource";
+import { clearApiSession, createSessionApiHttpClient, setApiSessionToken, subscribeToApiSessionCleared } from "../../lib/api/session";
+import { isApiMode } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import type { User, UserRole } from "../../types/models";
 
@@ -41,21 +40,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [linkedProfile, setLinkedProfile] = useState<LinkedProfileRef>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const clearApiAuth = useCallback(() => {
-    clearApiSession();
+  const clearApiAuthState = useCallback(() => {
     setUser(null);
     setLinkedProfile(null);
   }, []);
 
+  useEffect(() => subscribeToApiSessionCleared(clearApiAuthState), [clearApiAuthState]);
+
   const authApi = useMemo(() => {
-    const client = createApiHttpClient({
-      baseUrl: apiBaseUrl,
-      getToken: getApiSessionToken,
-      onUnauthenticated: clearApiAuth,
-    });
+    const client = createSessionApiHttpClient();
 
     return createAuthApi(client.request);
-  }, [clearApiAuth]);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -99,7 +95,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           } catch (error) {
             setAuthError(error instanceof Error ? error.message : "Unable to sign out.");
           }
-          clearApiAuth();
+          clearApiSession();
           return;
         }
 
@@ -113,7 +109,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setUser(userForRole(role) ?? null);
       },
     }),
-    [authApi, authError, clearApiAuth, linkedProfile, user],
+    [authApi, authError, linkedProfile, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

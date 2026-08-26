@@ -21,9 +21,8 @@ test("doctor can start and complete a checked-in appointment on desktop", async 
   await page.goto("/login");
 
   await page.getByRole("button", { name: /Doctor Demo/i }).click();
-  const appointment = page.getByRole("article").filter({ has: page.getByText("09:00", { exact: true }) });
+  const appointment = page.getByRole("article").filter({ has: page.getByLabel("Trạng thái: Đã check-in") }).first();
   await appointment.getByRole("button", { name: "Xem chi tiết Nguyen Minh Anh" }).click();
-  await page.getByRole("button", { name: "Check in appointment" }).click();
   await page.getByRole("button", { name: "Start appointment" }).click();
   await page.getByRole("button", { name: "Complete appointment" }).click();
 
@@ -41,9 +40,10 @@ test("operations can check in a confirmed appointment on desktop", async ({ page
   const checkInActions = confirmedQueue.getByRole("button", { name: "Check-in" });
   await expect(checkInActions.first()).toBeVisible();
   const confirmedCount = await checkInActions.count();
-  const checkedInCount = await checkedInQueue.getByRole("button", { name: "Bắt đầu khám" }).count();
+  const checkedInCount = await checkedInQueue.getByLabel("Trạng thái: Đã check-in").count();
   await checkInActions.first().click();
 
   await expect(checkInActions).toHaveCount(confirmedCount - 1);
-  await expect(checkedInQueue.getByRole("button", { name: "Bắt đầu khám" })).toHaveCount(checkedInCount + 1);
+  await expect(checkedInQueue.getByLabel("Trạng thái: Đã check-in")).toHaveCount(checkedInCount + 1);
+  await expect(checkedInQueue.getByRole("button", { name: "Bắt đầu khám" })).toHaveCount(0);
 });

@@ -1,9 +1,8 @@
-import { createApiHttpClient } from "../../lib/api/http";
 import { createNotificationsApi } from "../../lib/api/notifications";
 import type { ApiNotificationRecord, NotificationListFilters, NotificationsApi } from "../../lib/api/notifications";
-import { clearApiSession, getApiSessionToken } from "../../lib/api/session";
+import { createSessionApiHttpClient } from "../../lib/api/session";
 import type { ApiListMeta, ApiListResponse } from "../../lib/api/types";
-import { apiBaseUrl, dataSource } from "../../lib/dataSource";
+import { dataSource } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import type { Notification } from "../../types/models";
 
@@ -20,7 +19,7 @@ export interface NotificationServiceOptions {
 }
 
 function defaultApi(fetcher?: typeof fetch): NotificationsApi {
-  const client = createApiHttpClient({ baseUrl: apiBaseUrl, getToken: getApiSessionToken, onUnauthenticated: clearApiSession, fetcher });
+  const client = createSessionApiHttpClient(fetcher);
   return createNotificationsApi(client.request, client.requestEnvelope);
 }
 

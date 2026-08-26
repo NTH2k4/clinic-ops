@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ClinicDateField } from "../../components/ClinicDateField";
@@ -21,6 +21,7 @@ export function BookAppointmentPage() {
 
 function AppointmentBookingForm() {
   const { linkedProfile, user } = useAuth();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const linkedPatientId = linkedProfile?.type === "patient" ? linkedProfile.id : undefined;
   const { data: patient } = useQuery({
@@ -79,6 +80,7 @@ function AppointmentBookingForm() {
         reason: reason.trim(),
         source: "patient_portal",
       });
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
       setDoctorId(created.doctorId);
       setSubmitted(true);
     } catch (submitError) {

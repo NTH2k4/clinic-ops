@@ -88,7 +88,7 @@ export function DoctorWeekSchedule() {
       </div>
       <div aria-label="Chọn ngày trong tuần" className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">{dates.map((date) => <button aria-pressed={selectedDate === date} className="min-h-14 rounded-md border border-border bg-surface px-2 py-2 text-left text-sm font-medium text-text aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" key={date} onClick={() => setSelectedDate(date)} type="button">{formatDate(`${date}T00:00:00+07:00`)}</button>)}</div>
       <div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={patients} services={services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div>
-      <DetailDrawer actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
+      <DetailDrawer actorRole={user?.role ?? "doctor"} actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
     </section>
   );
 }

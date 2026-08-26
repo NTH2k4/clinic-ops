@@ -134,6 +134,7 @@ describe("shared UI components", () => {
 
     renderApiWithProviders(
       <DetailDrawer
+        actorRole="admin"
         actorUserId="user-admin-1"
         appointment={apiAppointment}
         onClose={() => undefined}
@@ -172,6 +173,7 @@ describe("shared UI components", () => {
 
     renderWithProviders(
       <DetailDrawer
+        actorRole="receptionist"
         actorUserId="user-receptionist-1"
         appointment={appointment}
         onClose={() => undefined}

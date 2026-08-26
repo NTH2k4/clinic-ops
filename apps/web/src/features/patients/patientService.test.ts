@@ -65,6 +65,19 @@ describe("patientService in API mode", () => {
     }));
   });
 
+  it("normalizes API date-time birth dates to date-only values", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(apiSuccess({
+      ...apiPatient,
+      dateOfBirth: "1990-01-02T00:00:00.000Z",
+    }));
+    const { createPatientService } = await import("./patientService");
+    const service = createPatientService({ source: "api", fetcher });
+
+    await expect(service.getPatient("patient-api-1")).resolves.toMatchObject({
+      dateOfBirth: "1990-01-02",
+    });
+  });
+
   it("clears the in-memory API session and query cache after an unauthenticated response", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       error: { code: "UNAUTHENTICATED", message: "Authentication is required." },

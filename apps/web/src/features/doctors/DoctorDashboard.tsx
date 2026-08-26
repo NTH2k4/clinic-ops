@@ -59,7 +59,7 @@ export function DoctorDashboard() {
         </div>
         <aside className="border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0"><p className="text-sm font-semibold text-text">Lịch hẹn tiếp theo</p>{nextAppointment ? <div className="mt-3"><p className="text-lg font-semibold text-primary">{formatDateTime(nextAppointment.startAt)}</p><p className="mt-1 text-sm text-text-muted">{patients.find((patient) => patient.id === nextAppointment.patientId)?.fullName}</p><button className="mt-3 h-10 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={() => setSelectedAppointment(nextAppointment)} type="button">Xem chi tiết</button></div> : <p className="mt-3 text-sm text-text-muted">Không còn lịch hẹn cần xử lý.</p>}</aside>
       </section>
-      <DetailDrawer actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
+      <DetailDrawer actorRole={user?.role ?? "doctor"} actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
     </section>
   );
 }

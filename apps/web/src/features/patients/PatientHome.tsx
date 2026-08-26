@@ -4,10 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { StatusBadge } from "../../components/StatusBadge";
 import { isApiMode } from "../../lib/dataSource";
 import { formatDateTime } from "../../lib/dateTime";
-import { mockStore } from "../../mocks/mockStore";
 import { appointmentQueryOptions } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
+import { notificationQueryOptions } from "../notifications/notificationService";
 import { patientQueryOptions } from "./patientService";
 
 export function PatientHome() {
@@ -21,12 +21,16 @@ export function PatientHome() {
     ...appointmentQueryOptions.list({ patientId }),
     enabled: Boolean(patientId),
   });
+  const { data: notificationResponse } = useQuery({
+    ...notificationQueryOptions.list(user?.id ?? ""),
+    enabled: Boolean(user),
+  });
   const nextAppointment = appointmentResponse
     .filter((appointment) => !["completed", "cancelled", "no_show"].includes(appointment.status))
     .sort((left, right) => left.startAt.localeCompare(right.startAt))[0];
   const service = nextAppointment ? serviceResponse?.data.find((candidate) => candidate.id === nextAppointment.serviceId) : undefined;
   const doctor = nextAppointment ? doctorResponse?.data.find((candidate) => candidate.id === nextAppointment.doctorId) : undefined;
-  const notifications = isApiMode ? [] : mockStore.notifications.filter((notification) => notification.recipientUserId === user?.id).slice(0, 3);
+  const notifications = notificationResponse?.data.slice(0, 3) ?? [];
 
   return (
     <section className="mx-auto grid max-w-6xl gap-6">

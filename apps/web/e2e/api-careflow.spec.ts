@@ -50,9 +50,10 @@ test("receptionist can create an appointment and check in a confirmed appointmen
   await page.getByRole("link", { name: "Hàng đợi", exact: true }).click();
   const confirmedQueue = page.getByRole("region", { name: "Đã xác nhận" });
   const checkedInQueue = page.getByRole("region", { name: "Đang chờ khám" });
-  const before = await checkedInQueue.getByRole("button", { name: "Bắt đầu khám" }).count();
+  const before = await checkedInQueue.getByLabel("Trạng thái: Đã check-in").count();
   await confirmedQueue.getByRole("button", { name: "Check-in" }).first().click();
-  await expect(checkedInQueue.getByRole("button", { name: "Bắt đầu khám" })).toHaveCount(before + 1);
+  await expect(checkedInQueue.getByLabel("Trạng thái: Đã check-in")).toHaveCount(before + 1);
+  await expect(checkedInQueue.getByRole("button", { name: "Bắt đầu khám" })).toHaveCount(0);
 });
 
 test("doctor can start a checked-in appointment and complete it", async ({ page, request }) => {

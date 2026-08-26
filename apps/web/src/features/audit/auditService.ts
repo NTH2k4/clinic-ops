@@ -1,9 +1,8 @@
 import { createAuditEventsApi } from "../../lib/api/audit-events";
 import type { ApiAuditEventRecord, AuditEventListFilters, AuditEventsApi } from "../../lib/api/audit-events";
-import { createApiHttpClient } from "../../lib/api/http";
-import { clearApiSession, getApiSessionToken } from "../../lib/api/session";
+import { createSessionApiHttpClient } from "../../lib/api/session";
 import type { ApiListMeta, ApiListResponse } from "../../lib/api/types";
-import { apiBaseUrl, dataSource } from "../../lib/dataSource";
+import { dataSource } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import type { AuditEvent } from "../../types/models";
 
@@ -19,7 +18,7 @@ export interface AuditServiceOptions {
 }
 
 function defaultApi(fetcher?: typeof fetch): AuditEventsApi {
-  const client = createApiHttpClient({ baseUrl: apiBaseUrl, getToken: getApiSessionToken, onUnauthenticated: clearApiSession, fetcher });
+  const client = createSessionApiHttpClient(fetcher);
   return createAuditEventsApi(client.request, client.requestEnvelope);
 }
 

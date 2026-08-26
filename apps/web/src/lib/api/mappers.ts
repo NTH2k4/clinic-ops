@@ -39,7 +39,7 @@ export function mapPatient(record: ApiPatientRecord): Patient {
     fullName: record.fullName,
     phone: record.phone,
     ...(record.email ? { email: record.email } : {}),
-    dateOfBirth: record.dateOfBirth ?? "",
+    dateOfBirth: record.dateOfBirth?.slice(0, 10) ?? "",
     gender,
     ...(record.address ? { address: record.address } : {}),
     ...(record.notes ? { notes: record.notes } : {}),

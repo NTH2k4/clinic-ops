@@ -1,10 +1,9 @@
-import { createApiHttpClient } from "../../lib/api/http";
 import { mapPatient } from "../../lib/api/mappers";
 import { createPatientsApi } from "../../lib/api/patients";
 import type { PatientCreateInput, PatientListFilters, PatientsApi, PatientUpdateInput } from "../../lib/api/patients";
-import { clearApiSession, getApiSessionToken } from "../../lib/api/session";
+import { createSessionApiHttpClient } from "../../lib/api/session";
 import type { ApiListMeta, ApiListResponse } from "../../lib/api/types";
-import { apiBaseUrl, dataSource } from "../../lib/dataSource";
+import { dataSource } from "../../lib/dataSource";
 import { createId } from "../../lib/ids";
 import { mockStore } from "../../mocks/mockStore";
 import type { Patient } from "../../types/models";
@@ -24,7 +23,7 @@ export interface PatientServiceOptions {
 }
 
 function defaultApi(fetcher?: typeof fetch): PatientsApi {
-  const client = createApiHttpClient({ baseUrl: apiBaseUrl, getToken: getApiSessionToken, onUnauthenticated: clearApiSession, fetcher });
+  const client = createSessionApiHttpClient(fetcher);
   return createPatientsApi(client.request, client.requestEnvelope);
 }
 

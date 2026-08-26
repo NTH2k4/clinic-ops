@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 afterEach(() => {
@@ -128,8 +128,9 @@ describe("API appointment workflows", () => {
     expect(screen.queryByText("Nguyen Minh Anh")).not.toBeInTheDocument();
   });
 
-  it("enables appointment status changes in the detail drawer", async () => {
-    const { renderWithProviders } = await prepareApiMode();
+  it("offers doctor transitions without requesting the admin-only audit endpoint", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(emptyListResponse());
+    const { renderWithProviders } = await prepareApiMode(fetcher);
     const { DetailDrawer } = await import("../../components/DetailDrawer");
     const { mockStore } = await import("../../mocks/mockStore");
     const appointment = mockStore.appointments.find((candidate) => candidate.status === "checked_in");
@@ -137,6 +138,7 @@ describe("API appointment workflows", () => {
 
     renderWithProviders(
       <DetailDrawer
+        actorRole="doctor"
         actorUserId="user-doctor-1"
         appointment={appointment}
         onClose={() => undefined}
@@ -146,6 +148,63 @@ describe("API appointment workflows", () => {
 
     expect(screen.getByRole("button", { name: /Start appointment/i })).toBeEnabled();
     expect(screen.queryByText("Cập nhật lịch hẹn qua API chưa khả dụng.")).not.toBeInTheDocument();
+    await waitFor(() => expect(fetcher).toHaveBeenCalled());
+    expect(fetcher.mock.calls.some(([url]) => String(url).includes("/audit-events"))).toBe(false);
+  });
+
+  it("shows API notifications on the patient home", async () => {
+    vi.resetModules();
+    vi.stubEnv("VITE_DATA_SOURCE", "api");
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/auth/login")) {
+        return new Response(JSON.stringify({
+          data: {
+            sessionToken: "api-session-token",
+            currentUser: {
+              id: "user-patient-1",
+              displayName: "API Patient",
+              email: "patient@example.test",
+              role: "patient",
+              status: "active",
+            },
+            linkedProfile: { type: "patient", id: "patient-1" },
+          },
+          meta: { requestId: "req-login" },
+        }), { status: 200 });
+      }
+      if (url.includes("/notifications")) {
+        return new Response(JSON.stringify({
+          data: [{
+            id: "notification-api-1",
+            recipientUserId: "user-patient-1",
+            type: "appointment_confirmed",
+            title: "API patient notification",
+            message: "Your appointment was confirmed.",
+            referenceType: "appointment",
+            referenceId: "appointment-api-1",
+            readAt: null,
+            createdAt: "2026-08-24T02:00:00.000Z",
+          }],
+          meta: { requestId: "req-notifications", page: 1, pageSize: 100, total: 1 },
+        }), { status: 200 });
+      }
+      if (url.includes("/patients/patient-1")) {
+        return new Response(JSON.stringify({ data: apiPatient, meta: { requestId: "req-patient" } }), { status: 200 });
+      }
+      return emptyListResponse();
+    }));
+    const { renderWithProviders } = await import("../../test/render");
+    const { App } = await import("../../app/App");
+    const user = userEvent.setup();
+
+    renderWithProviders(<App />);
+    await user.type(screen.getByLabelText("Email"), "patient@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "secret");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+
+    expect(await screen.findByText("API patient notification")).toBeInTheDocument();
+    expect(screen.getByText("Your appointment was confirmed.")).toBeInTheDocument();
   });
 
   it("enables patient appointment cancellation", async () => {

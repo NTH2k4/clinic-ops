@@ -1,10 +1,9 @@
 import { createCatalogApi } from "../../lib/api/catalog";
 import type { CatalogApi, CatalogListFilters } from "../../lib/api/catalog";
-import { createApiHttpClient } from "../../lib/api/http";
 import { mapDoctor, mapService, mapSpecialty } from "../../lib/api/mappers";
-import { getApiSessionToken } from "../../lib/api/session";
+import { createSessionApiHttpClient } from "../../lib/api/session";
 import type { ApiListMeta, ApiListResponse } from "../../lib/api/types";
-import { apiBaseUrl, dataSource } from "../../lib/dataSource";
+import { dataSource } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import type { Doctor, Service, Specialty } from "../../types/models";
 
@@ -38,7 +37,7 @@ function includesQuery(value: string, q?: string): boolean {
 }
 
 function defaultApi(fetcher?: typeof fetch): CatalogApi {
-  const client = createApiHttpClient({ baseUrl: apiBaseUrl, getToken: getApiSessionToken, fetcher });
+  const client = createSessionApiHttpClient(fetcher);
   return createCatalogApi(client.requestEnvelope);
 }
 

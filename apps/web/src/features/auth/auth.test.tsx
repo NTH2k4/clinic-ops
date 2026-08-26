@@ -240,6 +240,56 @@ describe("authentication and role routing", () => {
 });
 
 describe("API authentication", () => {
+  it("returns to login when a catalog request reports an expired session", async () => {
+    const user = userEvent.setup();
+    let sessionExpired = false;
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/auth/login")) {
+        return successResponse({
+          sessionToken: "expired-session-token",
+          currentUser: {
+            id: "user-patient-1",
+            displayName: "API Patient",
+            email: "patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-1" },
+        });
+      }
+      if (sessionExpired && url.includes("/services")) {
+        return new Response(JSON.stringify({
+          error: { code: "UNAUTHENTICATED", message: "Session expired." },
+          meta: { requestId: "req-expired" },
+        }), { status: 401 });
+      }
+      return new Response(JSON.stringify({
+        data: [],
+        meta: { requestId: "req-list", page: 1, pageSize: 100, total: 0 },
+      }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetcher);
+
+    await renderApiApp();
+    await user.type(screen.getByLabelText("Email"), "patient@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "secret");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByRole("heading", { name: "Trang chính patient" })).toBeInTheDocument();
+
+    const { queryClient } = await import("../../lib/queryClient");
+    const { getApiSessionToken } = await import("../../lib/api/session");
+    const { catalogService } = await import("../catalog/catalogService");
+    queryClient.setQueryData(["session-sensitive"], { value: "stale" });
+    sessionExpired = true;
+
+    await expect(catalogService.listServices()).rejects.toMatchObject({ code: "UNAUTHENTICATED" });
+
+    expect(await screen.findByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
+    expect(getApiSessionToken()).toBeNull();
+    expect(queryClient.getQueryData(["session-sensitive"])).toBeUndefined();
+  });
+
   it("signs in through the API without persisting the session token and hides demo role switching", async () => {
     const user = userEvent.setup();
     const sessionToken = "api-session-token";

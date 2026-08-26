@@ -9,6 +9,7 @@ import { appointmentService } from "../appointments/appointmentService";
 import { mockStore } from "../../mocks/mockStore";
 import { expectClinicDateField, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
+import { queryClient } from "../../lib/queryClient";
 
 afterEach(() => {
   cleanup();
@@ -26,6 +27,18 @@ describe("operations workspace", () => {
     const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
     await user.click(within(confirmedGroup).getAllByRole("button", { name: "Check-in" })[0]);
     expect(screen.getByText("Đã check-in")).toBeInTheDocument();
+  });
+
+  it("only offers receptionist and nurse transitions accepted by the backend", () => {
+    renderWithProviders(<QueuePage />);
+
+    const waitingGroup = screen.getByRole("region", { name: "Đang chờ khám" });
+    expect(within(waitingGroup).getAllByRole("button").every((button) => button.textContent === "Hủy lịch")).toBe(true);
+    expect(within(waitingGroup).getAllByRole("button", { name: /Hủy lịch .+/ }).length).toBeGreaterThan(0);
+    expect(within(waitingGroup).queryByRole("button", { name: "Bắt đầu khám" })).not.toBeInTheDocument();
+
+    const inProgressGroup = screen.getByRole("region", { name: "Đang khám" });
+    expect(within(inProgressGroup).queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("shows an error when a queue status update fails", async () => {
@@ -86,6 +99,8 @@ describe("operations workspace", () => {
   it("creates a confirmed appointment for staff", async () => {
     const user = userEvent.setup();
     renderWithProviders(<CreateAppointmentPage />);
+    const staleAppointmentKey = ["appointments", "list", { doctorId: "cached-doctor" }] as const;
+    queryClient.setQueryData(staleAppointmentKey, []);
 
     await user.type(screen.getByLabelText("Tìm patient"), "Nguyễn");
     await user.click(screen.getByRole("button", { name: /Nguyen Minh Anh/i }));
@@ -96,6 +111,7 @@ describe("operations workspace", () => {
     await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
     expect(screen.getByText("Đã xác nhận")).toBeInTheDocument();
     expect(mockStore.appointments.at(-1)?.status).toBe("confirmed");
+    expect(queryClient.getQueryState(staleAppointmentKey)?.isInvalidated).toBe(true);
   });
 
   it("does not offer staff booking slots outside the doctor's working schedule", async () => {

@@ -6,6 +6,7 @@ import { isApiMode } from "../../lib/dataSource";
 import { formatDateTime } from "../../lib/dateTime";
 import type { Appointment, AppointmentStatus } from "../../types/models";
 import { appointmentQueryOptions, appointmentService } from "../appointments/appointmentService";
+import { canTransitionAppointment } from "../appointments/appointmentRules";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
 import { patientQueryOptions } from "./patientService";
@@ -77,7 +78,7 @@ export function MyAppointmentsPage() {
         {visibleAppointments.length === 0 ? <EmptyState description="Không có lịch hẹn trong nhóm này." title="Chưa có lịch hẹn" /> : visibleAppointments.map((appointment) => {
           const service = services.find((candidate) => candidate.id === appointment.serviceId);
           const doctor = doctors.find((candidate) => candidate.id === appointment.doctorId);
-          const cancellable = !terminalStatuses.includes(appointment.status);
+          const cancellable = canTransitionAppointment(appointment.status, "cancelled", user?.role);
           const serviceName = service?.name ?? "Dịch vụ";
           const appointmentTime = formatDateTime(appointment.startAt);
 
