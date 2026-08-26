@@ -66,8 +66,8 @@ model User {
   role                     UserRole
   status                   AccountStatus              @default(active)
   avatarUrl                String?
-  createdAt                DateTime                   @default(now())
-  updatedAt                DateTime                   @updatedAt
+  createdAt                DateTime                   @default(now()) @db.Timestamptz(3)
+  updatedAt                DateTime                   @updatedAt @db.Timestamptz(3)
   patient                  Patient?
   staff                    Staff?
   doctor                   Doctor?
@@ -84,13 +84,13 @@ model Patient {
   fullName     String
   phone        String        @unique
   email        String?
-  dateOfBirth  DateTime?      @db.Date
+  dateOfBirth  DateTime?     @db.Date
   gender       String?
   address      String?
   notes        String?
   status       AccountStatus @default(active)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
   user         User?         @relation(fields: [userId], references: [id])
   appointments Appointment[]
 }
@@ -103,8 +103,8 @@ model Staff {
   email     String
   role      UserRole
   status    AccountStatus @default(active)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @db.Timestamptz(3)
   user      User?         @relation(fields: [userId], references: [id])
 }
 
@@ -118,8 +118,8 @@ model Doctor {
   title        String?
   room         String?
   status       DoctorStatus     @default(active)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
   user         User?            @relation(fields: [userId], references: [id])
   specialty    Specialty        @relation(fields: [specialtyId], references: [id])
   services     Service[]
@@ -134,8 +134,8 @@ model Specialty {
   name        String        @unique
   description String?
   status      ServiceStatus @default(active)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(3)
   doctors     Doctor[]
   services    Service[]
 }
@@ -149,8 +149,8 @@ model Service {
   currency        String        @default("VND")
   description     String?
   status          ServiceStatus @default(active)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime      @updatedAt @db.Timestamptz(3)
   specialty       Specialty     @relation(fields: [specialtyId], references: [id])
   doctors         Doctor[]
   appointments    Appointment[]
@@ -168,8 +168,8 @@ model DoctorSchedule {
   effectiveTo   DateTime      @db.Date
   type          ScheduleType
   status        AccountStatus @default(active)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
   doctor        Doctor        @relation(fields: [doctorId], references: [id])
 
   @@index([doctorId, effectiveFrom, effectiveTo])
@@ -180,20 +180,20 @@ model Appointment {
   patientId          String
   doctorId           String
   serviceId          String
-  startAt            DateTime
-  endAt              DateTime
+  startAt            DateTime                   @db.Timestamptz(3)
+  endAt              DateTime                   @db.Timestamptz(3)
   status             AppointmentStatus
   reason             String?
   internalNote       String?
   cancellationReason String?
   createdByUserId    String
   updatedByUserId    String?
-  checkedInAt        DateTime?
-  startedAt          DateTime?
-  completedAt        DateTime?
-  cancelledAt        DateTime?
-  createdAt          DateTime                   @default(now())
-  updatedAt          DateTime                   @updatedAt
+  checkedInAt        DateTime?                  @db.Timestamptz(3)
+  startedAt          DateTime?                  @db.Timestamptz(3)
+  completedAt        DateTime?                  @db.Timestamptz(3)
+  cancelledAt        DateTime?                  @db.Timestamptz(3)
+  createdAt          DateTime                   @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime                   @updatedAt @db.Timestamptz(3)
   patient            Patient                    @relation(fields: [patientId], references: [id])
   doctor             Doctor                     @relation(fields: [doctorId], references: [id])
   service            Service                    @relation(fields: [serviceId], references: [id])
@@ -213,7 +213,7 @@ model AppointmentStatusHistory {
   toStatus      AppointmentStatus
   actorUserId   String
   note          String?
-  changedAt     DateTime           @default(now())
+  changedAt     DateTime           @default(now()) @db.Timestamptz(3)
   appointment   Appointment        @relation(fields: [appointmentId], references: [id])
   actorUser     User               @relation(fields: [actorUserId], references: [id])
 
@@ -228,8 +228,8 @@ model Notification {
   message         String
   referenceType   String?
   referenceId     String?
-  readAt          DateTime?
-  createdAt       DateTime         @default(now())
+  readAt          DateTime?        @db.Timestamptz(3)
+  createdAt       DateTime         @default(now()) @db.Timestamptz(3)
   recipientUser   User             @relation(fields: [recipientUserId], references: [id])
 
   @@index([recipientUserId, readAt])
@@ -242,7 +242,7 @@ model AuditEvent {
   entityType    String
   entityId      String
   action        String
-  timestamp     DateTime     @default(now())
+  timestamp     DateTime     @default(now()) @db.Timestamptz(3)
   metadata      Json?
   actorUser     User         @relation(fields: [actorUserId], references: [id])
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])

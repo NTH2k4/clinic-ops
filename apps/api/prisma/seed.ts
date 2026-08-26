@@ -1,13 +1,14 @@
 import {
   AppointmentStatus,
   NotificationType,
+  Prisma,
   PrismaClient,
   ScheduleType,
   UserRole,
 } from "@prisma/client";
 
 const prisma = new PrismaClient();
-
+const seedTimestamp = new Date("2026-08-01T00:00:00.000Z");
 const baseDate = new Date("2026-08-24T00:00:00.000Z");
 
 const specialties = [
@@ -35,34 +36,53 @@ const doctors = [
   { id: "doctor-5", fullName: "Dr. Tuan Vo", specialtyId: "specialty-cardiology", phone: "+84900000005", email: "tuan.vo@careflow.local", title: "MD", room: "B202", serviceIds: ["service-cardiac", "service-ecg"] },
 ];
 
-async function resetDatabase() {
-  await prisma.auditEvent.deleteMany();
-  await prisma.appointmentStatusHistory.deleteMany();
-  await prisma.notification.deleteMany();
-  await prisma.appointment.deleteMany();
-  await prisma.doctorSchedule.deleteMany();
-  await prisma.doctor.deleteMany();
-  await prisma.service.deleteMany();
-  await prisma.specialty.deleteMany();
-  await prisma.patient.deleteMany();
-  await prisma.staff.deleteMany();
-  await prisma.user.deleteMany();
+type SeedClient = Prisma.TransactionClient;
+
+function assertSafeSeedTarget(databaseUrl = process.env.DATABASE_URL) {
+  if (process.env.ALLOW_DATABASE_SEED === "true") {
+    return;
+  }
+
+  if (!databaseUrl) {
+    throw new Error("Refusing to seed without DATABASE_URL. Set ALLOW_DATABASE_SEED=true to override this guard.");
+  }
+
+  const url = new URL(databaseUrl);
+  const databaseName = url.pathname.replace(/^\//, "");
+  const isLocalHost = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  const isCareflowTestDatabase = /^careflow(?:_test)?$/.test(databaseName);
+
+  if (!isLocalHost || !isCareflowTestDatabase) {
+    throw new Error("Refusing to seed a non-local CareFlow database. Set ALLOW_DATABASE_SEED=true to override this guard.");
+  }
 }
 
-async function main() {
-  await resetDatabase();
+async function resetDatabase(db: SeedClient) {
+  await db.auditEvent.deleteMany();
+  await db.appointmentStatusHistory.deleteMany();
+  await db.notification.deleteMany();
+  await db.appointment.deleteMany();
+  await db.doctorSchedule.deleteMany();
+  await db.doctor.deleteMany();
+  await db.service.deleteMany();
+  await db.specialty.deleteMany();
+  await db.patient.deleteMany();
+  await db.staff.deleteMany();
+  await db.user.deleteMany();
+}
 
-  await prisma.user.createMany({
+async function seedDatabase(db: SeedClient) {
+  await db.user.createMany({
     data: [
-      { id: "user-patient-1", displayName: "Patient Demo", email: "patient@careflow.local", phone: "+84910000001", role: UserRole.patient, status: "active" },
-      { id: "user-doctor-1", displayName: "Dr. Minh Nguyen", email: "minh.nguyen@careflow.local", phone: "+84900000001", role: UserRole.doctor, status: "active" },
-      { id: "user-receptionist-1", displayName: "Reception Demo", email: "reception@careflow.local", phone: "+84910000002", role: UserRole.receptionist, status: "active" },
-      { id: "user-nurse-1", displayName: "Nurse Demo", email: "nurse@careflow.local", phone: "+84910000003", role: UserRole.nurse, status: "active" },
-      { id: "user-admin-1", displayName: "Admin Demo", email: "admin@careflow.local", phone: "+84910000004", role: UserRole.admin, status: "active" },
+      { id: "user-patient-1", displayName: "Patient Demo", email: "patient@careflow.local", phone: "+84910000001", role: UserRole.patient, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-doctor-1", displayName: "Dr. Minh Nguyen", email: "minh.nguyen@careflow.local", phone: "+84900000001", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-receptionist-1", displayName: "Reception Demo", email: "reception@careflow.local", phone: "+84910000002", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-nurse-1", displayName: "Nurse Demo", email: "nurse@careflow.local", phone: "+84910000003", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-admin-1", displayName: "Admin Demo", email: "admin@careflow.local", phone: "+84910000004", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
     ],
   });
 
-  await prisma.patient.createMany({
+  await db.patient.createMany({
     data: Array.from({ length: 6 }, (_, index) => ({
       id: `patient-${index + 1}`,
       userId: index === 0 ? "user-patient-1" : undefined,
@@ -73,22 +93,24 @@ async function main() {
       gender: index % 2 === 0 ? "female" : "male",
       address: "Ho Chi Minh City",
       status: "active",
+      createdAt: seedTimestamp,
+      updatedAt: seedTimestamp,
     })),
   });
 
-  await prisma.staff.createMany({
+  await db.staff.createMany({
     data: [
-      { id: "staff-receptionist-1", userId: "user-receptionist-1", fullName: "Reception Demo", phone: "+84910000002", email: "reception@careflow.local", role: UserRole.receptionist, status: "active" },
-      { id: "staff-nurse-1", userId: "user-nurse-1", fullName: "Nurse Demo", phone: "+84910000003", email: "nurse@careflow.local", role: UserRole.nurse, status: "active" },
-      { id: "staff-admin-1", userId: "user-admin-1", fullName: "Admin Demo", phone: "+84910000004", email: "admin@careflow.local", role: UserRole.admin, status: "active" },
+      { id: "staff-receptionist-1", userId: "user-receptionist-1", fullName: "Reception Demo", phone: "+84910000002", email: "reception@careflow.local", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "staff-nurse-1", userId: "user-nurse-1", fullName: "Nurse Demo", phone: "+84910000003", email: "nurse@careflow.local", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "staff-admin-1", userId: "user-admin-1", fullName: "Admin Demo", phone: "+84910000004", email: "admin@careflow.local", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
     ],
   });
 
-  await prisma.specialty.createMany({ data: specialties.map((specialty) => ({ ...specialty, status: "active" })) });
-  await prisma.service.createMany({ data: services.map((service) => ({ ...service, currency: "VND", status: "active" })) });
+  await db.specialty.createMany({ data: specialties.map((specialty) => ({ ...specialty, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp })) });
+  await db.service.createMany({ data: services.map((service) => ({ ...service, currency: "VND", status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp })) });
 
   for (const doctor of doctors) {
-    await prisma.doctor.create({
+    await db.doctor.create({
       data: {
         id: doctor.id,
         userId: doctor.userId,
@@ -99,12 +121,14 @@ async function main() {
         title: doctor.title,
         room: doctor.room,
         status: "active",
+        createdAt: seedTimestamp,
+        updatedAt: seedTimestamp,
         services: { connect: doctor.serviceIds.map((id) => ({ id })) },
       },
     });
   }
 
-  await prisma.doctorSchedule.createMany({
+  await db.doctorSchedule.createMany({
     data: doctors.flatMap((doctor) =>
       Array.from({ length: 10 }, (_, index) => {
         const date = new Date(baseDate);
@@ -119,25 +143,35 @@ async function main() {
           effectiveTo: date,
           type: ScheduleType.working,
           status: "active",
+          createdAt: seedTimestamp,
+          updatedAt: seedTimestamp,
         };
       }),
     ),
   });
 
+  const serviceById = new Map(services.map((service) => [service.id, service]));
   const statuses = Object.values(AppointmentStatus);
   const appointments = Array.from({ length: 30 }, (_, index) => {
+    const doctor = doctors[index % doctors.length];
+    const serviceId = doctor.serviceIds[index % doctor.serviceIds.length];
+    const service = serviceById.get(serviceId);
+    if (!service) {
+      throw new Error(`Missing seeded service ${serviceId}.`);
+    }
+
     const status = statuses[index % statuses.length];
     const startAt = new Date("2026-08-24T01:00:00.000Z");
     startAt.setUTCDate(startAt.getUTCDate() + Math.floor(index / 6));
     startAt.setUTCHours(1 + (index % 6) * 2);
-    const endAt = new Date(startAt.getTime() + 30 * 60 * 1000);
+    const endAt = new Date(startAt.getTime() + service.durationMinutes * 60 * 1000);
     const terminalAt = new Date(endAt.getTime());
 
     return {
       id: `appointment-${index + 1}`,
       patientId: `patient-${(index % 6) + 1}`,
-      doctorId: doctors[index % doctors.length].id,
-      serviceId: doctors[index % doctors.length].serviceIds[index % doctors[index % doctors.length].serviceIds.length],
+      doctorId: doctor.id,
+      serviceId,
       startAt,
       endAt,
       status,
@@ -149,11 +183,13 @@ async function main() {
       completedAt: status === AppointmentStatus.completed ? terminalAt : undefined,
       cancelledAt: status === AppointmentStatus.cancelled ? terminalAt : undefined,
       cancellationReason: status === AppointmentStatus.cancelled ? "Demo cancellation" : undefined,
+      createdAt: seedTimestamp,
+      updatedAt: seedTimestamp,
     };
   });
 
-  await prisma.appointment.createMany({ data: appointments });
-  await prisma.appointmentStatusHistory.createMany({
+  await db.appointment.createMany({ data: appointments });
+  await db.appointmentStatusHistory.createMany({
     data: appointments.map((appointment) => ({
       id: `appointment-history-${appointment.id}`,
       appointmentId: appointment.id,
@@ -164,7 +200,7 @@ async function main() {
     })),
   });
 
-  await prisma.auditEvent.createMany({
+  await db.auditEvent.createMany({
     data: appointments.slice(0, 20).map((appointment, index) => ({
       id: `audit-${index + 1}`,
       actorUserId: appointment.createdByUserId,
@@ -177,7 +213,7 @@ async function main() {
     })),
   });
 
-  await prisma.notification.createMany({
+  await db.notification.createMany({
     data: Array.from({ length: 8 }, (_, index) => ({
       id: `notification-${index + 1}`,
       recipientUserId: index % 2 === 0 ? "user-patient-1" : "user-receptionist-1",
@@ -187,7 +223,16 @@ async function main() {
       referenceType: "appointment",
       referenceId: `appointment-${index + 1}`,
       readAt: index < 2 ? new Date("2026-08-24T00:00:00.000Z") : undefined,
+      createdAt: seedTimestamp,
     })),
+  });
+}
+
+async function main() {
+  assertSafeSeedTarget();
+  await prisma.$transaction(async (transaction) => {
+    await resetDatabase(transaction);
+    await seedDatabase(transaction);
   });
 }
 

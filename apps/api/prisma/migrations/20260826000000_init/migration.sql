@@ -28,8 +28,8 @@ CREATE TABLE "User" (
     "role" "UserRole" NOT NULL,
     "status" "AccountStatus" NOT NULL DEFAULT 'active',
     "avatarUrl" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -46,8 +46,8 @@ CREATE TABLE "Patient" (
     "address" TEXT,
     "notes" TEXT,
     "status" "AccountStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "Patient_pkey" PRIMARY KEY ("id")
 );
@@ -61,8 +61,8 @@ CREATE TABLE "Staff" (
     "email" TEXT NOT NULL,
     "role" "UserRole" NOT NULL,
     "status" "AccountStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "Staff_pkey" PRIMARY KEY ("id")
 );
@@ -78,8 +78,8 @@ CREATE TABLE "Doctor" (
     "title" TEXT,
     "room" TEXT,
     "status" "DoctorStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "Doctor_pkey" PRIMARY KEY ("id")
 );
@@ -90,8 +90,8 @@ CREATE TABLE "Specialty" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "status" "ServiceStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "Specialty_pkey" PRIMARY KEY ("id")
 );
@@ -106,8 +106,8 @@ CREATE TABLE "Service" (
     "currency" TEXT NOT NULL DEFAULT 'VND',
     "description" TEXT,
     "status" "ServiceStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "Service_pkey" PRIMARY KEY ("id")
 );
@@ -123,8 +123,8 @@ CREATE TABLE "DoctorSchedule" (
     "effectiveTo" DATE NOT NULL,
     "type" "ScheduleType" NOT NULL,
     "status" "AccountStatus" NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "DoctorSchedule_pkey" PRIMARY KEY ("id")
 );
@@ -135,20 +135,20 @@ CREATE TABLE "Appointment" (
     "patientId" TEXT NOT NULL,
     "doctorId" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
-    "startAt" TIMESTAMP(3) NOT NULL,
-    "endAt" TIMESTAMP(3) NOT NULL,
+    "startAt" TIMESTAMPTZ(3) NOT NULL,
+    "endAt" TIMESTAMPTZ(3) NOT NULL,
     "status" "AppointmentStatus" NOT NULL,
     "reason" TEXT,
     "internalNote" TEXT,
     "cancellationReason" TEXT,
     "createdByUserId" TEXT NOT NULL,
     "updatedByUserId" TEXT,
-    "checkedInAt" TIMESTAMP(3),
-    "startedAt" TIMESTAMP(3),
-    "completedAt" TIMESTAMP(3),
-    "cancelledAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "checkedInAt" TIMESTAMPTZ(3),
+    "startedAt" TIMESTAMPTZ(3),
+    "completedAt" TIMESTAMPTZ(3),
+    "cancelledAt" TIMESTAMPTZ(3),
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "Appointment_pkey" PRIMARY KEY ("id")
 );
@@ -161,7 +161,7 @@ CREATE TABLE "AppointmentStatusHistory" (
     "toStatus" "AppointmentStatus" NOT NULL,
     "actorUserId" TEXT NOT NULL,
     "note" TEXT,
-    "changedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "changedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "AppointmentStatusHistory_pkey" PRIMARY KEY ("id")
 );
@@ -175,8 +175,8 @@ CREATE TABLE "Notification" (
     "message" TEXT NOT NULL,
     "referenceType" TEXT,
     "referenceId" TEXT,
-    "readAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "readAt" TIMESTAMPTZ(3),
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
@@ -189,7 +189,7 @@ CREATE TABLE "AuditEvent" (
     "entityType" TEXT NOT NULL,
     "entityId" TEXT NOT NULL,
     "action" TEXT NOT NULL,
-    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "timestamp" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "metadata" JSONB,
 
     CONSTRAINT "AuditEvent_pkey" PRIMARY KEY ("id")
