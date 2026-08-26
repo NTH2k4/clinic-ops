@@ -37,6 +37,7 @@ export type AppointmentSlotInput = {
   serviceId: string;
   startAt: Date;
   excludeAppointmentId?: string;
+  transaction?: Prisma.TransactionClient;
 };
 
 export type AvailableAppointmentSlot = {
@@ -55,34 +56,40 @@ export class AppointmentConflictsService {
       throw new ApiError(400, "VALIDATION_ERROR", "startAt must be a valid ISO datetime.", { startAt: "Invalid" });
     }
 
-    return this.prisma.$transaction(async (transaction) => {
-      const service = await transaction.service.findUnique({ where: { id: input.serviceId } });
-      if (!service) throw new ApiError(404, "NOT_FOUND", "service was not found.");
-      if (service.status !== ServiceStatus.active) throw new ApiError(409, "SERVICE_INACTIVE", "service is not active.");
+    if (input.transaction) return this.assertSlotAvailableInTransaction(input.transaction, input);
+    return this.prisma.$transaction((transaction) => this.assertSlotAvailableInTransaction(transaction, input));
+  }
 
-      const endAt = new Date(input.startAt.getTime() + service.durationMinutes * 60_000);
-      if (input.doctorId) {
-        const doctor = await this.findDoctor(transaction, input.doctorId);
+  private async assertSlotAvailableInTransaction(
+    transaction: Prisma.TransactionClient,
+    input: AppointmentSlotInput,
+  ): Promise<AvailableAppointmentSlot> {
+    const service = await transaction.service.findUnique({ where: { id: input.serviceId } });
+    if (!service) throw new ApiError(404, "NOT_FOUND", "service was not found.");
+    if (service.status !== ServiceStatus.active) throw new ApiError(409, "SERVICE_INACTIVE", "service is not active.");
+
+    const endAt = new Date(input.startAt.getTime() + service.durationMinutes * 60_000);
+    if (input.doctorId) {
+      const doctor = await this.findDoctor(transaction, input.doctorId);
+      await this.assertDoctorCanProvide(transaction, doctor, service, input, endAt);
+      return { doctor, service, startAt: input.startAt, endAt };
+    }
+
+    const doctors = await transaction.doctor.findMany({
+      where: { status: DoctorStatus.active, services: { some: { id: service.id } } },
+      include: { schedules: true },
+      orderBy: { id: "asc" },
+    });
+    for (const doctor of doctors) {
+      try {
         await this.assertDoctorCanProvide(transaction, doctor, service, input, endAt);
         return { doctor, service, startAt: input.startAt, endAt };
+      } catch (error) {
+        if (!(error instanceof ApiError) || !["OUTSIDE_WORKING_HOURS", "DOCTOR_UNAVAILABLE", "APPOINTMENT_CONFLICT"].includes(error.code)) throw error;
       }
+    }
 
-      const doctors = await transaction.doctor.findMany({
-        where: { status: DoctorStatus.active, services: { some: { id: service.id } } },
-        include: { schedules: true },
-        orderBy: { id: "asc" },
-      });
-      for (const doctor of doctors) {
-        try {
-          await this.assertDoctorCanProvide(transaction, doctor, service, input, endAt);
-          return { doctor, service, startAt: input.startAt, endAt };
-        } catch (error) {
-          if (!(error instanceof ApiError) || !["OUTSIDE_WORKING_HOURS", "DOCTOR_UNAVAILABLE", "APPOINTMENT_CONFLICT"].includes(error.code)) throw error;
-        }
-      }
-
-      throw new ApiError(409, "NO_DOCTOR_AVAILABLE", "No doctor is available for this slot.");
-    });
+    throw new ApiError(409, "NO_DOCTOR_AVAILABLE", "No doctor is available for this slot.");
   }
 
   private async findDoctor(transaction: Prisma.TransactionClient, doctorId: string): Promise<DoctorWithSchedules> {
@@ -122,7 +129,23 @@ export class AppointmentConflictsService {
   }
 
   private isScheduled(schedules: DoctorSchedule[], startAt: Date, endAt: Date) {
-    return schedules.some((schedule) => schedule.type === ScheduleType.working && this.covers(schedule, startAt, endAt));
+    const start = this.localDateTime(startAt);
+    const end = this.localDateTime(endAt);
+    if (end.date !== start.date) return false;
+
+    const intervals = schedules
+      .filter((schedule) => schedule.type === ScheduleType.working && this.matchesDate(schedule, start.date))
+      .map((schedule) => ({ start: this.timeInMinutes(schedule.startTime), end: this.timeInMinutes(schedule.endTime) }))
+      .sort((left, right) => left.start - right.start);
+
+    let coveredUntil = start.minutes;
+    for (const interval of intervals) {
+      if (interval.end <= coveredUntil) continue;
+      if (interval.start > coveredUntil) return false;
+      coveredUntil = interval.end;
+      if (coveredUntil >= end.minutes) return true;
+    }
+    return false;
   }
 
   private isBlocked(schedules: DoctorSchedule[], startAt: Date, endAt: Date) {
@@ -130,14 +153,6 @@ export class AppointmentConflictsService {
       (schedule.type === ScheduleType.blocked || schedule.type === ScheduleType.leave)
       && this.overlaps(schedule, startAt, endAt)
     ));
-  }
-
-  private covers(schedule: DoctorSchedule, startAt: Date, endAt: Date) {
-    const start = this.localDateTime(startAt);
-    const end = this.localDateTime(endAt);
-    return this.matchesDate(schedule, start.date) && end.date === start.date
-      && start.minutes >= this.timeInMinutes(schedule.startTime)
-      && end.minutes <= this.timeInMinutes(schedule.endTime);
   }
 
   private overlaps(schedule: DoctorSchedule, startAt: Date, endAt: Date) {
