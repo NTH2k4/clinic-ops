@@ -51,7 +51,7 @@ export function TopBar() {
             type="button"
           >
             <Bell aria-hidden="true" size={18} />
-            <span>Thông báo</span>
+            <span className="hidden sm:inline">Thông báo</span>
             {unreadCount ? <span aria-hidden="true" className="flex size-5 items-center justify-center rounded-full bg-danger text-xs font-semibold text-white">{unreadCount}</span> : null}
           </button>
           {notificationsOpen ? (

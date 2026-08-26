@@ -47,7 +47,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có frontend design system baseline cho design principles, tokens, layout, component rules, accessibility và responsive behavior.
 - Có frontend implementation plan chi tiết để scaffold `apps/web` và triển khai frontend MVP theo task.
 - Đã có frontend MVP chạy với mock data, README setup/verification và Playwright smoke coverage cho patient, doctor và operations workflows.
-- Có frontend polish plan để gom UI/UX follow-up sau khi người dùng review bản MVP đầu tiên; Doctor Workspace đã polish phần điều hướng lịch ngày/tuần, App Shell đã polish sidebar/navigation, mobile navigation và TopBar notification panel, Patient Portal đã polish service browsing, booking clarity và appointment history, Operations Workspace đã polish automated scope cho queue/calendar/create appointment flow, Admin Workspace đã polish dashboard/forms/tables/audit filters ở automated scope.
+- Có frontend polish plan để gom UI/UX follow-up sau khi người dùng review bản MVP đầu tiên; Doctor Workspace đã polish phần điều hướng lịch ngày/tuần, App Shell đã polish sidebar/navigation, mobile navigation và TopBar notification panel, Patient Portal đã polish service browsing, booking clarity và appointment history, Operations Workspace đã polish automated scope cho queue/calendar/create appointment flow, Admin Workspace đã polish dashboard/forms/tables/audit filters ở automated scope, P6 đã bổ sung responsive/accessibility smoke ở 360/768/1280/1440.
 
 ### Còn Thiếu So Với Mẫu
 

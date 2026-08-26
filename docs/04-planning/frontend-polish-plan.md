@@ -161,9 +161,12 @@ Mục tiêu: ghi nhận bằng chứng kiểm tra UI sau polish.
 
 Phạm vi:
 
-- Playwright screenshot hoặc smoke checks ở 360, 768, 1280 và 1440 nếu khả thi.
-- Kiểm tra page-level horizontal overflow.
-- Kiểm tra keyboard navigation cho login, role switcher, booking form, drawer/dialog và notification panel.
+Automated scope đã hoàn thành:
+
+- Thêm Playwright responsive smoke ở 360, 768, 1280 và 1440.
+- Kiểm tra page-level horizontal overflow cho patient, operations, doctor và admin workspaces.
+- Kiểm tra keyboard smoke cho role switcher, notification panel và doctor detail drawer.
+- Sửa TopBar mobile để notification label thu gọn trên màn nhỏ, loại bỏ overflow ngang ở 360px.
 - Cập nhật README/docs với kết quả thật.
 
 Verification:
@@ -173,7 +176,8 @@ Verification:
 - `npm run lint`
 - `npm run build`
 - `npm run e2e`
-- Manual QA note hoặc screenshot evidence nếu có.
+- `npm run e2e` hiện chạy 9 tests, gồm responsive/accessibility smoke.
+- Manual visual QA vẫn là follow-up nếu cần đánh giá thẩm mỹ chi tiết trên thiết bị thật.
 
 ## Thứ Tự Triển Khai Khuyến Nghị
 

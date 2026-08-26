@@ -44,7 +44,7 @@ Khi có backend, thay implementation của service boundary bằng API client (v
 
 ## Responsive QA Và Verification
 
-Playwright bao phủ patient booking ở viewport 360 x 800 và doctor/operations flows ở desktop 1280 x 800. Chạy đầy đủ trong thư mục này:
+Playwright bao phủ patient booking ở viewport 360 x 800, doctor/operations flows ở desktop 1280 x 800, responsive overflow smoke ở 360, 768, 1280 và 1440, cùng keyboard smoke cho role switcher, notification panel và doctor detail drawer. Chạy đầy đủ trong thư mục này:
 
 ```bash
 npm test -- --run
@@ -55,7 +55,14 @@ npm run e2e
 git diff --check
 ```
 
-Automated smoke hiện chỉ cover viewport 360 và 1280. Manual responsive follow-up cần chạy `npm run dev -- --host 0.0.0.0`, mở các route patient, doctor và operations ở widths 360, 768, 1280 và 1440, rồi xác nhận không có page-level horizontal overflow và text không chồng lên nhau trong button, card và status badge.
+Automated smoke hiện kiểm tra page-level horizontal overflow ở các workspace chính:
+
+- Patient ở 360 x 800.
+- Operations ở 768 x 900.
+- Doctor ở 1280 x 800.
+- Admin ở 1440 x 900.
+
+Manual responsive follow-up vẫn nên dùng `npm run dev -- --host 0.0.0.0` để xem visual polish thực tế trên thiết bị, đặc biệt text overlap trong button, card và status badge.
 
 ## Architecture
 

@@ -2,6 +2,7 @@
 
 ## 2026-08-26
 
+- Hoàn thiện P6 responsive/accessibility QA automated scope: Playwright smoke ở 360/768/1280/1440, kiểm tra page-level overflow và keyboard interactions cho role switcher/notification/drawer; đồng thời thu gọn TopBar notification label trên mobile để hết overflow 360px.
 - Hoàn thiện P5 Admin Workspace polish ở automated scope: dashboard metric helpers, admin doctors form/list hierarchy và Audit log filter summary/reset.
 - Căn lại `ClinicDateField` trong Operations Calendar filter row: label block layout, control cùng top/height với select và literal ngày gọn hơn.
 - Cân lại chiều cao `ClinicDateField` về compact `h-10` để đồng bộ hơn với select/input/filter controls trong cùng hàng.
