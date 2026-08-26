@@ -58,38 +58,43 @@ export class CatalogService {
     return this.require(this.prisma.service.findUnique({ where: { id } }), "service");
   }
 
-  async createService(input: ServiceInput) {
+  async createService(input: ServiceInput, actorUserId: string) {
     const name = this.requiredString(input.name, "name");
     const specialtyId = this.requiredString(input.specialtyId, "specialtyId");
     const durationMinutes = this.positiveInteger(input.durationMinutes, "durationMinutes");
     const price = this.nonNegativeNumber(input.price, "price");
     await this.require(this.prisma.specialty.findUnique({ where: { id: specialtyId } }), "specialty");
-    return this.prisma.service.create({
-      data: {
-        name,
-        specialtyId,
-        durationMinutes,
-        price,
-        currency: this.optionalString(input.currency) ?? "VND",
-        description: this.optionalString(input.description),
-        status: this.serviceStatusValue(input.status) ?? ServiceStatus.active,
-      },
+    return this.prisma.$transaction(async (transaction) => {
+      const service = await transaction.service.create({
+        data: {
+          name, specialtyId, durationMinutes, price,
+          currency: this.optionalString(input.currency) ?? "VND",
+          description: this.optionalString(input.description),
+          status: this.serviceStatusValue(input.status) ?? ServiceStatus.active,
+        },
+      });
+      await this.audit(transaction, actorUserId, "service", service.id, "admin_resource_created");
+      return service;
     });
   }
 
-  async updateService(id: string, input: ServiceInput) {
+  async updateService(id: string, input: ServiceInput, actorUserId: string) {
     await this.service(id);
     const specialtyId = this.optionalString(input.specialtyId);
     if (specialtyId) await this.require(this.prisma.specialty.findUnique({ where: { id: specialtyId } }), "specialty");
-    return this.prisma.service.update({
-      where: { id },
-      data: {
-        ...this.stringUpdate(input, ["name", "currency", "description"]),
-        ...(specialtyId ? { specialtyId } : {}),
-        ...(input.durationMinutes !== undefined ? { durationMinutes: this.positiveInteger(input.durationMinutes, "durationMinutes") } : {}),
-        ...(input.price !== undefined ? { price: this.nonNegativeNumber(input.price, "price") } : {}),
-        ...(input.status !== undefined ? { status: this.serviceStatusValue(input.status) } : {}),
-      },
+    return this.prisma.$transaction(async (transaction) => {
+      const service = await transaction.service.update({
+        where: { id },
+        data: {
+          ...this.stringUpdate(input, ["name", "currency", "description"]),
+          ...(specialtyId ? { specialtyId } : {}),
+          ...(input.durationMinutes !== undefined ? { durationMinutes: this.positiveInteger(input.durationMinutes, "durationMinutes") } : {}),
+          ...(input.price !== undefined ? { price: this.nonNegativeNumber(input.price, "price") } : {}),
+          ...(input.status !== undefined ? { status: this.serviceStatusValue(input.status) } : {}),
+        },
+      });
+      await this.audit(transaction, actorUserId, "service", service.id, "admin_resource_updated");
+      return service;
     });
   }
 
@@ -97,7 +102,7 @@ export class CatalogService {
     return this.prisma.$transaction(async (transaction) => {
       const service = await this.require(transaction.service.findUnique({ where: { id } }), "service");
       const deactivated = await transaction.service.update({ where: { id }, data: { status: ServiceStatus.inactive } });
-      await this.audit(transaction, actorUserId, "service", service.id);
+      await this.audit(transaction, actorUserId, "service", service.id, "admin_resource_deactivated");
       return deactivated;
     });
   }
@@ -110,24 +115,32 @@ export class CatalogService {
     return this.prisma.specialty.findMany({ where, orderBy: { name: "asc" } });
   }
 
-  async createSpecialty(input: SpecialtyInput) {
-    return this.prisma.specialty.create({
-      data: {
-        name: this.requiredString(input.name, "name"),
-        description: this.optionalString(input.description),
-        status: this.serviceStatusValue(input.status) ?? ServiceStatus.active,
-      },
+  async createSpecialty(input: SpecialtyInput, actorUserId: string) {
+    return this.prisma.$transaction(async (transaction) => {
+      const specialty = await transaction.specialty.create({
+        data: {
+          name: this.requiredString(input.name, "name"),
+          description: this.optionalString(input.description),
+          status: this.serviceStatusValue(input.status) ?? ServiceStatus.active,
+        },
+      });
+      await this.audit(transaction, actorUserId, "specialty", specialty.id, "admin_resource_created");
+      return specialty;
     });
   }
 
-  async updateSpecialty(id: string, input: SpecialtyInput) {
+  async updateSpecialty(id: string, input: SpecialtyInput, actorUserId: string) {
     await this.require(this.prisma.specialty.findUnique({ where: { id } }), "specialty");
-    return this.prisma.specialty.update({
-      where: { id },
-      data: {
-        ...this.stringUpdate(input, ["name", "description"]),
-        ...(input.status !== undefined ? { status: this.serviceStatusValue(input.status) } : {}),
-      },
+    return this.prisma.$transaction(async (transaction) => {
+      const specialty = await transaction.specialty.update({
+        where: { id },
+        data: {
+          ...this.stringUpdate(input, ["name", "description"]),
+          ...(input.status !== undefined ? { status: this.serviceStatusValue(input.status) } : {}),
+        },
+      });
+      await this.audit(transaction, actorUserId, "specialty", specialty.id, "admin_resource_updated");
+      return specialty;
     });
   }
 
@@ -138,9 +151,9 @@ export class CatalogService {
         transaction.service.count({ where: { specialtyId: id, status: ServiceStatus.active } }),
         transaction.doctor.count({ where: { specialtyId: id, status: "active" } }),
       ]);
-      if (dependencies.some(Boolean)) throw new ApiError(409, "CONFLICT", "Active resources still depend on this specialty.");
+      if (dependencies.some(Boolean)) throw new ApiError(409, "RESOURCE_IN_USE", "Active resources still depend on this specialty.");
       const deactivated = await transaction.specialty.update({ where: { id }, data: { status: ServiceStatus.inactive } });
-      await this.audit(transaction, actorUserId, "specialty", specialty.id);
+      await this.audit(transaction, actorUserId, "specialty", specialty.id, "admin_resource_deactivated");
       return deactivated;
     });
   }
@@ -159,32 +172,40 @@ export class CatalogService {
     return this.require(this.prisma.doctor.findUnique({ where: { id }, include: { specialty: true, services: true } }), "doctor");
   }
 
-  async createDoctor(input: DoctorInput) {
+  async createDoctor(input: DoctorInput, actorUserId: string) {
     const specialtyId = this.requiredString(input.specialtyId, "specialtyId");
     await this.require(this.prisma.specialty.findUnique({ where: { id: specialtyId } }), "specialty");
-    return this.prisma.doctor.create({
-      data: {
-        fullName: this.requiredString(input.fullName, "fullName"), specialtyId,
-        phone: this.requiredString(input.phone, "phone"), email: this.requiredString(input.email, "email"),
-        title: this.optionalString(input.title), room: this.optionalString(input.room),
-        status: this.doctorStatusValue(input.status) ?? "active",
-        services: { connect: this.serviceIds(input.serviceIds).map((id) => ({ id })) },
-      }, include: { specialty: true, services: true },
+    return this.prisma.$transaction(async (transaction) => {
+      const doctor = await transaction.doctor.create({
+        data: {
+          fullName: this.requiredString(input.fullName, "fullName"), specialtyId,
+          phone: this.requiredString(input.phone, "phone"), email: this.requiredString(input.email, "email"),
+          title: this.optionalString(input.title), room: this.optionalString(input.room),
+          status: this.doctorStatusValue(input.status) ?? "active",
+          services: { connect: this.serviceIds(input.serviceIds).map((id) => ({ id })) },
+        }, include: { specialty: true, services: true },
+      });
+      await this.audit(transaction, actorUserId, "doctor", doctor.id, "admin_resource_created");
+      return doctor;
     });
   }
 
-  async updateDoctor(id: string, input: DoctorInput) {
+  async updateDoctor(id: string, input: DoctorInput, actorUserId: string) {
     await this.doctor(id);
     const specialtyId = this.optionalString(input.specialtyId);
     if (specialtyId) await this.require(this.prisma.specialty.findUnique({ where: { id: specialtyId } }), "specialty");
-    return this.prisma.doctor.update({
-      where: { id },
-      data: {
-        ...this.stringUpdate(input, ["fullName", "phone", "email", "title", "room"]),
-        ...(specialtyId ? { specialtyId } : {}),
-        ...(input.status !== undefined ? { status: this.doctorStatusValue(input.status) } : {}),
-        ...(input.serviceIds !== undefined ? { services: { set: this.serviceIds(input.serviceIds).map((serviceId) => ({ id: serviceId })) } } : {}),
-      }, include: { specialty: true, services: true },
+    return this.prisma.$transaction(async (transaction) => {
+      const doctor = await transaction.doctor.update({
+        where: { id },
+        data: {
+          ...this.stringUpdate(input, ["fullName", "phone", "email", "title", "room"]),
+          ...(specialtyId ? { specialtyId } : {}),
+          ...(input.status !== undefined ? { status: this.doctorStatusValue(input.status) } : {}),
+          ...(input.serviceIds !== undefined ? { services: { set: this.serviceIds(input.serviceIds).map((serviceId) => ({ id: serviceId })) } } : {}),
+        }, include: { specialty: true, services: true },
+      });
+      await this.audit(transaction, actorUserId, "doctor", doctor.id, "admin_resource_updated");
+      return doctor;
     });
   }
 
@@ -192,9 +213,9 @@ export class CatalogService {
     return this.prisma.$transaction(async (transaction) => {
       const doctor = await this.require(transaction.doctor.findUnique({ where: { id } }), "doctor");
       const activeAppointments = await transaction.appointment.count({ where: { doctorId: id, status: { in: activeAppointmentStatuses } } });
-      if (activeAppointments) throw new ApiError(409, "CONFLICT", "Doctor has active appointments.");
+      if (activeAppointments) throw new ApiError(409, "RESOURCE_IN_USE", "Doctor has active appointments.");
       const deactivated = await transaction.doctor.update({ where: { id }, data: { status: "inactive" } });
-      await this.audit(transaction, actorUserId, "doctor", doctor.id);
+      await this.audit(transaction, actorUserId, "doctor", doctor.id, "admin_resource_deactivated");
       return deactivated;
     });
   }
@@ -253,7 +274,7 @@ export class CatalogService {
     return Object.fromEntries(fields.flatMap((field) => input[field] === undefined ? [] : [[field, this.optionalString(input[field]) ?? null]]));
   }
 
-  private audit(transaction: Prisma.TransactionClient, actorUserId: string, entityType: string, entityId: string) {
-    return transaction.auditEvent.create({ data: { actorUserId, entityType, entityId, action: "admin_resource_deactivated" } });
+  private audit(transaction: Prisma.TransactionClient, actorUserId: string, entityType: string, entityId: string, action: string) {
+    return transaction.auditEvent.create({ data: { actorUserId, entityType, entityId, action } });
   }
 }

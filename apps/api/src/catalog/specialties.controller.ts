@@ -16,12 +16,12 @@ export class SpecialtiesController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
-  async create(@Body() body: Record<string, unknown>) { return successEnvelope(await this.catalog.createSpecialty(body)); }
+  async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.createSpecialty(body, request.currentUser.id)); }
 
   @Patch(":id")
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
-  async update(@Param("id") id: string, @Body() body: Record<string, unknown>) { return successEnvelope(await this.catalog.updateSpecialty(id, body)); }
+  async update(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.updateSpecialty(id, body, request.currentUser.id)); }
 
   @Post(":id/deactivate")
   @UseGuards(RolesGuard)

@@ -20,7 +20,12 @@ export class PatientsController {
   async detail(@Param("id") id: string, @Req() request: AuthenticatedRequest) { await this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.patient(id)); }
 
   @Post()
-  async create(@Body() body: Record<string, unknown>) { return successEnvelope(await this.patients.create(body)); }
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
+  async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
+    const userId = request.currentUser.role === UserRole.patient ? request.currentUser.id : undefined;
+    return successEnvelope(await this.patients.create(body, userId));
+  }
 
   @Patch(":id")
   async update(@Param("id") id: string, @Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { await this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.update(id, body)); }

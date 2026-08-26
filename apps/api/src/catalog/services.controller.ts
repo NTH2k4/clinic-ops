@@ -21,12 +21,12 @@ export class ServicesController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
-  async create(@Body() body: Record<string, unknown>) { return successEnvelope(await this.catalog.createService(body)); }
+  async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.createService(body, request.currentUser.id)); }
 
   @Patch(":id")
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
-  async update(@Param("id") id: string, @Body() body: Record<string, unknown>) { return successEnvelope(await this.catalog.updateService(id, body)); }
+  async update(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.updateService(id, body, request.currentUser.id)); }
 
   @Post(":id/deactivate")
   @UseGuards(RolesGuard)

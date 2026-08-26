@@ -1,4 +1,5 @@
 import { Test } from "@nestjs/testing";
+import { PrismaClient, UserRole } from "@prisma/client";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { z } from "zod";
@@ -29,6 +30,14 @@ const errorSchema = z.object({
 });
 
 describe("Catalog resources", () => {
+  const prisma = new PrismaClient();
+
+  afterAll(async () => {
+    await prisma.patient.deleteMany({ where: { user: { email: { startsWith: "new-patient-" } } } });
+    await prisma.user.deleteMany({ where: { email: { startsWith: "new-patient-" } } });
+    await prisma.$disconnect();
+  });
+
   async function createApp() {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     const app = moduleRef.createNestApplication();
@@ -82,7 +91,7 @@ describe("Catalog resources", () => {
     }
   });
 
-  it("lets an admin create and deactivate a service", async () => {
+  it("writes audit events when an admin creates, updates, and deactivates a service", async () => {
     const { app, server } = await createApp();
 
     try {
@@ -109,6 +118,12 @@ describe("Catalog resources", () => {
       });
 
       await request(server)
+        .patch(`/api/v1/services/${created.data.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ description: "Updated pre-travel consultation." })
+        .expect(200);
+
+      await request(server)
         .post(`/api/v1/services/${created.data.id}/deactivate`)
         .set("Authorization", `Bearer ${token}`)
         .expect(201)
@@ -116,6 +131,16 @@ describe("Catalog resources", () => {
           const parsed = serviceSchema.parse(response.body);
           expect(parsed.data.status).toBe("inactive");
         });
+
+      const auditEvents = await prisma.auditEvent.findMany({
+        where: { actorUserId: "user-admin-1", entityType: "service", entityId: created.data.id },
+        select: { action: true },
+      });
+      expect(auditEvents.map((event) => event.action)).toEqual(expect.arrayContaining([
+        "admin_resource_created",
+        "admin_resource_updated",
+        "admin_resource_deactivated",
+      ]));
 
       await request(server)
         .get("/api/v1/services")
@@ -125,6 +150,53 @@ describe("Catalog resources", () => {
           const parsed = listSchema.parse(response.body);
           expect(parsed.data.some((service) => service.id === created.data.id)).toBe(false);
         });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("forbids doctors and links self-created patient profiles to patient users", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const doctorToken = await login(server, "minh.nguyen@careflow.local");
+      await request(server)
+        .post("/api/v1/patients")
+        .set("Authorization", `Bearer ${doctorToken}`)
+        .send({ fullName: "Forbidden Patient", phone: "+84929999991" })
+        .expect(403)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("FORBIDDEN"));
+
+      const suffix = Date.now().toString();
+      const email = `new-patient-${suffix}@careflow.local`;
+      const user = await prisma.user.create({
+        data: { displayName: "New Patient", email, role: UserRole.patient, status: "active" },
+      });
+      const patientToken = await login(server, email);
+
+      await request(server)
+        .post("/api/v1/patients")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .send({ fullName: "New Patient", phone: `+84929${suffix.slice(-6)}` })
+        .expect(201)
+        .expect((response) => expect(response.body.data.userId).toBe(user.id));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("returns RESOURCE_IN_USE when deactivation would affect active dependencies", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const token = await login(server, "admin@careflow.local");
+      for (const path of ["/api/v1/doctors/doctor-1/deactivate", "/api/v1/specialties/specialty-general/deactivate"]) {
+        await request(server)
+          .post(path)
+          .set("Authorization", `Bearer ${token}`)
+          .expect(409)
+          .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("RESOURCE_IN_USE"));
+      }
     } finally {
       await app.close();
     }

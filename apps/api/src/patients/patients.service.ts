@@ -18,8 +18,13 @@ export class PatientsService {
 
   async patient(id: string) { return this.require(this.prisma.patient.findUnique({ where: { id } })); }
 
-  create(input: PatientInput) {
-    return this.prisma.patient.create({ data: this.data(input, true) as unknown as Prisma.PatientCreateInput });
+  create(input: PatientInput, userId?: string) {
+    return this.prisma.patient.create({
+      data: {
+        ...this.data(input, true),
+        ...(userId ? { user: { connect: { id: userId } } } : {}),
+      } as unknown as Prisma.PatientCreateInput,
+    });
   }
 
   async update(id: string, input: PatientInput) {
