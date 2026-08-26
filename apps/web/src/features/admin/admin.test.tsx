@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
 import { mockStore } from "../../mocks/mockStore";
 import { renderWithProviders } from "../../test/render";
@@ -11,7 +11,35 @@ import { AuditLog } from "./AuditLog";
 afterEach(() => {
   cleanup();
   mockStore.reset();
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+  vi.resetModules();
 });
+
+function apiListResponse(data: unknown[], requestId: string, total = data.length) {
+  return new Response(JSON.stringify({ data, meta: { requestId, page: 1, pageSize: 100, total } }), { status: 200 });
+}
+
+const apiAuditEvent = {
+  id: "audit-api-1",
+  actorUserId: "user-admin-1",
+  entityType: "appointment",
+  entityId: "appointment-api-1",
+  action: "appointment_updated",
+  timestamp: "2026-08-24T02:00:00.000Z",
+  metadata: { source: "api" },
+};
+
+async function renderApiAuditLog(fetcher: typeof fetch) {
+  vi.resetModules();
+  vi.stubEnv("VITE_DATA_SOURCE", "api");
+  vi.stubGlobal("fetch", fetcher);
+  const [{ AuditLog: ApiAuditLog }, { renderWithProviders: renderApiWithProviders }] = await Promise.all([
+    import("./AuditLog"),
+    import("../../test/render"),
+  ]);
+  return renderApiWithProviders(<ApiAuditLog />);
+}
 
 describe("admin workspace", () => {
   it("derives the active doctor metric from mock data", () => {
@@ -55,6 +83,22 @@ describe("admin workspace", () => {
     await user.click(screen.getByRole("button", { name: "Xóa bộ lọc audit" }));
 
     expect(screen.getByText("Đang hiển thị 20 audit events.")).toBeInTheDocument();
+  });
+
+  it("passes entity and action filters to the API audit list", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => apiListResponse([apiAuditEvent], "req-audit"));
+    const user = userEvent.setup();
+    await renderApiAuditLog(fetcher);
+
+    expect(await screen.findByText("Đang hiển thị 1 audit events.")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Entity type"), "appointment");
+    await screen.findByRole("option", { name: "appointment_updated" });
+    await user.selectOptions(screen.getByLabelText("Action"), "appointment_updated");
+
+    await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toContain(
+      "/api/v1/audit-events?entityType=appointment&action=appointment_updated&page=1&pageSize=100",
+    ));
   });
 
   it("validates required doctor fields in mock-only form state", async () => {

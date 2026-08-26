@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { appointmentService } from "../features/appointments/appointmentService";
+import { auditQueryOptions } from "../features/audit/auditService";
 import { catalogQueryOptions } from "../features/catalog/catalogService";
 import { isApiMode } from "../lib/dataSource";
 import { formatDateTime } from "../lib/dateTime";
@@ -52,6 +53,10 @@ export function DetailDrawer({ appointment, actorUserId, onClose, onUpdated }: D
   const [updateError, setUpdateError] = useState("");
   const { data: doctorResponse } = useQuery({ ...catalogQueryOptions.allDoctors(), enabled: Boolean(appointment) });
   const { data: serviceResponse } = useQuery({ ...catalogQueryOptions.allServices(), enabled: Boolean(appointment) });
+  const { data: auditResponse } = useQuery({
+    ...auditQueryOptions.list({ entityId: appointment?.id, page: 1, pageSize: 100 }),
+    enabled: Boolean(appointment),
+  });
 
   if (!appointment) return null;
 
@@ -62,9 +67,7 @@ export function DetailDrawer({ appointment, actorUserId, onClose, onUpdated }: D
   const doctor = doctorResponse?.data.find((candidate) => candidate.id === appointment.doctorId);
   const service = serviceResponse?.data.find((candidate) => candidate.id === appointment.serviceId);
   const action = actionForStatus(appointment.status);
-  const auditEvents = isApiMode
-    ? []
-    : mockStore.auditEvents.filter((event) => event.entityId === appointment.id).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  const auditEvents = auditResponse?.data ?? [];
 
   async function updateStatus() {
     if (!action) return;

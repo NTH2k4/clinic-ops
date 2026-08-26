@@ -1,9 +1,10 @@
-import { Bell, LogOut, X } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bell, Check, LogOut, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthProvider";
+import { notificationQueryOptions, notificationService } from "../features/notifications/notificationService";
 import { formatDateTime } from "../lib/dateTime";
-import { mockStore } from "../mocks/mockStore";
 import type { ReferenceType, UserRole } from "../types/models";
 import { RoleSwitcher } from "./RoleSwitcher";
 
@@ -22,9 +23,17 @@ function notificationDestination(referenceType: ReferenceType | undefined, role:
 
 export function TopBar() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { signOut, user } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const notifications = user ? mockStore.notifications.filter((notification) => notification.recipientUserId === user.id) : [];
+  const { data: notificationResponse } = useQuery({ ...notificationQueryOptions.list(user?.id ?? ""), enabled: Boolean(user) });
+  const markRead = useMutation({
+    mutationFn: notificationService.markRead,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["notifications", "list", user?.id] });
+    },
+  });
+  const notifications = notificationResponse?.data ?? [];
   const unreadCount = notifications.filter((notification) => !notification.readAt).length;
 
   function handleSignOut() {
@@ -81,6 +90,18 @@ export function TopBar() {
                         <p className="text-sm text-text">{notification.title}</p>
                         <p className="mt-1 text-sm font-normal text-text-muted">{notification.message}</p>
                         <p className="mt-1 text-xs font-normal text-text-muted">{formatDateTime(notification.createdAt)}</p>
+                        {!notification.readAt ? (
+                          <button
+                            aria-label={`Đánh dấu ${notification.title} là đã đọc`}
+                            className="mt-2 flex size-8 items-center justify-center rounded-md border border-border text-text-muted hover:bg-surface-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={markRead.isPending}
+                            onClick={() => markRead.mutate(notification.id)}
+                            title="Đánh dấu đã đọc"
+                            type="button"
+                          >
+                            <Check aria-hidden="true" size={16} />
+                          </button>
+                        ) : null}
                         {notification.referenceType && user ? (
                           <button
                             className="mt-2 text-sm font-semibold text-primary transition-colors hover:text-primary-hover hover:underline"
