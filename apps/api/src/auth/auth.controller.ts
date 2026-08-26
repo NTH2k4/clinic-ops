@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { successEnvelope } from "../common/api-response";
 import { AuthService } from "./auth.service";
-import { type AuthenticatedRequest, SessionGuard } from "./session.guard";
+import { type AuthenticatedRequest, extractBearerToken, SessionGuard } from "./session.guard";
 
 type LoginBody = {
   email?: unknown;
@@ -24,8 +24,7 @@ export class AuthController {
   @Post("logout")
   @UseGuards(SessionGuard)
   logout(@Req() request: AuthenticatedRequest) {
-    const authorization = request.headers.authorization;
-    const sessionToken = authorization?.slice("Bearer ".length);
+    const sessionToken = extractBearerToken(request.headers.authorization);
     if (sessionToken) {
       this.authService.logout(sessionToken);
     }

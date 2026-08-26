@@ -22,7 +22,11 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    if (!request.currentUser || !roles.includes(request.currentUser.role)) {
+    if (!request.currentUser) {
+      throw new ApiError(401, "UNAUTHENTICATED", "Authentication is required.");
+    }
+
+    if (!roles.includes(request.currentUser.role)) {
       throw new ApiError(403, "FORBIDDEN", "You do not have permission to access this resource.");
     }
 

@@ -8,11 +8,18 @@ import { Roles, RolesGuard } from "../src/common/roles";
 import { SessionGuard } from "../src/auth/session.guard";
 
 @Controller("admin-only")
-@UseGuards(SessionGuard, RolesGuard)
 class AdminOnlyController {
   @Get()
+  @UseGuards(SessionGuard, RolesGuard)
   @Roles("admin")
   adminOnly() {
+    return { data: { ok: true }, meta: { requestId: "test-request" } };
+  }
+
+  @Get("roles-only")
+  @UseGuards(RolesGuard)
+  @Roles("admin")
+  rolesOnly() {
     return { data: { ok: true }, meta: { requestId: "test-request" } };
   }
 }
@@ -89,6 +96,24 @@ describe("Auth and RBAC", () => {
     }
   });
 
+  it("rejects unauthenticated access to admin-only roles", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      await request(server)
+        .get("/api/v1/admin-only/roles-only")
+        .expect(401)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = errorResponseSchema.parse(body);
+          expect(parsed.error.code).toBe("UNAUTHENTICATED");
+          expect(parsed.meta.requestId).toEqual(expect.any(String));
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
   it("rejects receptionist access to admin-only routes", async () => {
     const { app, server } = await createApp();
 
@@ -109,6 +134,34 @@ describe("Auth and RBAC", () => {
           const parsed = errorResponseSchema.parse(body);
           expect(parsed.error.code).toBe("FORBIDDEN");
           expect(parsed.meta.requestId).toEqual(expect.any(String));
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("revokes a session token at logout", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email: "admin@careflow.local", password: "careflow-demo" })
+        .expect(201);
+      const loginBody: unknown = loginResponse.body;
+      const login = loginResponseSchema.parse(loginBody);
+      const authorization = `Bearer ${login.data.sessionToken}`;
+
+      await request(server).post("/api/v1/auth/logout").set("Authorization", authorization).expect(201);
+
+      await request(server)
+        .get("/api/v1/auth/me")
+        .set("Authorization", authorization)
+        .expect(401)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = errorResponseSchema.parse(body);
+          expect(parsed.error.code).toBe("UNAUTHENTICATED");
         });
     } finally {
       await app.close();

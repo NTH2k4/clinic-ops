@@ -5,13 +5,17 @@ import { AuthService, type AuthSession } from "./auth.service";
 
 export type AuthenticatedRequest = Request & AuthSession;
 
+export function extractBearerToken(authorization: string | undefined) {
+  return /^Bearer (\S+)$/.exec(authorization ?? "")?.[1];
+}
+
 @Injectable()
 export class SessionGuard implements CanActivate {
   constructor(private readonly authService: AuthService) {}
 
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const sessionToken = this.extractBearerToken(request.headers.authorization);
+    const sessionToken = extractBearerToken(request.headers.authorization);
     const session = sessionToken ? this.authService.getSession(sessionToken) : undefined;
 
     if (!session) {
@@ -21,10 +25,5 @@ export class SessionGuard implements CanActivate {
     request.currentUser = session.currentUser;
     request.linkedProfile = session.linkedProfile;
     return true;
-  }
-
-  private extractBearerToken(authorization: string | undefined) {
-    const [scheme, token] = authorization?.split(" ") ?? [];
-    return scheme === "Bearer" && token ? token : undefined;
   }
 }
