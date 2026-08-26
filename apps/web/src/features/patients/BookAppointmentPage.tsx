@@ -1,4 +1,5 @@
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ClinicDateField } from "../../components/ClinicDateField";
@@ -8,6 +9,7 @@ import { mockStore } from "../../mocks/mockStore";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
+import { catalogQueryOptions } from "../catalog/catalogService";
 
 const slotTimes = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
 const bookingDate = "2026-08-26";
@@ -25,12 +27,17 @@ export function BookAppointmentPage() {
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ status: "active", pageSize: 100 }));
+  const { data: specialtyResponse } = useQuery(catalogQueryOptions.specialties({ status: "active", pageSize: 100 }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ status: "active", serviceId: serviceId || undefined, pageSize: 100 }));
+  const services = serviceResponse?.data ?? [];
+  const specialties = specialtyResponse?.data ?? [];
 
-  const service = mockStore.services.find((candidate) => candidate.id === serviceId && candidate.status === "active");
-  const specialty = service ? mockStore.specialties.find((candidate) => candidate.id === service.specialtyId) : undefined;
+  const service = services.find((candidate) => candidate.id === serviceId);
+  const specialty = service ? specialties.find((candidate) => candidate.id === service.specialtyId) : undefined;
   const eligibleDoctors = useMemo(
-    () => service ? mockStore.doctors.filter((doctor) => doctor.status === "active" && doctor.serviceIds.includes(service.id)).sort((left, right) => left.id.localeCompare(right.id)) : [],
-    [service],
+    () => service ? (doctorResponse?.data ?? []).filter((doctor) => doctor.serviceIds.includes(service.id)).sort((left, right) => left.id.localeCompare(right.id)) : [],
+    [doctorResponse?.data, service],
   );
   const startAt = slot ? appointmentStart(date, slot) : "";
   const assignedDoctor = eligibleDoctors.find((doctor) => doctor.id === doctorId)
@@ -80,7 +87,7 @@ export function BookAppointmentPage() {
       <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="space-y-5">
           <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">1. Dịch vụ và chuyên khoa</legend><div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {mockStore.services.filter((candidate) => candidate.status === "active").map((candidate) => <button aria-pressed={serviceId === candidate.id} className="min-w-0 rounded-md border border-border p-3 text-left text-sm aria-pressed:border-primary aria-pressed:bg-surface-muted" key={candidate.id} onClick={() => selectService(candidate.id)} type="button"><span className="block text-xs text-primary">{mockStore.specialties.find((item) => item.id === candidate.specialtyId)?.name}</span><span className="mt-1 block font-semibold text-text">{candidate.name}</span><span className="mt-1 block text-text-muted">{candidate.durationMinutes} phút</span></button>)}
+            {services.map((candidate) => <button aria-pressed={serviceId === candidate.id} className="min-w-0 rounded-md border border-border p-3 text-left text-sm aria-pressed:border-primary aria-pressed:bg-surface-muted" key={candidate.id} onClick={() => selectService(candidate.id)} type="button"><span className="block text-xs text-primary">{specialties.find((item) => item.id === candidate.specialtyId)?.name}</span><span className="mt-1 block font-semibold text-text">{candidate.name}</span><span className="mt-1 block text-text-muted">{candidate.durationMinutes} phút</span></button>)}
           </div></fieldset>
           {service && <>
             <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">2. Bác sĩ</legend><div className="mt-3 space-y-3"><label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3" htmlFor="any-available-doctor"><input aria-label="Any available doctor" checked={doctorMode === "any"} id="any-available-doctor" name="doctor-mode" onChange={() => { setDoctorMode("any"); setDoctorId(""); setSlot(""); }} type="radio" value="any" /><span><span className="block font-medium text-text">Any available doctor</span><span className="block text-sm text-text-muted">Tự động chọn bác sĩ còn trống cho khung giờ.</span></span></label><label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3" htmlFor="specific-doctor"><input checked={doctorMode === "specific"} id="specific-doctor" name="doctor-mode" onChange={() => { setDoctorMode("specific"); setDoctorId(""); setSlot(""); }} type="radio" value="specific" /><span className="font-medium text-text">Chọn bác sĩ cụ thể</span></label>{doctorMode === "specific" && <select aria-label="Bác sĩ" className="h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" onChange={(event) => { setDoctorId(event.target.value); setSlot(""); }} value={doctorId}><option value="">Chọn bác sĩ</option>{eligibleDoctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.fullName} - {doctor.title}</option>)}</select>}</div></fieldset>

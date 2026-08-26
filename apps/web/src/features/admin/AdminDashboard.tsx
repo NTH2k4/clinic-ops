@@ -1,6 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { MetricCard } from "../../components/MetricCard";
 import { toDateInputValue } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
+import { catalogQueryOptions } from "../catalog/catalogService";
 
 const ADMIN_PROTOTYPE_TODAY = "2026-08-25";
 
@@ -9,8 +11,10 @@ function percent(value: number) {
 }
 
 export function AdminDashboard() {
-  const activeDoctors = mockStore.doctors.filter((doctor) => doctor.status === "active");
-  const activeServices = mockStore.services.filter((service) => service.status === "active");
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ status: "active", pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ status: "active", pageSize: 100 }));
+  const activeDoctors = doctorResponse?.data ?? [];
+  const activeServices = serviceResponse?.data ?? [];
   const today = ADMIN_PROTOTYPE_TODAY;
   const appointmentsToday = mockStore.appointments.filter((appointment) => toDateInputValue(appointment.startAt) === today);
   const cancellationRate = mockStore.appointments.length

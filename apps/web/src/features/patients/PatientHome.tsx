@@ -1,19 +1,23 @@
+import { useQuery } from "@tanstack/react-query";
 import { Bell, CalendarDays, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { StatusBadge } from "../../components/StatusBadge";
 import { formatDateTime } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import { useAuth } from "../auth/AuthProvider";
+import { catalogQueryOptions } from "../catalog/catalogService";
 
 export function PatientHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const patient = mockStore.patients.find((candidate) => candidate.userId === user?.id);
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
   const nextAppointment = mockStore.appointments
     .filter((appointment) => appointment.patientId === patient?.id && !["completed", "cancelled", "no_show"].includes(appointment.status))
     .sort((left, right) => left.startAt.localeCompare(right.startAt))[0];
-  const service = nextAppointment ? mockStore.services.find((candidate) => candidate.id === nextAppointment.serviceId) : undefined;
-  const doctor = nextAppointment ? mockStore.doctors.find((candidate) => candidate.id === nextAppointment.doctorId) : undefined;
+  const service = nextAppointment ? serviceResponse?.data.find((candidate) => candidate.id === nextAppointment.serviceId) : undefined;
+  const doctor = nextAppointment ? doctorResponse?.data.find((candidate) => candidate.id === nextAppointment.doctorId) : undefined;
   const notifications = mockStore.notifications.filter((notification) => notification.recipientUserId === user?.id).slice(0, 3);
 
   return (

@@ -1,7 +1,8 @@
 import { ArrowRight, Clock3, Stethoscope } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { mockStore } from "../../mocks/mockStore";
+import { catalogQueryOptions } from "../catalog/catalogService";
 
 function formatPrice(value: number) {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value);
@@ -9,9 +10,12 @@ function formatPrice(value: number) {
 
 export function ServicesPage() {
   const [specialtyId, setSpecialtyId] = useState<string | undefined>();
-  const specialties = mockStore.specialties.filter((specialty) => specialty.status === "active");
-  const services = mockStore.services.filter((service) => service.status === "active" && (!specialtyId || service.specialtyId === specialtyId));
-  const allServices = mockStore.services.filter((service) => service.status === "active");
+  const { data: specialtyResponse } = useQuery(catalogQueryOptions.specialties({ status: "active", pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ status: "active", specialtyId, pageSize: 100 }));
+  const { data: allServiceResponse } = useQuery(catalogQueryOptions.services({ status: "active", pageSize: 100 }));
+  const specialties = specialtyResponse?.data ?? [];
+  const services = serviceResponse?.data ?? [];
+  const allServices = allServiceResponse?.data ?? [];
   const summary = specialtyId
     ? `${services.length} dịch vụ phù hợp`
     : `${allServices.length} dịch vụ đang mở từ ${specialties.length} chuyên khoa`;

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
 import { DetailDrawer } from "../../components/DetailDrawer";
@@ -8,6 +9,7 @@ import { mockStore } from "../../mocks/mockStore";
 import type { Appointment, AppointmentStatus } from "../../types/models";
 import { useAuth } from "../auth/AuthProvider";
 import { isActiveAppointmentStatus } from "../appointments/appointmentRules";
+import { catalogQueryOptions } from "../catalog/catalogService";
 import { DOCTOR_PROTOTYPE_NOW, DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
 
 const statusMetrics: Array<{ label: string; status: AppointmentStatus }> = [
@@ -17,17 +19,15 @@ const statusMetrics: Array<{ label: string; status: AppointmentStatus }> = [
   { label: "Hoàn tất", status: "completed" },
 ];
 
-function doctorAppointments(doctorId: string | undefined, date: string): Appointment[] {
-  return mockStore.appointments
-    .filter((appointment) => appointment.doctorId === doctorId && toDateInputValue(appointment.startAt) === date)
-    .sort((left, right) => left.startAt.localeCompare(right.startAt));
-}
-
 export function DoctorDashboard() {
   const { user } = useAuth();
-  const doctor = mockStore.doctors.find((candidate) => candidate.userId === user?.id);
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const doctor = doctorResponse?.data.find((candidate) => candidate.userId === user?.id);
+  const services = serviceResponse?.data ?? [];
   const today = DOCTOR_PROTOTYPE_TODAY;
-  const [appointments, setAppointments] = useState(() => doctorAppointments(doctor?.id, today));
+  const [allAppointments, setAppointments] = useState(() => mockStore.appointments);
+  const appointments = allAppointments.filter((appointment) => appointment.doctorId === doctor?.id && toDateInputValue(appointment.startAt) === today).sort((left, right) => left.startAt.localeCompare(right.startAt));
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const nextAppointment = appointments.find(
     (appointment) => isActiveAppointmentStatus(appointment.status) && appointment.startAt > DOCTOR_PROTOTYPE_NOW,
@@ -51,7 +51,7 @@ export function DoctorDashboard() {
       <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div>
           <div className="flex items-end justify-between gap-4"><div><h2 className="text-lg font-semibold text-text">Lịch hẹn theo thời gian</h2><p className="mt-1 text-sm text-text-muted">Danh sách được sắp xếp theo giờ hẹn.</p></div></div>
-          <div className="mt-4">{appointments.length ? <AppointmentTimeline appointments={appointments} patients={mockStore.patients} services={mockStore.services} onSelect={setSelectedAppointment} /> : <EmptyState description="Không có lịch hẹn trong ngày hôm nay." title="Chưa có lịch hẹn" />}</div>
+          <div className="mt-4">{appointments.length ? <AppointmentTimeline appointments={appointments} patients={mockStore.patients} services={services} onSelect={setSelectedAppointment} /> : <EmptyState description="Không có lịch hẹn trong ngày hôm nay." title="Chưa có lịch hẹn" />}</div>
         </div>
         <aside className="border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0"><p className="text-sm font-semibold text-text">Lịch hẹn tiếp theo</p>{nextAppointment ? <div className="mt-3"><p className="text-lg font-semibold text-primary">{formatDateTime(nextAppointment.startAt)}</p><p className="mt-1 text-sm text-text-muted">{mockStore.patients.find((patient) => patient.id === nextAppointment.patientId)?.fullName}</p><button className="mt-3 h-10 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={() => setSelectedAppointment(nextAppointment)} type="button">Xem chi tiết</button></div> : <p className="mt-3 text-sm text-text-muted">Không còn lịch hẹn cần xử lý.</p>}</aside>
       </section>

@@ -9,13 +9,14 @@ export interface ApiHttpClientOptions {
 }
 
 export type ApiRequest = <T>(path: string, init?: RequestInit) => Promise<T>;
+export type ApiEnvelopeRequest = <T>(path: string, init?: RequestInit) => Promise<ApiSuccess<T>>;
 
 function normalizeFields(fields: ApiErrorEnvelope["error"]["fields"]): Record<string, string[]> | undefined {
   return fields && Object.fromEntries(Object.entries(fields).map(([field, message]) => [field, [message]]));
 }
 
 export function createApiHttpClient(options: ApiHttpClientOptions) {
-  const apiRequest: ApiRequest = async <T>(path: string, init?: RequestInit): Promise<T> => {
+  const requestEnvelope: ApiEnvelopeRequest = async <T>(path: string, init?: RequestInit): Promise<ApiSuccess<T>> => {
     const headers = new Headers(init?.headers);
     headers.set("Accept", "application/json");
     headers.set("Content-Type", "application/json");
@@ -29,7 +30,7 @@ export function createApiHttpClient(options: ApiHttpClientOptions) {
     const body = await response.json() as ApiSuccess<T> | ApiErrorEnvelope;
 
     if (response.ok && "data" in body) {
-      return body.data;
+      return body;
     }
 
     const error = "error" in body ? body.error : { code: "INTERNAL_ERROR", message: "Unexpected API response." };
@@ -43,5 +44,10 @@ export function createApiHttpClient(options: ApiHttpClientOptions) {
     throw clientError;
   };
 
-  return { request: apiRequest };
+  const request: ApiRequest = async <T>(path: string, init?: RequestInit): Promise<T> => {
+    const response = await requestEnvelope<T>(path, init);
+    return response.data;
+  };
+
+  return { request, requestEnvelope };
 }

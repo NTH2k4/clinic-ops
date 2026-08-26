@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Search, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
@@ -8,6 +9,7 @@ import type { Patient } from "../../types/models";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
+import { catalogQueryOptions } from "../catalog/catalogService";
 
 const OPERATIONS_DATE = "2026-08-26";
 const appointmentTimes = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
@@ -30,9 +32,12 @@ export function CreateAppointmentPage() {
   const [error, setError] = useState("");
   const [created, setCreated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ status: "active", pageSize: 100 }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ status: "active", serviceId: serviceId || undefined, pageSize: 100 }));
+  const services = serviceResponse?.data ?? [];
   const matches = useMemo(() => search.trim() ? mockStore.patients.filter((patient) => normalized(`${patient.fullName} ${patient.phone}`).includes(normalized(search))) : [], [search]);
-  const selectedService = mockStore.services.find((service) => service.id === serviceId);
-  const doctors = mockStore.doctors.filter((doctor) => doctor.status === "active" && (!selectedService || doctor.serviceIds.includes(selectedService.id)));
+  const selectedService = services.find((service) => service.id === serviceId);
+  const doctors = doctorResponse?.data ?? [];
   const actorUserId = user?.id ?? "user-receptionist-1";
   const isSelectedSlotAvailable = Boolean(selectedService && doctorId && time && isDoctorAvailableForSlot(doctorId, date, time, selectedService.durationMinutes));
   const canSubmit = Boolean(selectedPatient && serviceId && doctorId && date && time && isSelectedSlotAvailable && !created && !isSubmitting);
@@ -92,7 +97,7 @@ export function CreateAppointmentPage() {
           <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel">
             <legend className="px-1 text-base font-semibold text-text">2. Chọn dịch vụ và bác sĩ</legend>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <label className="text-sm font-medium text-text">Dịch vụ<select className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" onChange={(event) => { setServiceId(event.target.value); setDoctorId(""); setTime(""); setCreated(false); }} value={serviceId}><option value="">Chọn dịch vụ</option>{mockStore.services.filter((service) => service.status === "active").map((service) => <option key={service.id} value={service.id}>{service.name}</option>)}</select></label>
+              <label className="text-sm font-medium text-text">Dịch vụ<select className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" onChange={(event) => { setServiceId(event.target.value); setDoctorId(""); setTime(""); setCreated(false); }} value={serviceId}><option value="">Chọn dịch vụ</option>{services.map((service) => <option key={service.id} value={service.id}>{service.name}</option>)}</select></label>
               <label className="text-sm font-medium text-text">Bác sĩ<select className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" disabled={!serviceId} onChange={(event) => { setDoctorId(event.target.value); setTime(""); setCreated(false); }} value={doctorId}><option value="">Chọn bác sĩ</option>{doctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.fullName}</option>)}</select></label>
             </div>
           </fieldset>

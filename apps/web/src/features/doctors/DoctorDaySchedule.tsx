@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
@@ -8,15 +9,19 @@ import { addDays, formatDateInputValue, isDateInputValue, toDateInputValue } fro
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment } from "../../types/models";
 import { useAuth } from "../auth/AuthProvider";
+import { catalogQueryOptions } from "../catalog/catalogService";
 import { DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
 
 export function DoctorDaySchedule() {
   const { user } = useAuth();
-  const doctor = mockStore.doctors.find((candidate) => candidate.userId === user?.id);
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const doctor = doctorResponse?.data.find((candidate) => candidate.userId === user?.id);
+  const services = serviceResponse?.data ?? [];
   const [date, setDate] = useState(DOCTOR_PROTOTYPE_TODAY);
-  const [appointments, setAppointments] = useState<Appointment[]>(() => mockStore.appointments.filter((appointment) => appointment.doctorId === doctor?.id).sort((left, right) => left.startAt.localeCompare(right.startAt)));
+  const [allAppointments, setAppointments] = useState<Appointment[]>(() => mockStore.appointments);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const visibleAppointments = appointments.filter((appointment) => toDateInputValue(appointment.startAt) === date);
+  const visibleAppointments = allAppointments.filter((appointment) => appointment.doctorId === doctor?.id && toDateInputValue(appointment.startAt) === date).sort((left, right) => left.startAt.localeCompare(right.startAt));
 
   function updateAppointment(updated: Appointment) {
     setAppointments((current) => current.map((appointment) => appointment.id === updated.id ? updated : appointment));
@@ -57,7 +62,7 @@ export function DoctorDaySchedule() {
           </div>
         </div>
       </div>
-      <div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={mockStore.patients} services={mockStore.services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div>
+      <div className="mt-5">{visibleAppointments.length ? <AppointmentTimeline appointments={visibleAppointments} compact onSelect={setSelectedAppointment} patients={mockStore.patients} services={services} /> : <EmptyState description="Không có lịch hẹn trong ngày đã chọn." title="Chưa có lịch hẹn" />}</div>
       <DetailDrawer actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
     </section>
   );

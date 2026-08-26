@@ -243,19 +243,26 @@ describe("API authentication", () => {
   it("signs in through the API without persisting the session token and hides demo role switching", async () => {
     const user = userEvent.setup();
     const sessionToken = "api-session-token";
-    const fetcher = vi.fn<typeof fetch>()
-      .mockResolvedValueOnce(successResponse({
-        sessionToken,
-        currentUser: {
-          id: "user-patient-1",
-          displayName: "API Patient",
-          email: "patient@example.test",
-          role: "patient",
-          status: "active",
-        },
-        linkedProfile: { type: "patient", id: "patient-1" },
-      }))
-      .mockResolvedValueOnce(successResponse({}));
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/auth/login")) {
+        return successResponse({
+          sessionToken,
+          currentUser: {
+            id: "user-patient-1",
+            displayName: "API Patient",
+            email: "patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-1" },
+        });
+      }
+      if (url.includes("/services") || url.includes("/doctors") || url.includes("/specialties")) {
+        return new Response(JSON.stringify({ data: [], meta: { requestId: "req-list", page: 1, pageSize: 100, total: 0 } }), { status: 200 });
+      }
+      return successResponse({});
+    });
     vi.stubGlobal("fetch", fetcher);
     const setItem = vi.spyOn(Storage.prototype, "setItem");
     localStorage.clear();
@@ -286,8 +293,7 @@ describe("API authentication", () => {
 
     await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
 
-    await waitFor(() => expect(fetcher).toHaveBeenNthCalledWith(
-      2,
+    await waitFor(() => expect(fetcher).toHaveBeenCalledWith(
       "/api/v1/auth/logout",
       expect.objectContaining({ method: "POST" }),
     ));

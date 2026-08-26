@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EmptyState } from "../../components/EmptyState";
@@ -7,6 +8,7 @@ import { mockStore } from "../../mocks/mockStore";
 import type { Appointment, AppointmentStatus } from "../../types/models";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
+import { catalogQueryOptions } from "../catalog/catalogService";
 
 const OPERATIONS_TODAY = "2026-08-25";
 
@@ -39,6 +41,8 @@ function actionsForStatus(status: AppointmentStatus): Array<{ label: string; nex
 
 export function QueuePage() {
   const { user } = useAuth();
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const services = serviceResponse?.data ?? [];
   const [appointments, setAppointments] = useState(queueAppointments);
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const actorUserId = user?.id ?? "user-receptionist-1";
@@ -68,7 +72,7 @@ export function QueuePage() {
             <p className="mt-3 text-sm text-text-muted">{group.appointments.length} lịch trong nhóm này.</p>
             {group.appointments.length ? <ul className="mt-3 divide-y divide-border">{group.appointments.map((appointment) => {
               const patient = mockStore.patients.find((candidate) => candidate.id === appointment.patientId);
-              const service = mockStore.services.find((candidate) => candidate.id === appointment.serviceId);
+              const service = services.find((candidate) => candidate.id === appointment.serviceId);
               return <li className="py-3 first:pt-0 last:pb-0" key={appointment.id}><div className="flex flex-wrap items-center gap-2"><p className="w-12 text-sm font-semibold text-primary">{formatTime(appointment.startAt)}</p><p className="min-w-36 flex-1 font-medium text-text">{patient?.fullName ?? "Bệnh nhân chưa xác định"}</p><StatusBadge status={appointment.status} /></div><p className="mt-1 pl-14 text-sm text-text-muted">{service?.name ?? "Dịch vụ chưa xác định"}</p><div className="mt-3 flex flex-wrap gap-2 pl-14">{actionsForStatus(appointment.status).map((action) => <button aria-label={action.cancel ? `Hủy lịch ${patient?.fullName ?? "bệnh nhân"} ${formatTime(appointment.startAt)}` : undefined} className="h-9 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" key={action.label} onClick={() => { if (action.cancel) setCancelTarget(appointment); else if (action.next) void updateStatus(appointment, action.next); }} type="button">{action.label}</button>)}</div></li>;
             })}</ul> : <EmptyState description="Không có lịch hẹn trong nhóm này." title="Trống" />}
           </section>

@@ -1,9 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { appointmentService } from "../features/appointments/appointmentService";
+import { catalogQueryOptions } from "../features/catalog/catalogService";
 import { formatDateTime } from "../lib/dateTime";
 import { mockStore } from "../mocks/mockStore";
-import type { Appointment, AppointmentStatus, Doctor, Patient, Service } from "../types/models";
+import type { Appointment, AppointmentStatus, Patient } from "../types/models";
 import { StatusBadge } from "./StatusBadge";
 
 type DetailDrawerProps = {
@@ -33,13 +35,15 @@ function statusHistory(appointment: Appointment) {
 
 export function DetailDrawer({ appointment, actorUserId, onClose, onUpdated }: DetailDrawerProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const { data: doctorResponse } = useQuery({ ...catalogQueryOptions.doctors({ pageSize: 100 }), enabled: Boolean(appointment) });
+  const { data: serviceResponse } = useQuery({ ...catalogQueryOptions.services({ pageSize: 100 }), enabled: Boolean(appointment) });
 
   if (!appointment) return null;
 
   const selectedAppointment = appointment;
   const patient: Patient | undefined = mockStore.patients.find((candidate) => candidate.id === appointment.patientId);
-  const doctor: Doctor | undefined = mockStore.doctors.find((candidate) => candidate.id === appointment.doctorId);
-  const service: Service | undefined = mockStore.services.find((candidate) => candidate.id === appointment.serviceId);
+  const doctor = doctorResponse?.data.find((candidate) => candidate.id === appointment.doctorId);
+  const service = serviceResponse?.data.find((candidate) => candidate.id === appointment.serviceId);
   const action = actionForStatus(appointment.status);
   const auditEvents = mockStore.auditEvents.filter((event) => event.entityId === appointment.id).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 

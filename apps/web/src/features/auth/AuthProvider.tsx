@@ -3,6 +3,7 @@ import type { PropsWithChildren } from "react";
 import { createAuthApi } from "../../lib/api/auth";
 import type { CurrentUser, LinkedProfileRef } from "../../lib/api/auth";
 import { createApiHttpClient } from "../../lib/api/http";
+import { getApiSessionToken, setApiSessionToken } from "../../lib/api/session";
 import { apiBaseUrl, isApiMode } from "../../lib/dataSource";
 import { queryClient } from "../../lib/queryClient";
 import { mockStore } from "../../mocks/mockStore";
@@ -39,11 +40,10 @@ function userForRole(role: UserRole): User | undefined {
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [linkedProfile, setLinkedProfile] = useState<LinkedProfileRef>(null);
-  const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
   const clearApiAuth = useCallback(() => {
-    setSessionToken(null);
+    setApiSessionToken(null);
     setUser(null);
     setLinkedProfile(null);
     queryClient.clear();
@@ -52,12 +52,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const authApi = useMemo(() => {
     const client = createApiHttpClient({
       baseUrl: apiBaseUrl,
-      getToken: () => sessionToken,
+      getToken: getApiSessionToken,
       onUnauthenticated: clearApiAuth,
     });
 
     return createAuthApi(client.request);
-  }, [clearApiAuth, sessionToken]);
+  }, [clearApiAuth]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
         try {
           const session = await authApi.login(input);
-          setSessionToken(session.sessionToken);
+          setApiSessionToken(session.sessionToken);
           setUser(session.currentUser);
           setLinkedProfile(session.linkedProfile);
           return session.currentUser;

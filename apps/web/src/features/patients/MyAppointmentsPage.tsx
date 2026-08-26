@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
@@ -6,6 +7,7 @@ import { mockStore } from "../../mocks/mockStore";
 import type { Appointment, AppointmentStatus } from "../../types/models";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
+import { catalogQueryOptions } from "../catalog/catalogService";
 
 type AppointmentTab = "upcoming" | "past" | "cancelled";
 
@@ -28,6 +30,10 @@ export function MyAppointmentsPage() {
   const [tab, setTab] = useState<AppointmentTab>("upcoming");
   const [appointments, setAppointments] = useState(() => mockStore.appointments.filter((appointment) => appointment.patientId === patient?.id));
   const [message, setMessage] = useState("");
+  const { data: serviceResponse } = useQuery(catalogQueryOptions.services({ pageSize: 100 }));
+  const { data: doctorResponse } = useQuery(catalogQueryOptions.doctors({ pageSize: 100 }));
+  const services = serviceResponse?.data ?? [];
+  const doctors = doctorResponse?.data ?? [];
 
   async function cancel(appointmentId: string) {
     if (!user || !patient) return;
@@ -56,8 +62,8 @@ export function MyAppointmentsPage() {
       </div>
       <div aria-labelledby={`tab-${tab}`} className="mt-5 space-y-3" id={`appointments-${tab}`} role="tabpanel">
         {visibleAppointments.length === 0 ? <EmptyState description="Không có lịch hẹn trong nhóm này." title="Chưa có lịch hẹn" /> : visibleAppointments.map((appointment) => {
-          const service = mockStore.services.find((candidate) => candidate.id === appointment.serviceId);
-          const doctor = mockStore.doctors.find((candidate) => candidate.id === appointment.doctorId);
+          const service = services.find((candidate) => candidate.id === appointment.serviceId);
+          const doctor = doctors.find((candidate) => candidate.id === appointment.doctorId);
           const cancellable = !terminalStatuses.includes(appointment.status);
           const serviceName = service?.name ?? "Dịch vụ";
           const appointmentTime = formatDateTime(appointment.startAt);
