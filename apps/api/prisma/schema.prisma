@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  patient
+  doctor
+  receptionist
+  nurse
+  admin
+}
+
+enum AccountStatus {
+  active
+  inactive
+  locked
+}
+
+enum DoctorStatus {
+  active
+  inactive
+  on_leave
+}
+
+enum ServiceStatus {
+  active
+  inactive
+}
+
+enum ScheduleType {
+  working
+  blocked
+  leave
+}
+
+enum AppointmentStatus {
+  requested
+  confirmed
+  checked_in
+  in_progress
+  completed
+  cancelled
+  no_show
+}
+
+enum NotificationType {
+  appointment_created
+  appointment_confirmed
+  appointment_rescheduled
+  appointment_cancelled
+  appointment_checked_in
+  appointment_completed
+  system
+}
+
+model User {
+  id                       String                     @id @default(uuid())
+  displayName              String
+  email                    String                     @unique
+  phone                    String?
+  role                     UserRole
+  status                   AccountStatus              @default(active)
+  avatarUrl                String?
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  patient                  Patient?
+  staff                    Staff?
+  doctor                   Doctor?
+  createdAppointments      Appointment[]              @relation("AppointmentCreatedBy")
+  updatedAppointments      Appointment[]              @relation("AppointmentUpdatedBy")
+  appointmentStatusHistory AppointmentStatusHistory[]
+  notifications            Notification[]
+  auditEvents              AuditEvent[]
+}
+
+model Patient {
+  id           String        @id @default(uuid())
+  userId       String?       @unique
+  fullName     String
+  phone        String        @unique
+  email        String?
+  dateOfBirth  DateTime?
+  gender       String?
+  address      String?
+  notes        String?
+  status       AccountStatus @default(active)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User?         @relation(fields: [userId], references: [id])
+  appointments Appointment[]
+}
+
+model Staff {
+  id        String        @id @default(uuid())
+  userId    String?       @unique
+  fullName  String
+  phone     String
+  email     String
+  role      UserRole
+  status    AccountStatus @default(active)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User?         @relation(fields: [userId], references: [id])
+}
+
+model Doctor {
+  id           String           @id @default(uuid())
+  userId       String?          @unique
+  fullName     String
+  specialtyId  String
+  phone        String
+  email        String           @unique
+  title        String?
+  room         String?
+  status       DoctorStatus     @default(active)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  user         User?            @relation(fields: [userId], references: [id])
+  specialty    Specialty        @relation(fields: [specialtyId], references: [id])
+  services     Service[]
+  schedules    DoctorSchedule[]
+  appointments Appointment[]
+
+  @@index([specialtyId, status])
+}
+
+model Specialty {
+  id          String        @id @default(uuid())
+  name        String        @unique
+  description String?
+  status      ServiceStatus @default(active)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  doctors     Doctor[]
+  services    Service[]
+}
+
+model Service {
+  id              String        @id @default(uuid())
+  name            String
+  specialtyId     String
+  durationMinutes Int
+  price           Decimal       @db.Decimal(10, 2)
+  currency        String        @default("VND")
+  description     String?
+  status          ServiceStatus @default(active)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  specialty       Specialty     @relation(fields: [specialtyId], references: [id])
+  doctors         Doctor[]
+  appointments    Appointment[]
+
+  @@index([specialtyId, status])
+}
+
+model DoctorSchedule {
+  id            String        @id @default(uuid())
+  doctorId      String
+  dayOfWeek     Int
+  startTime     String
+  endTime       String
+  effectiveFrom DateTime      @db.Date
+  effectiveTo   DateTime      @db.Date
+  type          ScheduleType
+  status        AccountStatus @default(active)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  doctor        Doctor        @relation(fields: [doctorId], references: [id])
+
+  @@index([doctorId, effectiveFrom, effectiveTo])
+}
+
+model Appointment {
+  id                 String                     @id @default(uuid())
+  patientId          String
+  doctorId           String
+  serviceId          String
+  startAt            DateTime
+  endAt              DateTime
+  status             AppointmentStatus
+  reason             String?
+  internalNote       String?
+  cancellationReason String?
+  createdByUserId    String
+  updatedByUserId    String?
+  checkedInAt        DateTime?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+  patient            Patient                    @relation(fields: [patientId], references: [id])
+  doctor             Doctor                     @relation(fields: [doctorId], references: [id])
+  service            Service                    @relation(fields: [serviceId], references: [id])
+  createdByUser      User                       @relation("AppointmentCreatedBy", fields: [createdByUserId], references: [id])
+  updatedByUser      User?                      @relation("AppointmentUpdatedBy", fields: [updatedByUserId], references: [id])
+  statusHistory      AppointmentStatusHistory[]
+  auditEvents        AuditEvent[]
+
+  @@index([doctorId, startAt, endAt, status])
+  @@index([patientId, startAt])
+}
+
+model AppointmentStatusHistory {
+  id            String             @id @default(uuid())
+  appointmentId String
+  fromStatus    AppointmentStatus?
+  toStatus      AppointmentStatus
+  actorUserId   String
+  note          String?
+  changedAt     DateTime           @default(now())
+  appointment   Appointment        @relation(fields: [appointmentId], references: [id])
+  actorUser     User               @relation(fields: [actorUserId], references: [id])
+
+  @@index([appointmentId, changedAt])
+}
+
+model Notification {
+  id              String           @id @default(uuid())
+  recipientUserId String
+  type            NotificationType
+  title           String
+  message         String
+  referenceType   String?
+  referenceId     String?
+  readAt          DateTime?
+  createdAt       DateTime         @default(now())
+  recipientUser   User             @relation(fields: [recipientUserId], references: [id])
+
+  @@index([recipientUserId, readAt])
+}
+
+model AuditEvent {
+  id            String       @id @default(uuid())
+  actorUserId   String
+  appointmentId String?
+  entityType    String
+  entityId      String
+  action        String
+  timestamp     DateTime     @default(now())
+  metadata      Json?
+  actorUser     User         @relation(fields: [actorUserId], references: [id])
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  @@index([entityType, entityId, timestamp])
+  @@index([actorUserId, timestamp])
+}
