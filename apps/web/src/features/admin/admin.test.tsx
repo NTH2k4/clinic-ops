@@ -19,20 +19,28 @@ describe("admin workspace", () => {
 
     expect(screen.getByText("Doctors active")).toBeInTheDocument();
     expect(within(screen.getByText("Doctors active").closest("section")!).getByText("4")).toBeInTheDocument();
+    expect(within(screen.getByText("Doctors active").closest("section")!).getByText("Sẵn sàng tiếp nhận lịch hẹn đang hoạt động.")).toBeInTheDocument();
     expect(within(screen.getByText("Services active").closest("section")!).getByText("8")).toBeInTheDocument();
     expect(within(screen.getByText("Lịch hẹn hôm nay").closest("section")!).getByText("32")).toBeInTheDocument();
     expect(within(screen.getByText("Cancellation rate").closest("section")!).getByText("14,3%")).toBeInTheDocument();
+    expect(screen.getByText("5 dịch vụ có lịch hẹn nhiều nhất")).toBeInTheDocument();
+    expect(screen.getByText("4 bác sĩ đang active")).toBeInTheDocument();
   });
 
   it("renders the doctors management table", () => {
     renderWithProviders(<AdminDoctors />);
 
+    expect(screen.getByText("5 bác sĩ trong mock workspace")).toBeInTheDocument();
+    expect(screen.getByText("Form chỉ cập nhật state frontend để kiểm thử workflow quản trị.")).toBeInTheDocument();
     expect(screen.getByRole("table", { name: "Doctors" })).toBeInTheDocument();
   });
 
   it("filters audit events by entity type", async () => {
     const user = userEvent.setup();
     renderWithProviders(<AuditLog />);
+
+    expect(screen.getByRole("group", { name: "Bộ lọc audit log" })).toBeInTheDocument();
+    expect(screen.getByText("Đang hiển thị 20 audit events.")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Entity type"), "appointment");
 
@@ -42,6 +50,11 @@ describe("admin workspace", () => {
     const auditTable = screen.getByRole("table", { name: "Audit events" });
     expect(within(auditTable).getAllByText("appointment_updated").length).toBeGreaterThan(0);
     expect(within(auditTable).queryByText("appointment_status_changed")).not.toBeInTheDocument();
+    expect(screen.getByText("Đang hiển thị 10 audit events.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Xóa bộ lọc audit" }));
+
+    expect(screen.getByText("Đang hiển thị 20 audit events.")).toBeInTheDocument();
   });
 
   it("validates required doctor fields in mock-only form state", async () => {

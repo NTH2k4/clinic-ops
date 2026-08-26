@@ -140,10 +140,14 @@ Mục tiêu: làm admin dashboard/list đỡ sơ khai.
 
 Phạm vi:
 
-- Metric cards cần hierarchy và trend/summary text tốt hơn.
-- Tables cần spacing, empty state và mobile cards rõ hơn.
-- Mock-only forms cần nhìn giống form thật hơn, nhưng vẫn không persist backend.
-- Audit log filters và notification reference action cần dễ hiểu hơn.
+Automated scope đã hoàn thành:
+
+- Metric cards có helper/summary text để giải thích ý nghĩa số liệu.
+- Dashboard list sections có summary count cho dịch vụ phổ biến và workload bác sĩ.
+- Doctors mock-only form có header, mô tả rõ chỉ cập nhật frontend state và count summary cho list.
+- Doctors table/mobile cards được polish nhẹ spacing/header density.
+- Audit log filters dùng fieldset semantic, có result summary và nút reset filter rõ ràng.
+- Notification reference action đã được cover từ P1/P5 admin tests.
 
 Verification:
 
