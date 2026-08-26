@@ -49,6 +49,7 @@ export function ClinicDateField({ id, label, value, onChange, min, max, labelCla
       <div className="[&_input[type=date]]:hidden">
         <DatePicker
           aria-label={label}
+          className="block"
           maxValue={toCalendarDate(max)}
           minValue={toCalendarDate(min)}
           onChange={(nextDate) => {
@@ -60,12 +61,12 @@ export function ClinicDateField({ id, label, value, onChange, min, max, labelCla
           }}
           value={toCalendarDate(value)}
         >
-          <Label className={labelClassName}>{label}</Label>
+          <Label className={`block ${labelClassName}`}>{label}</Label>
           <Group className={`mt-1 flex h-10 w-full items-center rounded-md border border-border bg-surface text-sm text-text focus-within:border-border-strong focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent ${controlClassName}`}>
-            <DateInput className={`flex min-w-0 flex-1 items-center gap-0.5 px-3 ${inputClassName}`} data-field-id={id}>
+            <DateInput className={`flex min-w-0 flex-1 items-center gap-0 px-3 ${inputClassName}`} data-field-id={id}>
               {(segment) => (
                 <DateSegment
-                  className="rounded-sm px-0.5 py-1 tabular-nums text-text outline-none focus:bg-accent-soft focus:text-accent data-[placeholder]:text-text-muted"
+                  className={`rounded-sm py-1 tabular-nums text-text outline-none focus:bg-accent-soft focus:text-accent data-[placeholder]:text-text-muted ${segment.type === "literal" ? "px-0" : "px-0.5"}`}
                   segment={segment}
                 >
                   {({ defaultChildren, type }) => formatSegmentText(type, defaultChildren)}

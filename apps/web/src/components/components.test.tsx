@@ -65,14 +65,18 @@ describe("shared UI components", () => {
 
   it("renders clinic dates as editable segments without a native browser date input", () => {
     const onChange = vi.fn();
-    const { container } = renderWithProviders(<ClinicDateField id="clinic-date" label="Ngày khám" onChange={onChange} value="2026-08-25" />);
+    const { container } = renderWithProviders(<ClinicDateField id="clinic-date" label="Ngày khám" labelClassName="text-sm font-medium text-text" onChange={onChange} value="2026-08-25" />);
 
     const nativeDateInput = container.querySelector('input[type="date"]');
     expect(nativeDateInput).toHaveAttribute("tabindex", "-1");
     expect(container.firstElementChild).toHaveClass("[&_input[type=date]]:hidden");
+    expect(container.firstElementChild?.firstElementChild).toHaveClass("block");
+    expect(screen.getByText("Ngày khám")).toHaveClass("block");
     const dateGroup = screen.getAllByRole("group").find((group) => group.getAttribute("aria-label") === "Ngày khám");
     expect(dateGroup).toHaveClass("h-10");
     expect(dateGroup).not.toHaveClass("h-11");
+    expect(container.querySelector('[data-type="literal"]')).toHaveClass("px-0");
+    expect(container.querySelector('[data-type="literal"]')).not.toHaveClass("px-0.5");
     expect(screen.getAllByRole("spinbutton").length).toBeGreaterThanOrEqual(3);
     expect(screen.getByRole("spinbutton", { name: /^Ngày,/ })).toHaveTextContent("25");
     expect(screen.getByRole("spinbutton", { name: /^Tháng,/ })).toHaveTextContent("08");
