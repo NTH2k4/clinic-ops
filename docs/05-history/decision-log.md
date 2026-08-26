@@ -55,3 +55,11 @@ Ngày: 2026-08-26
 Quyết định: Dùng Node.js 22+, NestJS, TypeScript, Prisma và PostgreSQL cho backend CareFlow.
 
 Lý do: NestJS phù hợp API contract-first, guard/interceptor/DTO validation và module boundaries theo domain như auth, catalog, appointments, audit và notifications. Prisma giúp schema/migration rõ ràng, TypeScript type-safe và dễ seed dữ liệu demo từ frontend mock dataset. PostgreSQL phù hợp dữ liệu quan hệ như appointments, schedules, audit events và transactional conflict validation.
+
+## DEC-008: English-First Documentation For Agent Execution
+
+Date: 2026-08-26
+
+Decision: New documentation should use English by default. Documentation intended for AI agents or subagents, especially implementation plans, work packages, review handoffs, verification instructions and architecture references, must use English.
+
+Reason: Agent and subagent execution is more reliable when task instructions, technical terms, file paths, commands and acceptance criteria are written in English. Existing Vietnamese documents can remain until they are materially updated, but new backend and planning references should not extend the mixed-language surface.

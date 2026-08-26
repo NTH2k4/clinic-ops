@@ -10,15 +10,15 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 - Dùng frontend prototype để kiểm chứng workflow sản phẩm trước khi triển khai backend.
 - Giữ dữ liệu y tế ở mức nhẹ trong MVP; không triển khai electronic health record đầy đủ, đơn thuốc, bảo hiểm, telemedicine hoặc tích hợp thanh toán thật.
 - Ghi lại thay đổi scope và quyết định kỹ thuật trong docs trước khi implementation.
-- Viết tài liệu hướng dự án bằng tiếng Việt theo mặc định, giữ thuật ngữ kỹ thuật và thuật ngữ chuyên ngành bằng tiếng Anh khi rõ nghĩa hơn.
+- Write new documentation in English by default, especially documents used by AI agents and subagents such as implementation plans, work packages and architecture references.
 
 ## Tài Liệu
 
 - `docs/00-project/`: tầm nhìn dự án, scope, glossary, workflow làm việc, documentation standards và documentation map.
 - `docs/01-requirements/`: yêu cầu MVP, vai trò người dùng, user stories và change requests.
 - `docs/02-product/`: workflow sản phẩm, danh sách màn hình và mô hình trạng thái appointment.
-- `docs/03-architecture/`: kiến trúc frontend, API contract, data model và ghi chú security.
-- `docs/04-planning/`: roadmap, implementation plan và subagent work packages.
+- `docs/03-architecture/`: frontend architecture, backend architecture, API contract, data model, database schema and security notes.
+- `docs/04-planning/`: roadmap, implementation plans, backend next steps and subagent work packages.
 - `docs/05-history/`: changelog, decision log và release notes.
 - `docs/06-testing/`: test strategy và acceptance checklist.
 
@@ -37,6 +37,8 @@ https://nth2k4.github.io/clinic-ops/
 Backend nằm ở `apps/api` và dùng Node.js + NestJS + Prisma + PostgreSQL. API v1 dùng base path `/api/v1` và đã có auth bearer session, catalog, appointment conflict/status workflow, audit events và notifications. PostgreSQL local được khai báo trong `docker-compose.yml`.
 
 API CI chạy Prisma generate, migrate deploy, deterministic seed, typecheck, lint, unit/E2E tests, build và high-severity dependency audit cho thay đổi `apps/api`.
+
+Backend setup and operating notes are documented in `apps/api/README.md`. As-built architecture references are in `docs/03-architecture/backend-architecture.md` and `docs/03-architecture/database-schema.md`. The next backend-facing work plan is `docs/04-planning/backend-next-steps.md`.
 
 Các lệnh kiểm tra backend:
 

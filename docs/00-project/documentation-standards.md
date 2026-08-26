@@ -1,55 +1,57 @@
-# Quy Chuẩn Tài Liệu
+# Documentation Standards
 
-Tài liệu CareFlow được viết cho cả người và agent đọc. Mỗi tài liệu phải đủ rõ để định hướng implementation, review và verification mà không phụ thuộc vào trí nhớ hội thoại.
+CareFlow documentation is written for both humans and agents. Each document must be clear enough to guide implementation, review and verification without relying on chat history.
 
-## Mục Tiêu
+## Goals
 
-- Giúp human contributors hiểu product intent, scope, workflow và quyết định kỹ thuật.
-- Giúp agent contributors có context rõ để sửa đúng phạm vi, không đoán yêu cầu.
-- Giữ lịch sử thay đổi, quyết định và open questions có thể truy vết.
-- Làm nền cho frontend spec, implementation plan, API contract, backend design và testing.
+- Help human contributors understand product intent, scope, workflows and technical decisions.
+- Give AI agents and subagents precise context so they change the right scope without guessing.
+- Keep requirements, decisions, changes and open questions traceable.
+- Provide the foundation for product specs, architecture, API contracts, implementation plans and testing.
 
-## Ngôn Ngữ
+## Language Policy
 
-- Tài liệu dự án phải dùng tiếng Việt theo mặc định vì CareFlow hướng đến người dùng Việt Nam.
-- Chỉ giữ tiếng Anh khi đó là technical term, framework name, API name hoặc domain term phổ biến, ví dụ `frontend`, `backend`, `API`, `mock data`, `dashboard`, `audit log`, `role-based access control`.
-- Các heading, nhãn bảng, mô tả nghiệp vụ và acceptance criteria nên viết bằng tiếng Việt nếu dịch không làm mất nghĩa.
-- Không trộn tiếng Anh chỉ để trang trí. Nếu dùng tiếng Anh, thuật ngữ đó phải giúp rõ nghĩa hơn.
+- New documentation should use English by default.
+- Documentation written for AI agents or subagents must use English, especially implementation plans, work packages, review handoffs, verification instructions and architecture references.
+- Human-facing documentation should also use English unless a specific product copy, user-facing screen label or stakeholder requirement needs Vietnamese.
+- Existing Vietnamese documents can remain in place until they are materially updated. When a document is substantially revised, convert the touched document to English instead of extending the mixed-language surface.
+- Do not mix languages for decoration. Use Vietnamese only where it is intentional user-facing product language or required business context.
 
-## Yêu Cầu Chất Lượng
+## Quality Requirements
 
-Mỗi tài liệu quan trọng nên có:
+Important documents should include:
 
-- Mục đích tài liệu.
-- Phạm vi áp dụng.
-- Đối tượng đọc chính.
-- Trạng thái hiện tại, ví dụ `draft`, `approved`, `baseline`.
-- Quyết định đã chốt.
-- Open questions nếu còn điểm chưa rõ.
-- Acceptance criteria hoặc verification notes nếu tài liệu dùng để triển khai.
-- Liên kết đến tài liệu liên quan.
+- Purpose.
+- Scope.
+- Primary audience.
+- Current status such as `draft`, `approved` or `baseline`.
+- Decisions that have been made.
+- Open questions when something is unresolved.
+- Acceptance criteria or verification notes when the document is used for implementation.
+- Links to related documents.
 
-## Quy Tắc Viết Cho Agent
+## Agent Writing Rules
 
-- Nêu rõ file/module/scope nào được phép thay đổi khi tài liệu dùng cho implementation.
-- Ghi rõ các ràng buộc không được vi phạm.
-- Tránh câu mơ hồ như "làm đẹp hơn", "xử lý tốt hơn", "tối ưu hơn" nếu không có tiêu chí cụ thể.
-- Với workflow, ghi actor, precondition, main flow, alternate flow và expected result.
-- Với data model, ghi entity, field, relationship, enum và business rules.
-- Với UI spec, ghi screen scope, state, empty/loading/error state, responsive behavior và acceptance criteria.
+- State exactly which files, modules or scope may change when a document is used for implementation.
+- State constraints that must not be violated.
+- Avoid vague instructions such as "make it better", "improve handling" or "optimize" without concrete criteria.
+- For workflows, include actor, precondition, main flow, alternate flow and expected result.
+- For data models, include entity, field, relationship, enum and business rules.
+- For UI specs, include screen scope, state, empty/loading/error state, responsive behavior and acceptance criteria.
+- For implementation plans, use English task names, exact file paths, concrete verification commands and independently reviewable task boundaries.
 
-## Quy Tắc Kiểm Soát Thay Đổi
+## Change Control
 
-- Yêu cầu mới hoặc thay đổi scope phải được ghi vào `docs/01-requirements/change-requests.md`.
-- Quyết định kỹ thuật quan trọng phải được ghi vào `docs/05-history/decision-log.md`.
-- Thay đổi đã thực hiện phải được ghi vào `docs/05-history/changelog.md`.
-- Nếu thay đổi làm tài liệu khác lỗi thời, phải cập nhật tài liệu liên quan trong cùng commit.
+- New requirements or scope changes must be recorded in `docs/01-requirements/change-requests.md`.
+- Important technical decisions must be recorded in `docs/05-history/decision-log.md`.
+- Completed changes must be recorded in `docs/05-history/changelog.md`.
+- If a change makes another document stale, update the related document in the same change.
 
-## Mức Độ Chi Tiết Theo Giai Đoạn
+## Detail Level By Phase
 
-### Giai Đoạn Frontend-First
+### Frontend-First Phase
 
-Tài liệu cần đủ rõ cho:
+Documentation must be detailed enough for:
 
 - Role-based navigation.
 - Screen list.
@@ -60,38 +62,38 @@ Tài liệu cần đủ rõ cho:
 - Acceptance criteria.
 - Verification commands.
 
-Không cần chốt ERD/backend schema chi tiết ở giai đoạn này.
+Detailed ERD and backend schema decisions were intentionally deferred until the backend phase.
 
-### Giai Đoạn Backend
+### Backend Phase
 
-Tài liệu cần bổ sung:
+Documentation must cover:
 
-- SRS.
-- API spec.
-- Sequence spec.
-- ERD/database schema.
+- API contract.
+- Backend architecture.
+- Database schema.
 - Security design.
 - Error code convention.
-- Transaction boundary.
+- Transaction boundaries.
 - Deployment and environment design.
+- Agent-readable next-step plans.
 
-## Definition Of Ready Cho Implementation
+## Definition Of Ready For Implementation
 
-Một phần việc chỉ nên chuyển sang implementation khi có đủ:
+A work item should move to implementation only when it has:
 
-- Scope rõ.
-- Data model hoặc API boundary liên quan.
-- User flow hoặc technical flow.
+- Clear scope.
+- Relevant data model or API boundary.
+- User flow or technical flow.
 - Acceptance criteria.
-- Ràng buộc không được vi phạm.
-- Verification commands hoặc checklist.
+- Constraints that must not be violated.
+- Verification commands or checklist.
 
-## Definition Of Done Cho Tài Liệu
+## Definition Of Done For Documentation
 
-Một thay đổi tài liệu được xem là xong khi:
+A documentation change is done when:
 
-- Không còn placeholder kiểu `TODO`, `TBD`, `FIXME`.
-- Không mâu thuẫn với docs liên quan.
-- Được ghi vào changelog hoặc change request nếu thay đổi scope/decision.
-- Có commit riêng với message rõ.
-- Nếu repo đã có remote, commit được push lên GitHub.
+- It has no placeholder text such as `TODO`, `TBD` or `FIXME`.
+- It does not contradict related documents.
+- It is recorded in the changelog or change request log when it changes scope or decisions.
+- It has a clear commit message when committed.
+- If the repository is being synchronized with a remote, it is pushed after review.
