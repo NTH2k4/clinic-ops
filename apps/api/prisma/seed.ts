@@ -10,6 +10,8 @@ import {
 const prisma = new PrismaClient();
 const seedTimestamp = new Date("2026-08-01T00:00:00.000Z");
 const baseDate = new Date("2026-08-24T00:00:00.000Z");
+// 01:00Z-06:00Z is 08:00-13:00 in Vietnam, leaving room for the 45-minute service.
+const appointmentStartHoursUtc = [1, 2, 3, 4, 5, 6];
 
 const specialties = [
   { id: "specialty-general", name: "General Medicine", description: "Primary care and general consultations." },
@@ -69,6 +71,13 @@ async function resetDatabase(db: SeedClient) {
   await db.patient.deleteMany();
   await db.staff.deleteMany();
   await db.user.deleteMany();
+}
+
+function seededAppointmentStartAt(index: number) {
+  const startAt = new Date("2026-08-24T01:00:00.000Z");
+  startAt.setUTCDate(startAt.getUTCDate() + Math.floor(index / appointmentStartHoursUtc.length));
+  startAt.setUTCHours(appointmentStartHoursUtc[index % appointmentStartHoursUtc.length]);
+  return startAt;
 }
 
 async function seedDatabase(db: SeedClient) {
@@ -161,9 +170,7 @@ async function seedDatabase(db: SeedClient) {
     }
 
     const status = statuses[index % statuses.length];
-    const startAt = new Date("2026-08-24T01:00:00.000Z");
-    startAt.setUTCDate(startAt.getUTCDate() + Math.floor(index / 6));
-    startAt.setUTCHours(1 + (index % 6) * 2);
+    const startAt = seededAppointmentStartAt(index);
     const endAt = new Date(startAt.getTime() + service.durationMinutes * 60 * 1000);
     const terminalAt = new Date(endAt.getTime());
 
