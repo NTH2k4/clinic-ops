@@ -48,6 +48,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có frontend implementation plan chi tiết để scaffold `apps/web` và triển khai frontend MVP theo task.
 - Đã có frontend MVP chạy với mock data, README setup/verification và Playwright smoke coverage cho patient, doctor và operations workflows.
 - Có frontend polish plan để gom UI/UX follow-up sau khi người dùng review bản MVP đầu tiên; Doctor Workspace đã polish phần điều hướng lịch ngày/tuần, App Shell đã polish sidebar/navigation, mobile navigation và TopBar notification panel, Patient Portal đã polish service browsing, booking clarity và appointment history, Operations Workspace đã polish automated scope cho queue/calendar/create appointment flow, Admin Workspace đã polish dashboard/forms/tables/audit filters ở automated scope, P6 đã bổ sung responsive/accessibility smoke ở 360/768/1280/1440.
+- Có API contract v1 với conventions, response/error envelopes, auth/catalog/scheduling/appointment/audit/notification endpoints và plan riêng cho Phase 2 API contract.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -56,7 +57,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Đã có persona chi tiết ở `docs/02-product/frontend-mvp-spec.md`, nhưng chưa có stakeholder matrix riêng.
 - Đã có MoSCoW priority và acceptance criteria cho frontend MVP, nhưng chưa có trace đầy đủ theo từng requirement/user story.
 - Chưa có traceability matrix.
-- Chưa có API response standard, error code convention và endpoint detail.
+- API contract v1 đã có response standard, error code convention và endpoint detail ở mức đủ để lập backend plan; chưa có OpenAPI machine-readable spec.
 - Chưa có sequence diagram/spec cho các flow chính.
 - Chưa có ERD/backend database schema.
 
@@ -64,7 +65,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Dùng frontend MVP và Playwright smoke suite làm baseline khi tinh chỉnh workflow và responsive UI.
-2. Tiếp tục polish UI/UX theo `docs/04-planning/frontend-polish-plan.md`, ưu tiên các vấn đề thao tác trực tiếp trước khi polish dashboard rộng hơn.
-3. Sau khi UI workflow đủ ổn, viết API spec, sequence và backend design để thay mock service boundary bằng API client.
+1. Review API contract v1 ở `docs/03-architecture/api-contract.md`.
+2. Chốt backend stack trong `docs/05-history/decision-log.md`.
+3. Viết `docs/04-planning/backend-implementation-plan.md` dựa trên `docs/04-planning/api-contract-plan.md`.
+4. Sau khi backend plan được duyệt, triển khai backend theo từng package và giữ frontend Playwright suite làm regression baseline.
 4. Bổ sung traceability matrix và SRS khi API contract và backend workflow đủ ổn định.

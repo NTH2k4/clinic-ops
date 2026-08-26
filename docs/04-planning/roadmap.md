@@ -15,9 +15,10 @@
 
 ## Phase 2: API Contract
 
-- Chuyển mock service boundaries thành API contract.
-- Định nghĩa request và response schemas.
-- Định nghĩa error formats.
+- Chuyển mock service boundaries thành API contract v1.
+- Định nghĩa request và response schemas ở mức REST JSON contract.
+- Định nghĩa response envelope, pagination, error envelope và common error codes.
+- Chuẩn bị backend implementation plan dựa trên contract.
 
 ## Phase 3: Backend
 
