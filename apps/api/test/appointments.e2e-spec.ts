@@ -4,12 +4,24 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import request from "supertest";
 import type { App } from "supertest/types";
+import { z } from "zod";
 import { AppModule } from "../src/app.module";
 
 const execFileAsync = promisify(execFile);
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) throw new Error("DATABASE_URL is required for appointment e2e tests.");
+
+const loginSchema = z.object({ data: z.object({ sessionToken: z.string().min(1) }) });
+const appointmentDataSchema = z.object({
+  id: z.string(),
+  status: z.nativeEnum(AppointmentStatus),
+  endAt: z.string(),
+  statusHistory: z.array(z.object({ toStatus: z.nativeEnum(AppointmentStatus) })),
+});
+const appointmentResponseSchema = z.object({ data: appointmentDataSchema });
+const statusResponseSchema = z.object({ data: appointmentDataSchema.pick({ status: true, statusHistory: true }) });
+const errorResponseSchema = z.object({ error: z.object({ code: z.string() }) });
 
 describe("Appointment workflows", () => {
   const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
@@ -38,7 +50,7 @@ describe("Appointment workflows", () => {
       .post("/api/v1/auth/login")
       .send({ email, password: "careflow-demo" })
       .expect(201);
-    return response.body.data.sessionToken as string;
+    return loginSchema.parse(response.body).data.sessionToken;
   }
 
   async function createAppointment(server: App, token: string, startAt: string) {
@@ -47,7 +59,7 @@ describe("Appointment workflows", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({ patientId: "patient-1", doctorId: "doctor-1", serviceId: "service-general", startAt, reason: "Follow-up consultation" })
       .expect(201);
-    return response.body.data as { id: string; status: AppointmentStatus; endAt: string };
+    return appointmentResponseSchema.parse(response.body).data;
   }
 
   it("creates a requested appointment for a patient and records its history and audit event", async () => {
@@ -57,6 +69,7 @@ describe("Appointment workflows", () => {
       const appointment = await createAppointment(server, patientToken, "2026-08-25T01:00:00.000Z");
 
       expect(appointment).toMatchObject({ status: AppointmentStatus.requested, endAt: "2026-08-25T01:30:00.000Z" });
+      expect(appointment.statusHistory.map((history) => history.toStatus)).toEqual([AppointmentStatus.requested]);
       await expect(prisma.appointmentStatusHistory.findFirstOrThrow({ where: { appointmentId: appointment.id }, select: { fromStatus: true, toStatus: true, actorUserId: true } }))
         .resolves.toEqual({ fromStatus: null, toStatus: AppointmentStatus.requested, actorUserId: "user-patient-1" });
       await expect(prisma.auditEvent.findFirstOrThrow({ where: { appointmentId: appointment.id, action: "appointment_created" }, select: { actorUserId: true, entityType: true, entityId: true } }))
@@ -88,9 +101,15 @@ describe("Appointment workflows", () => {
         .post(`/api/v1/appointments/${appointment.id}/check-in`)
         .set("Authorization", `Bearer ${receptionistToken}`)
         .expect(201)
-        .expect((response) => expect(response.body.data.status).toBe(AppointmentStatus.checked_in));
+        .expect((response) => {
+          const appointment = statusResponseSchema.parse(response.body).data;
+          expect(appointment.status).toBe(AppointmentStatus.checked_in);
+          expect(appointment.statusHistory.map((history) => history.toStatus))
+            .toEqual([AppointmentStatus.confirmed, AppointmentStatus.checked_in]);
+        });
 
-      await expect(prisma.appointment.findUniqueOrThrow({ where: { id: appointment.id }, select: { checkedInAt: true } })).resolves.toMatchObject({ checkedInAt: expect.any(Date) });
+      const checkedInAppointment = await prisma.appointment.findUniqueOrThrow({ where: { id: appointment.id }, select: { checkedInAt: true } });
+      expect(checkedInAppointment.checkedInAt).not.toBeNull();
       await expect(prisma.auditEvent.findFirst({ where: { appointmentId: appointment.id, action: "appointment_checked_in" } })).resolves.not.toBeNull();
     } finally {
       await app.close();
@@ -109,9 +128,10 @@ describe("Appointment workflows", () => {
         .post(`/api/v1/appointments/${appointment.id}/start`)
         .set("Authorization", `Bearer ${doctorToken}`)
         .expect(201)
-        .expect((response) => expect(response.body.data.status).toBe(AppointmentStatus.in_progress));
+        .expect((response) => expect(statusResponseSchema.parse(response.body).data.status).toBe(AppointmentStatus.in_progress));
 
-      await expect(prisma.appointment.findUniqueOrThrow({ where: { id: appointment.id }, select: { startedAt: true } })).resolves.toMatchObject({ startedAt: expect.any(Date) });
+      const startedAppointment = await prisma.appointment.findUniqueOrThrow({ where: { id: appointment.id }, select: { startedAt: true } });
+      expect(startedAppointment.startedAt).not.toBeNull();
     } finally {
       await app.close();
     }
@@ -130,9 +150,10 @@ describe("Appointment workflows", () => {
         .post(`/api/v1/appointments/${appointment.id}/complete`)
         .set("Authorization", `Bearer ${doctorToken}`)
         .expect(201)
-        .expect((response) => expect(response.body.data.status).toBe(AppointmentStatus.completed));
+        .expect((response) => expect(statusResponseSchema.parse(response.body).data.status).toBe(AppointmentStatus.completed));
 
-      await expect(prisma.appointment.findUniqueOrThrow({ where: { id: appointment.id }, select: { completedAt: true } })).resolves.toMatchObject({ completedAt: expect.any(Date) });
+      const completedAppointment = await prisma.appointment.findUniqueOrThrow({ where: { id: appointment.id }, select: { completedAt: true } });
+      expect(completedAppointment.completedAt).not.toBeNull();
       await expect(prisma.auditEvent.findFirst({ where: { appointmentId: appointment.id, action: "appointment_completed" } })).resolves.not.toBeNull();
     } finally {
       await app.close();
@@ -148,7 +169,67 @@ describe("Appointment workflows", () => {
         .post("/api/v1/appointments/appointment-5/complete")
         .set("Authorization", `Bearer ${patientToken}`)
         .expect(403)
-        .expect((response) => expect(response.body.error.code).toBe("FORBIDDEN"));
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("FORBIDDEN"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("confirms a requested appointment as a receptionist and records the transition", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+      const receptionistToken = await login(server, "reception@careflow.local");
+      const appointment = await createAppointment(server, patientToken, "2026-08-25T02:00:00.000Z");
+
+      await request(server)
+        .post(`/api/v1/appointments/${appointment.id}/confirm`)
+        .set("Authorization", `Bearer ${receptionistToken}`)
+        .expect(201)
+        .expect((response) => {
+          const appointment = statusResponseSchema.parse(response.body).data;
+          expect(appointment.status).toBe(AppointmentStatus.confirmed);
+          expect(appointment.statusHistory.map((history) => history.toStatus))
+            .toEqual([AppointmentStatus.requested, AppointmentStatus.confirmed]);
+        });
+
+      await expect(prisma.auditEvent.findFirst({ where: { appointmentId: appointment.id, action: "appointment_confirmed" } })).resolves.not.toBeNull();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("requires a non-blank cancellation reason from staff", async () => {
+    const { app, server } = await createApp();
+    try {
+      const receptionistToken = await login(server, "reception@careflow.local");
+      const appointment = await createAppointment(server, receptionistToken, "2026-08-25T02:00:00.000Z");
+
+      await request(server)
+        .post(`/api/v1/appointments/${appointment.id}/cancel`)
+        .set("Authorization", `Bearer ${receptionistToken}`)
+        .send({ cancellationReason: "  " })
+        .expect(400)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("allows only one concurrent active appointment for the same slot", async () => {
+    const { app, server } = await createApp();
+    try {
+      const receptionistToken = await login(server, "reception@careflow.local");
+      const requestBody = { patientId: "patient-1", doctorId: "doctor-1", serviceId: "service-general", startAt: "2026-08-25T06:00:00.000Z" };
+      const responses = await Promise.all([
+        request(server).post("/api/v1/appointments").set("Authorization", `Bearer ${receptionistToken}`).send(requestBody),
+        request(server).post("/api/v1/appointments").set("Authorization", `Bearer ${receptionistToken}`).send(requestBody),
+      ]);
+
+      expect(responses.map((response) => response.status).sort()).toEqual([201, 409]);
+      await expect(prisma.appointment.count({
+        where: { doctorId: "doctor-1", startAt: new Date("2026-08-25T06:00:00.000Z"), status: AppointmentStatus.confirmed },
+      })).resolves.toBe(1);
     } finally {
       await app.close();
     }
@@ -164,7 +245,7 @@ describe("Appointment workflows", () => {
         .set("Authorization", `Bearer ${receptionistToken}`)
         .send({ startAt: "2026-08-25T06:00:00.000Z" })
         .expect(409)
-        .expect((response) => expect(response.body.error.code).toBe("INVALID_APPOINTMENT_TRANSITION"));
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("INVALID_APPOINTMENT_TRANSITION"));
     } finally {
       await app.close();
     }

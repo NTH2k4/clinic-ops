@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { AppointmentStatus, type Prisma, UserRole } from "@prisma/client";
+import { AppointmentStatus, Prisma, UserRole } from "@prisma/client";
 import type { AuthSession } from "../auth/auth.service";
 import { ApiError } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
@@ -16,6 +16,8 @@ const appointmentDetail = {
   statusHistory: { orderBy: { changedAt: "asc" as const } },
 };
 
+const transactionAttempts = 3;
+
 @Injectable()
 export class AppointmentsService {
   constructor(
@@ -30,7 +32,7 @@ export class AppointmentsService {
     const doctorId = this.optionalString(input.doctorId);
     const status = actor.role === UserRole.patient ? AppointmentStatus.requested : AppointmentStatus.confirmed;
 
-    return this.prisma.$transaction(async (transaction) => {
+    return this.serializableTransaction(async (transaction) => {
       await this.require(transaction.patient.findUnique({ where: { id: patientId } }), "patient");
       const slot = await this.conflicts.assertSlotAvailable({ doctorId, serviceId, startAt, transaction });
       const appointment = await transaction.appointment.create({
@@ -45,11 +47,11 @@ export class AppointmentsService {
           internalNote: this.optionalString(input.internalNote),
           createdByUserId: actor.id,
         },
-        include: appointmentDetail,
+        select: { id: true },
       });
       await transaction.appointmentStatusHistory.create({ data: { appointmentId: appointment.id, toStatus: status, actorUserId: actor.id } });
       await this.audit(transaction, actor.id, appointment.id, "appointment_created", { status });
-      return appointment;
+      return this.detail(transaction, appointment.id);
     });
   }
 
@@ -60,7 +62,12 @@ export class AppointmentsService {
       this.assertAppointmentActor(appointment, actor, linkedProfile, target);
 
       const now = new Date();
-      const updated = await transaction.appointment.update({
+      const cancellationReason = target === AppointmentStatus.cancelled
+        ? actor.role === UserRole.patient
+          ? this.optionalString(input.cancellationReason)
+          : this.requiredString(input.cancellationReason, "cancellationReason")
+        : undefined;
+      await transaction.appointment.update({
         where: { id },
         data: {
           status: target,
@@ -68,15 +75,14 @@ export class AppointmentsService {
           ...(target === AppointmentStatus.checked_in ? { checkedInAt: now } : {}),
           ...(target === AppointmentStatus.in_progress ? { startedAt: now } : {}),
           ...(target === AppointmentStatus.completed ? { completedAt: now } : {}),
-          ...(target === AppointmentStatus.cancelled ? { cancelledAt: now, cancellationReason: this.optionalString(input.cancellationReason) } : {}),
+          ...(target === AppointmentStatus.cancelled ? { cancelledAt: now, cancellationReason } : {}),
         },
-        include: appointmentDetail,
       });
       await transaction.appointmentStatusHistory.create({
         data: { appointmentId: id, fromStatus: appointment.status, toStatus: target, actorUserId: actor.id, note: this.optionalString(input.note) },
       });
       await this.audit(transaction, actor.id, id, this.transitionAuditAction(target), { fromStatus: appointment.status, toStatus: target });
-      return updated;
+      return this.detail(transaction, id);
     });
   }
 
@@ -88,7 +94,7 @@ export class AppointmentsService {
       throw new ApiError(400, "VALIDATION_ERROR", "At least one appointment field is required.");
     }
 
-    return this.prisma.$transaction(async (transaction) => {
+    return this.serializableTransaction(async (transaction) => {
       const appointment = await this.require(transaction.appointment.findUnique({ where: { id } }), "appointment");
       if (([AppointmentStatus.completed, AppointmentStatus.cancelled, AppointmentStatus.no_show] as AppointmentStatus[]).includes(appointment.status)) {
         throw new ApiError(409, "INVALID_APPOINTMENT_TRANSITION", "Terminal appointments cannot be rescheduled.");
@@ -101,7 +107,7 @@ export class AppointmentsService {
         excludeAppointmentId: appointment.id,
         transaction,
       });
-      const updated = await transaction.appointment.update({
+      await transaction.appointment.update({
         where: { id },
         data: {
           doctorId: slot.doctor.id,
@@ -111,13 +117,12 @@ export class AppointmentsService {
           updatedByUserId: actor.id,
           ...(input.internalNote === undefined ? {} : { internalNote: this.optionalString(input.internalNote) }),
         },
-        include: appointmentDetail,
       });
       await this.audit(transaction, actor.id, id, "appointment_rescheduled", {
         oldStartAt: appointment.startAt.toISOString(), oldEndAt: appointment.endAt.toISOString(),
         newStartAt: slot.startAt.toISOString(), newEndAt: slot.endAt.toISOString(),
       });
-      return updated;
+      return this.detail(transaction, id);
     });
   }
 
@@ -143,6 +148,7 @@ export class AppointmentsService {
 
   private transitionAuditAction(status: AppointmentStatus) {
     const actions: Partial<Record<AppointmentStatus, string>> = {
+      confirmed: "appointment_confirmed",
       cancelled: "appointment_cancelled",
       checked_in: "appointment_checked_in",
       in_progress: "appointment_started",
@@ -154,6 +160,27 @@ export class AppointmentsService {
 
   private audit(transaction: Prisma.TransactionClient, actorUserId: string, appointmentId: string, action: string, metadata: Prisma.InputJsonValue) {
     return transaction.auditEvent.create({ data: { actorUserId, appointmentId, entityType: "appointment", entityId: appointmentId, action, metadata } });
+  }
+
+  private async serializableTransaction<T>(work: (transaction: Prisma.TransactionClient) => Promise<T>) {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < transactionAttempts; attempt += 1) {
+      try {
+        return await this.prisma.$transaction(work, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+      } catch (error) {
+        lastError = error;
+        if (!this.isSerializationFailure(error) || attempt === transactionAttempts - 1) throw error;
+      }
+    }
+    throw lastError;
+  }
+
+  private isSerializationFailure(error: unknown) {
+    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+  }
+
+  private detail(transaction: Prisma.TransactionClient, id: string) {
+    return this.require(transaction.appointment.findUnique({ where: { id }, include: appointmentDetail }), "appointment");
   }
 
   private requiredString(value: unknown, field: string) {

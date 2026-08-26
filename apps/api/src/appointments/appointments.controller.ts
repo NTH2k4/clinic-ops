@@ -24,6 +24,13 @@ export class AppointmentsController {
     return successEnvelope(await this.appointments.reschedule(id, body, request.currentUser));
   }
 
+  @Post(":id/confirm")
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.receptionist, UserRole.nurse, UserRole.admin)
+  async confirm(@Param("id") id: string, @Body() body: Record<string, unknown> = {}, @Req() request: AuthenticatedRequest) {
+    return successEnvelope(await this.appointments.transition(id, AppointmentStatus.confirmed, body, request.currentUser, request.linkedProfile));
+  }
+
   @Post(":id/cancel")
   @UseGuards(RolesGuard)
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
