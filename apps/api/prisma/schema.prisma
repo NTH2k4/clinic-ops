@@ -84,7 +84,7 @@ model Patient {
   fullName     String
   phone        String        @unique
   email        String?
-  dateOfBirth  DateTime?
+  dateOfBirth  DateTime?      @db.Date
   gender       String?
   address      String?
   notes        String?
