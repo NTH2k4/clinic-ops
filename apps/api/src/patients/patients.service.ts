@@ -29,7 +29,7 @@ export class PatientsService {
 
   async update(id: string, input: PatientInput) {
     await this.patient(id);
-    return this.prisma.patient.update({ where: { id }, data: this.data(input, false) as Prisma.PatientUpdateInput });
+    return this.prisma.patient.update({ where: { id }, data: this.data(input, false) });
   }
 
   async deactivate(id: string, actorUserId: string) {

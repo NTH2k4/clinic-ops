@@ -24,6 +24,10 @@ const serviceSchema = z.object({
   meta: z.object({ requestId: z.string().min(1) }),
 });
 
+const patientSchema = z.object({
+  data: z.object({ userId: z.string() }),
+});
+
 const errorSchema = z.object({
   error: z.object({ code: z.string() }),
   meta: z.object({ requestId: z.string().min(1) }),
@@ -179,7 +183,7 @@ describe("Catalog resources", () => {
         .set("Authorization", `Bearer ${patientToken}`)
         .send({ fullName: "New Patient", phone: `+84929${suffix.slice(-6)}` })
         .expect(201)
-        .expect((response) => expect(response.body.data.userId).toBe(user.id));
+        .expect((response) => expect(patientSchema.parse(response.body).data.userId).toBe(user.id));
     } finally {
       await app.close();
     }

@@ -17,7 +17,7 @@ export class PatientsController {
   async list(@Req() request: AuthenticatedRequest, @Query("q") q?: string, @Query("status") status?: string) { return successEnvelope(await this.patients.list(q, status, request.currentUser.role === UserRole.admin)); }
 
   @Get(":id")
-  async detail(@Param("id") id: string, @Req() request: AuthenticatedRequest) { await this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.patient(id)); }
+  async detail(@Param("id") id: string, @Req() request: AuthenticatedRequest) { this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.patient(id)); }
 
   @Post()
   @UseGuards(RolesGuard)
@@ -28,14 +28,14 @@ export class PatientsController {
   }
 
   @Patch(":id")
-  async update(@Param("id") id: string, @Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { await this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.update(id, body)); }
+  async update(@Param("id") id: string, @Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.update(id, body)); }
 
   @Post(":id/deactivate")
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async deactivate(@Param("id") id: string, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.patients.deactivate(id, request.currentUser.id)); }
 
-  private async assertOwnerOrStaff(id: string, request: AuthenticatedRequest) {
+  private assertOwnerOrStaff(id: string, request: AuthenticatedRequest) {
     if (request.currentUser.role !== UserRole.patient) return;
     if (request.linkedProfile?.type !== "patient" || request.linkedProfile.id !== id) throw new ApiError(403, "FORBIDDEN", "You do not have permission to access this resource.");
   }
