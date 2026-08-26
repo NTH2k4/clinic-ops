@@ -25,11 +25,13 @@ npm run dev -- --host 0.0.0.0
 
 Fixtures khởi tạo nằm ở `src/mocks/fixtures.ts`; `src/mocks/mockStore.ts` tạo in-memory mutable store cho mỗi phiên chạy. Các mutation appointment đi qua `src/features/appointments/appointmentService.ts`, đóng vai trò mock API boundary.
 
-Khi có backend, thay implementation của service boundary bằng API client (và chuyển fixtures/mock store thành test fixtures) mà không để route-level UI gọi HTTP trực tiếp. TanStack Query và feature components giữ nguyên consumer boundary.
+Backend API v1 hiện có ở `apps/api`, nhưng web vẫn chạy mock mode trong Phase 3. Phase 4 sẽ thay implementation của service boundary bằng API client (và chuyển fixtures/mock store thành test fixtures) mà không để route-level UI gọi HTTP trực tiếp. TanStack Query và feature components giữ nguyên consumer boundary.
+
+API integration dùng `VITE_DATA_SOURCE=mock|api` và `VITE_API_BASE_URL=/api/v1`; `mock` là default. Kế hoạch migration, auth session, query invalidation và Playwright gates nằm tại [frontend API integration plan](../../docs/04-planning/frontend-api-integration-plan.md).
 
 ## Auth Và Session
 
-Đây là mock auth để demo theo role. Session chỉ được giữ trong React state, không có real authentication và không lưu password trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
+Mock mode dùng mock auth để demo theo role. API mode sẽ dùng `POST /api/v1/auth/login`, `POST /api/v1/auth/logout` và `GET /api/v1/auth/me`; bearer session token chỉ giữ trong React state. Cả hai mode đều không lưu password hoặc session token trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
 
 ## Scripts
 

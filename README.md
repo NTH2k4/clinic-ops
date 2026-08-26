@@ -24,7 +24,7 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 
 ## Frontend Và CI/CD
 
-Frontend hiện nằm trong `apps/web` và dùng React + Vite + TypeScript. GitHub Actions kiểm tra Pull Request bằng workflow `Web CI` và deploy bản merge vào `main` lên GitHub Pages bằng workflow `Web Pages`.
+Frontend hiện nằm trong `apps/web` và dùng React + Vite + TypeScript. GitHub Actions kiểm tra Pull Request bằng workflow `Web CI` và deploy bản merge vào `main` lên GitHub Pages bằng workflow `Web Pages`. Mock data vẫn là default cho đến Phase 4 API integration.
 
 Sau khi bật Pages source là **GitHub Actions** trong repository settings, app có thể xem tại:
 
@@ -34,16 +34,23 @@ https://nth2k4.github.io/clinic-ops/
 
 ## Backend
 
-Backend bắt đầu ở `apps/api` và dùng Node.js + NestJS + TypeScript. Scaffold hiện có health endpoint tại `/api/v1/health`; PostgreSQL local được khai báo trong `docker-compose.yml`.
+Backend nằm ở `apps/api` và dùng Node.js + NestJS + Prisma + PostgreSQL. API v1 dùng base path `/api/v1` và đã có auth bearer session, catalog, appointment conflict/status workflow, audit events và notifications. PostgreSQL local được khai báo trong `docker-compose.yml`.
+
+API CI chạy Prisma generate, migrate deploy, deterministic seed, typecheck, lint, unit/E2E tests, build và high-severity dependency audit cho thay đổi `apps/api`.
 
 Các lệnh kiểm tra backend:
 
 ```bash
 cd apps/api
+npm run prisma:generate
+DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npx prisma migrate deploy
+DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run prisma:seed
 npm test -- --runInBand
 npm run test:e2e -- --runInBand
 npm run typecheck
 npm run lint
 npm run build
-npm audit
+npm audit --audit-level=high
 ```
+
+Kế hoạch thay mock service bằng API client nằm tại `docs/04-planning/frontend-api-integration-plan.md`.

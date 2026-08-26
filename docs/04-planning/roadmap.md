@@ -22,14 +22,16 @@
 
 ## Phase 3: Backend
 
-- Triển khai Node.js/NestJS/Prisma/PostgreSQL backend theo `backend-implementation-plan.md`.
-- Triển khai authentication và role access.
-- Triển khai catalog resources và admin deactivate workflow.
-- Triển khai appointment domain, schedule conflict checks và status transitions.
-- Triển khai audit logging và notifications.
+- Hoàn thành Node.js/NestJS/Prisma/PostgreSQL backend theo `backend-implementation-plan.md`.
+- Hoàn thành authentication và role access.
+- Hoàn thành catalog resources và admin deactivate workflow.
+- Hoàn thành appointment domain, schedule conflict checks và status transitions.
+- Hoàn thành audit logging và notifications.
+- Thêm API CI: Prisma generate/migrate/seed, typecheck, lint, unit/E2E, build và high-severity dependency audit.
 
 ## Phase 4: Tích Hợp
 
-- Thay mock services bằng backend API client.
-- Thêm end-to-end workflow verification.
+- Thay mock services bằng backend API client theo `frontend-api-integration-plan.md`.
+- Thay mock auth bằng backend session và giữ mock/API feature switch trong lúc migration.
+- Thêm API-mode Playwright regression gates bên cạnh mock smoke tests.
 - Polish UI và release notes.
