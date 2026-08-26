@@ -1,0 +1,123 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createAuthApi } from "./auth";
+import { ApiClientError } from "./errors";
+import { createApiHttpClient } from "./http";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.resetModules();
+});
+
+describe("API data source config", () => {
+  it("defaults to mock mode and /api/v1 base URL", async () => {
+    vi.resetModules();
+    vi.stubEnv("VITE_DATA_SOURCE", undefined);
+    vi.stubEnv("VITE_API_BASE_URL", undefined);
+
+    const config = await import("../dataSource");
+
+    expect(config.dataSource).toBe("mock");
+    expect(config.isApiMode).toBe(false);
+    expect(config.apiBaseUrl).toBe("/api/v1");
+  });
+
+  it("enables API mode only for the api data source value", async () => {
+    vi.resetModules();
+    vi.stubEnv("VITE_DATA_SOURCE", "api");
+    vi.stubEnv("VITE_API_BASE_URL", "https://api.example.test/api/v1");
+
+    const config = await import("../dataSource");
+
+    expect(config.dataSource).toBe("api");
+    expect(config.isApiMode).toBe(true);
+    expect(config.apiBaseUrl).toBe("https://api.example.test/api/v1");
+  });
+});
+
+describe("API HTTP client", () => {
+  it("returns success envelope data and sends the bearer token", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ data: { id: "user-1" }, meta: { requestId: "req-1" } }), { status: 200 }),
+    );
+    const client = createApiHttpClient({
+      baseUrl: "/api/v1",
+      getToken: () => "token-1",
+      fetcher,
+    });
+
+    await expect(client.request<{ id: string }>("/auth/me")).resolves.toEqual({ id: "user-1" });
+
+    const [, init] = fetcher.mock.calls[0];
+    expect(fetcher).toHaveBeenCalledWith("/api/v1/auth/me", expect.any(Object));
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer token-1");
+  });
+
+  it("preserves API error details from error envelopes", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Request validation failed.",
+            fields: { email: ["Invalid email address."] },
+          },
+          meta: { requestId: "req-400" },
+        }),
+        { status: 400 },
+      ),
+    );
+    const client = createApiHttpClient({ baseUrl: "/api/v1", getToken: () => null, fetcher });
+
+    const error = await client.request("/auth/login").catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(ApiClientError);
+    expect(error).toMatchObject({
+      code: "VALIDATION_ERROR",
+      message: "Request validation failed.",
+      fields: { email: ["Invalid email address."] },
+      requestId: "req-400",
+      status: 400,
+    });
+  });
+
+  it("calls the unauthenticated handler for UNAUTHENTICATED responses", async () => {
+    const onUnauthenticated = vi.fn();
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error: { code: "UNAUTHENTICATED", message: "Authentication is required." },
+          meta: { requestId: "req-401" },
+        }),
+        { status: 401 },
+      ),
+    );
+    const client = createApiHttpClient({ baseUrl: "/api/v1", getToken: () => null, onUnauthenticated, fetcher });
+
+    await expect(client.request("/auth/me")).rejects.toMatchObject({ code: "UNAUTHENTICATED" });
+
+    expect(onUnauthenticated).toHaveBeenCalledOnce();
+  });
+});
+
+describe("auth API", () => {
+  it("uses the auth endpoints with their required methods and login payload", async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce({ sessionToken: "session-1", user: { id: "user-1" } })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ user: { id: "user-1" } });
+    const authApi = createAuthApi(request);
+
+    await expect(authApi.login({ email: "patient@example.test", password: "secret" })).resolves.toMatchObject({
+      sessionToken: "session-1",
+    });
+    await expect(authApi.logout()).resolves.toBeUndefined();
+    await expect(authApi.me()).resolves.toMatchObject({ user: { id: "user-1" } });
+
+    expect(request).toHaveBeenNthCalledWith(1, "/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email: "patient@example.test", password: "secret" }),
+    });
+    expect(request).toHaveBeenNthCalledWith(2, "/auth/logout", { method: "POST" });
+    expect(request).toHaveBeenNthCalledWith(3, "/auth/me");
+  });
+});
