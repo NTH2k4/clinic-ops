@@ -9,7 +9,7 @@ import type { Notification } from "../../types/models";
 export interface NotificationService {
   listNotifications(userId: string, filters?: NotificationListFilters): Promise<ApiListResponse<Notification>>;
   markRead(id: string): Promise<Notification>;
-  markAllRead(): Promise<number>;
+  markAllRead(userId: string): Promise<number>;
 }
 
 export interface NotificationServiceOptions {
@@ -67,9 +67,9 @@ export function createNotificationService(options: NotificationServiceOptions): 
       if (!notification.readAt) notification.readAt = new Date().toISOString();
       return structuredClone(notification);
     },
-    async markAllRead() {
+    async markAllRead(userId) {
       if (api) return (await api.markAllRead()).count;
-      const unread = mockStore.notifications.filter((notification) => !notification.readAt);
+      const unread = mockStore.notifications.filter((notification) => notification.recipientUserId === userId && !notification.readAt);
       const readAt = new Date().toISOString();
       unread.forEach((notification) => { notification.readAt = readAt; });
       return unread.length;

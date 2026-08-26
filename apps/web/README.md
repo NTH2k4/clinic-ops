@@ -31,7 +31,7 @@ API integration dùng `VITE_DATA_SOURCE=mock|api` và `VITE_API_BASE_URL=/api/v1
 
 ## Auth Và Session
 
-Mock mode dùng mock auth để demo theo role. API mode sẽ dùng `POST /api/v1/auth/login`, `POST /api/v1/auth/logout` và `GET /api/v1/auth/me`; bearer session token chỉ giữ trong React state. Cả hai mode đều không lưu password hoặc session token trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
+Mock mode dùng mock auth để demo theo role. API mode dùng `POST /api/v1/auth/login` để lấy `currentUser`, `linkedProfile` và bearer session token, rồi dùng `POST /api/v1/auth/logout` khi đăng xuất; `GET /api/v1/auth/me` vẫn thuộc backend contract nhưng frontend không dùng để hydrate session vì token không được persist. Cả hai mode đều không lưu password hoặc session token trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
 
 ## Scripts
 
