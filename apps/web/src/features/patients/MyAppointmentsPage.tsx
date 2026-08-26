@@ -32,6 +32,7 @@ export function MyAppointmentsPage() {
   const patientId = linkedProfile?.type === "patient" ? linkedProfile.id : mockPatient?.id;
   const [tab, setTab] = useState<AppointmentTab>("upcoming");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const appointmentOptions = appointmentQueryOptions.list({ patientId });
   const { data: appointments = [] } = useQuery({ ...appointmentOptions, enabled: Boolean(patientId) });
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
@@ -41,10 +42,16 @@ export function MyAppointmentsPage() {
 
   async function cancel(appointmentId: string) {
     if (!user || !patientId) return;
-    const updated = await appointmentService.cancelAppointment(appointmentId, { actorUserId: user.id, cancellationReason: "Bệnh nhân hủy lịch qua cổng thông tin." });
-    queryClient.setQueryData<Appointment[]>(appointmentOptions.queryKey, (current = []) =>
-      current.map((appointment) => appointment.id === updated.id ? updated : appointment));
-    setMessage("Lịch hẹn đã được hủy.");
+    setError("");
+
+    try {
+      const updated = await appointmentService.cancelAppointment(appointmentId, { actorUserId: user.id, cancellationReason: "Bệnh nhân hủy lịch qua cổng thông tin." });
+      queryClient.setQueryData<Appointment[]>(appointmentOptions.queryKey, (current = []) =>
+        current.map((appointment) => appointment.id === updated.id ? updated : appointment));
+      setMessage("Lịch hẹn đã được hủy.");
+    } catch {
+      setError("Không thể hủy lịch hẹn. Vui lòng thử lại.");
+    }
   }
 
   const tabCounts = Object.fromEntries(
@@ -59,6 +66,7 @@ export function MyAppointmentsPage() {
       <h1 className="mt-1 text-2xl font-semibold text-text">Lịch của tôi</h1>
       <p className="mt-2 text-sm text-text-muted">Bạn có {visibleAppointments.length} lịch hẹn {activeTab.summary}.</p>
       {message && <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-success" role="status">{message}</p>}
+      {error && <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger" role="alert">{error}</p>}
       <div aria-label="Loại lịch hẹn" className="mt-5 flex overflow-x-auto border-b border-border" role="tablist">
         {tabs.map((item) => {
           const label = `${item.label} (${tabCounts[item.id]})`;

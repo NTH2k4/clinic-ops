@@ -3,7 +3,7 @@ import { createApiHttpClient } from "../../lib/api/http";
 import { mapAppointment } from "../../lib/api/mappers";
 import { createAppointmentsApi } from "../../lib/api/appointments";
 import type { AppointmentCreateInput as ApiAppointmentCreateInput, AppointmentListFilters, AppointmentsApi, AppointmentTransition, AppointmentUpdateInput } from "../../lib/api/appointments";
-import { getApiSessionToken } from "../../lib/api/session";
+import { clearApiSession, getApiSessionToken } from "../../lib/api/session";
 import { apiBaseUrl, dataSource } from "../../lib/dataSource";
 import { createId } from "../../lib/ids";
 import { mockStore } from "../../mocks/mockStore";
@@ -94,7 +94,7 @@ async function fromApi<T>(request: () => Promise<T>): Promise<T> {
 }
 
 function defaultApi(fetcher?: typeof fetch): AppointmentsApi {
-  const client = createApiHttpClient({ baseUrl: apiBaseUrl, getToken: getApiSessionToken, fetcher });
+  const client = createApiHttpClient({ baseUrl: apiBaseUrl, getToken: getApiSessionToken, onUnauthenticated: clearApiSession, fetcher });
   return createAppointmentsApi(client.request, client.requestEnvelope);
 }
 

@@ -64,4 +64,22 @@ describe("patientService in API mode", () => {
       body: JSON.stringify({ phone: "0911111111" }),
     }));
   });
+
+  it("clears the in-memory API session and query cache after an unauthenticated response", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      error: { code: "UNAUTHENTICATED", message: "Authentication is required." },
+      meta: { requestId: "req-unauthenticated" },
+    }), { status: 401 }));
+    const { queryClient } = await import("../../lib/queryClient");
+    const { getApiSessionToken, setApiSessionToken } = await import("../../lib/api/session");
+    const { createPatientService } = await import("./patientService");
+    const service = createPatientService({ source: "api", fetcher });
+    setApiSessionToken("patient-session-token");
+    queryClient.setQueryData(["patients", "stale"], { value: "stale" });
+
+    await expect(service.getPatient("patient-api-1")).rejects.toMatchObject({ code: "UNAUTHENTICATED" });
+
+    expect(getApiSessionToken()).toBeNull();
+    expect(queryClient.getQueryData(["patients", "stale"])).toBeUndefined();
+  });
 });

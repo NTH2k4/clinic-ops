@@ -3,9 +3,8 @@ import type { PropsWithChildren } from "react";
 import { createAuthApi } from "../../lib/api/auth";
 import type { CurrentUser, LinkedProfileRef } from "../../lib/api/auth";
 import { createApiHttpClient } from "../../lib/api/http";
-import { getApiSessionToken, setApiSessionToken } from "../../lib/api/session";
+import { clearApiSession, getApiSessionToken, setApiSessionToken } from "../../lib/api/session";
 import { apiBaseUrl, isApiMode } from "../../lib/dataSource";
-import { queryClient } from "../../lib/queryClient";
 import { mockStore } from "../../mocks/mockStore";
 import type { User, UserRole } from "../../types/models";
 
@@ -43,10 +42,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [authError, setAuthError] = useState<string | null>(null);
 
   const clearApiAuth = useCallback(() => {
-    setApiSessionToken(null);
+    clearApiSession();
     setUser(null);
     setLinkedProfile(null);
-    queryClient.clear();
   }, []);
 
   const authApi = useMemo(() => {

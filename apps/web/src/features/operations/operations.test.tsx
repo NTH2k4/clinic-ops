@@ -1,10 +1,11 @@
 import userEvent from "@testing-library/user-event";
 import { cleanup, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { CreateAppointmentPage } from "./CreateAppointmentPage";
 import { OperationsCalendar } from "./OperationsCalendar";
 import { OperationsDashboard } from "./OperationsDashboard";
 import { QueuePage } from "./QueuePage";
+import { appointmentService } from "../appointments/appointmentService";
 import { mockStore } from "../../mocks/mockStore";
 import { expectClinicDateField, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
@@ -25,6 +26,29 @@ describe("operations workspace", () => {
     const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
     await user.click(within(confirmedGroup).getAllByRole("button", { name: "Check-in" })[0]);
     expect(screen.getByText("Đã check-in")).toBeInTheDocument();
+  });
+
+  it("shows an error when a queue status update fails", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(appointmentService, "updateAppointmentStatus").mockRejectedValueOnce(new Error("Request failed"));
+    renderWithProviders(<QueuePage />);
+
+    const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
+    await user.click(within(confirmedGroup).getAllByRole("button", { name: "Check-in" })[0]);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không thể cập nhật lịch hẹn. Vui lòng thử lại.");
+  });
+
+  it("shows an error when queue cancellation fails", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(appointmentService, "cancelAppointment").mockRejectedValueOnce(new Error("Request failed"));
+    renderWithProviders(<QueuePage />);
+
+    const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
+    await user.click(within(confirmedGroup).getAllByRole("button", { name: /Hủy lịch .+/ })[0]);
+    await user.click(screen.getByRole("button", { name: "Hủy lịch" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không thể hủy lịch hẹn. Vui lòng thử lại.");
   });
 
   it("shows queue lane descriptions and cancellation confirmation context", async () => {

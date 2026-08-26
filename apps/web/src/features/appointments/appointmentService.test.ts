@@ -339,6 +339,23 @@ describe("appointmentService in API mode", () => {
     }));
   });
 
+  it("clears the in-memory API session and query cache after an unauthenticated response", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      error: { code: "UNAUTHENTICATED", message: "Authentication is required." },
+      meta: { requestId: "req-unauthenticated" },
+    }), { status: 401 }));
+    const service = await apiModeService(fetcher);
+    const { queryClient } = await import("../../lib/queryClient");
+    const { getApiSessionToken, setApiSessionToken } = await import("../../lib/api/session");
+    setApiSessionToken("appointment-session-token");
+    queryClient.setQueryData(["appointments", "stale"], { value: "stale" });
+
+    await expect(service.getAppointment("appointment-api-1")).rejects.toMatchObject({ code: "UNAUTHENTICATED" });
+
+    expect(getApiSessionToken()).toBeNull();
+    expect(queryClient.getQueryData(["appointments", "stale"])).toBeUndefined();
+  });
+
   it("reschedules with PATCH and leaves endAt to the backend", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(apiSuccess({
       ...apiAppointment,

@@ -169,4 +169,14 @@ describe("patient portal", () => {
     const cancelledList = screen.getByRole("tabpanel", { name: "Đã hủy (1)" });
     expect(within(cancelledList).queryByRole("button", { name: /Hủy lịch .+/ })).not.toBeInTheDocument();
   });
+
+  it("shows an error when appointment cancellation fails", async () => {
+    const user = await signInAsPatient();
+    vi.spyOn(appointmentService, "cancelAppointment").mockRejectedValueOnce(new Error("Request failed"));
+
+    await user.click(within(screen.getByRole("navigation", { name: "Điều hướng chính" })).getByRole("link", { name: "Lịch của tôi" }));
+    await user.click((await screen.findAllByRole("button", { name: /Hủy lịch .+/ }))[0]);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không thể hủy lịch hẹn. Vui lòng thử lại.");
+  });
 });

@@ -2,7 +2,7 @@ import { createApiHttpClient } from "../../lib/api/http";
 import { mapPatient } from "../../lib/api/mappers";
 import { createPatientsApi } from "../../lib/api/patients";
 import type { PatientCreateInput, PatientListFilters, PatientsApi, PatientUpdateInput } from "../../lib/api/patients";
-import { getApiSessionToken } from "../../lib/api/session";
+import { clearApiSession, getApiSessionToken } from "../../lib/api/session";
 import type { ApiListMeta, ApiListResponse } from "../../lib/api/types";
 import { apiBaseUrl, dataSource } from "../../lib/dataSource";
 import { createId } from "../../lib/ids";
@@ -24,7 +24,7 @@ export interface PatientServiceOptions {
 }
 
 function defaultApi(fetcher?: typeof fetch): PatientsApi {
-  const client = createApiHttpClient({ baseUrl: apiBaseUrl, getToken: getApiSessionToken, fetcher });
+  const client = createApiHttpClient({ baseUrl: apiBaseUrl, getToken: getApiSessionToken, onUnauthenticated: clearApiSession, fetcher });
   return createPatientsApi(client.request, client.requestEnvelope);
 }
 
