@@ -69,7 +69,7 @@ export function DoctorWeekSchedule() {
               Tuần sau
               <ChevronRight aria-hidden="true" className="h-4 w-4" />
             </button>
-            <ClinicDateField id="doctor-week-start" inputClassName="h-10" label="Bắt đầu tuần" labelClassName="grid gap-1 text-sm font-medium text-text" onChange={updateWeekStart} value={weekStart} />
+            <ClinicDateField id="doctor-week-start" label="Bắt đầu tuần" labelClassName="grid gap-1 text-sm font-medium text-text" onChange={updateWeekStart} value={weekStart} />
           </div>
         </div>
       </div>

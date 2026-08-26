@@ -53,7 +53,7 @@ export function DoctorDaySchedule() {
               Ngày sau
               <ChevronRight aria-hidden="true" className="h-4 w-4" />
             </button>
-            <ClinicDateField id="doctor-day-date" inputClassName="h-10" label="Ngày xem lịch" labelClassName="grid gap-1 text-sm font-medium text-text" onChange={updateDate} value={date} />
+            <ClinicDateField id="doctor-day-date" label="Ngày xem lịch" labelClassName="grid gap-1 text-sm font-medium text-text" onChange={updateDate} value={date} />
           </div>
         </div>
       </div>

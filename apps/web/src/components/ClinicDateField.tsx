@@ -61,7 +61,7 @@ export function ClinicDateField({ id, label, value, onChange, min, max, labelCla
           value={toCalendarDate(value)}
         >
           <Label className={labelClassName}>{label}</Label>
-          <Group className={`mt-1 flex h-11 w-full items-center rounded-md border border-border bg-surface text-sm text-text focus-within:border-border-strong focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent ${controlClassName}`}>
+          <Group className={`mt-1 flex h-10 w-full items-center rounded-md border border-border bg-surface text-sm text-text focus-within:border-border-strong focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent ${controlClassName}`}>
             <DateInput className={`flex min-w-0 flex-1 items-center gap-0.5 px-3 ${inputClassName}`} data-field-id={id}>
               {(segment) => (
                 <DateSegment
@@ -72,7 +72,7 @@ export function ClinicDateField({ id, label, value, onChange, min, max, labelCla
                 </DateSegment>
               )}
             </DateInput>
-            <Button aria-label={`Mở lịch ${label}`} className="mr-2 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-surface-muted hover:text-text">
+            <Button aria-label={`Mở lịch ${label}`} className="mr-2 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-muted hover:bg-surface-muted hover:text-text">
               <CalendarDays aria-hidden="true" size={17} />
             </Button>
           </Group>

@@ -41,7 +41,7 @@ export function OperationsCalendar() {
       <fieldset className="mt-5 rounded-lg border border-border bg-surface p-4 shadow-panel">
         <legend className="px-1 text-base font-semibold text-text">Bộ lọc lịch hoạt động</legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <ClinicDateField id="operations-calendar-date" inputClassName="h-10" label="Ngày" labelClassName="text-sm font-medium text-text" onChange={setDate} value={date} />
+          <ClinicDateField id="operations-calendar-date" label="Ngày" labelClassName="text-sm font-medium text-text" onChange={setDate} value={date} />
           <label className="text-sm font-medium text-text">Bác sĩ<select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => setDoctorId(event.target.value)} value={doctorId}><option value="">Tất cả bác sĩ</option>{mockStore.doctors.map((item) => <option key={item.id} value={item.id}>{item.fullName}</option>)}</select></label>
           <label className="text-sm font-medium text-text">Chuyên khoa<select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => setSpecialtyId(event.target.value)} value={specialtyId}><option value="">Tất cả chuyên khoa</option>{mockStore.specialties.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <label className="text-sm font-medium text-text">Trạng thái<select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => setStatus(event.target.value as "" | AppointmentStatus)} value={status}>{statuses.map((item) => <option key={item.value || "all"} value={item.value}>{item.label}</option>)}</select></label>

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-26
+
+- Cân lại chiều cao `ClinicDateField` về compact `h-10` để đồng bộ hơn với select/input/filter controls trong cùng hàng.
+
 ## 2026-08-25
 
 - Sửa `ClinicDateField` segmented picker: ẩn chắc native date input nội bộ và cho phép sửa riêng ngày/tháng/năm bằng cách focus segment rồi gõ giá trị mới.

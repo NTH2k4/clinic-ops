@@ -70,6 +70,9 @@ describe("shared UI components", () => {
     const nativeDateInput = container.querySelector('input[type="date"]');
     expect(nativeDateInput).toHaveAttribute("tabindex", "-1");
     expect(container.firstElementChild).toHaveClass("[&_input[type=date]]:hidden");
+    const dateGroup = screen.getAllByRole("group").find((group) => group.getAttribute("aria-label") === "Ngày khám");
+    expect(dateGroup).toHaveClass("h-10");
+    expect(dateGroup).not.toHaveClass("h-11");
     expect(screen.getAllByRole("spinbutton").length).toBeGreaterThanOrEqual(3);
     expect(screen.getByRole("spinbutton", { name: /^Ngày,/ })).toHaveTextContent("25");
     expect(screen.getByRole("spinbutton", { name: /^Tháng,/ })).toHaveTextContent("08");
