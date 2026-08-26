@@ -322,6 +322,33 @@ describe("Catalog resources", () => {
     }
   });
 
+  it("accepts long catalog text values while rejecting unknown fields", async () => {
+    const { app, server } = await createApp();
+    try {
+      const token = await login(server, "admin@careflow.local");
+      const longDescription = "Extended catalog description. ".repeat(80);
+
+      await request(server)
+        .post("/api/v1/services")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          name: "Extended Travel Consultation",
+          specialtyId: "specialty-general",
+          durationMinutes: 45,
+          price: 320000,
+          currency: "VND",
+          description: longDescription,
+        })
+        .expect(201)
+        .expect((response) => {
+          const parsed = serviceSchema.parse(response.body);
+          expect(parsed.data.name).toBe("Extended Travel Consultation");
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
   it("requires date-only patient birth dates", async () => {
     const { app, server } = await createApp();
     try {

@@ -3,8 +3,8 @@ import { z } from "zod";
 import { paginationFields } from "../common/validation";
 
 const identifier = z.string().trim().min(1).max(200);
-const requiredText = z.string().trim().min(1).max(500);
-const optionalText = z.string().trim().max(1000).nullable().optional();
+const requiredText = z.string().trim().min(1);
+const optionalText = z.string().trim().nullable().optional();
 const commonFields = {
   q: z.string().trim().min(1).max(200).optional(),
   specialtyId: identifier.optional(),
