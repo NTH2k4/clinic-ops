@@ -1,16 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import { ApiError } from "../common/api-error";
+import { paginationArgs, type Pagination } from "../common/validation";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  list(recipientUserId: string) {
-    return this.prisma.notification.findMany({
-      where: { recipientUserId },
-      orderBy: { createdAt: "desc" },
-    });
+  async list(recipientUserId: string, pagination: Pagination) {
+    const where = { recipientUserId };
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.notification.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "asc" }], ...paginationArgs(pagination) }),
+      this.prisma.notification.count({ where }),
+    ]);
+    return { items, total };
   }
 
   async markRead(id: string, recipientUserId: string) {

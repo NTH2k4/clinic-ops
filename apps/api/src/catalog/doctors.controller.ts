@@ -1,8 +1,10 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { UserRole } from "@prisma/client";
 import { type AuthenticatedRequest, SessionGuard } from "../auth/session.guard";
-import { successEnvelope } from "../common/api-response";
+import { listEnvelope, successEnvelope } from "../common/api-response";
 import { Roles, RolesGuard } from "../common/roles";
+import { parseSchema } from "../common/validation";
+import { doctorListQuerySchema } from "./catalog.dto";
 import { CatalogService } from "./catalog.service";
 
 @Controller("doctors")
@@ -11,7 +13,11 @@ export class DoctorsController {
   constructor(private readonly catalog: CatalogService) {}
 
   @Get()
-  async list(@Req() request: AuthenticatedRequest, @Query() query: Record<string, string | undefined>) { return successEnvelope(await this.catalog.listDoctors({ ...query, includeRequestedStatus: request.currentUser.role === UserRole.admin })); }
+  async list(@Req() request: AuthenticatedRequest, @Query() rawQuery: Record<string, unknown>) {
+    const query = parseSchema(doctorListQuerySchema, rawQuery);
+    const result = await this.catalog.listDoctors({ ...query, includeRequestedStatus: request.currentUser.role === UserRole.admin });
+    return listEnvelope(result.items, query.page, query.pageSize, result.total);
+  }
 
   @Get(":id")
   async detail(@Param("id") id: string) { return successEnvelope(await this.catalog.doctor(id)); }

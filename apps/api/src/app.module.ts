@@ -9,9 +9,10 @@ import { AuditModule } from "./audit/audit.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { PatientsModule } from "./patients/patients.module";
+import { SchedulingModule } from "./scheduling/scheduling.module";
 
 @Module({
-  imports: [PrismaModule, AuthModule, CatalogModule, PatientsModule, AppointmentsModule, AuditModule, NotificationsModule],
+  imports: [PrismaModule, AuthModule, CatalogModule, PatientsModule, AppointmentsModule, SchedulingModule, AuditModule, NotificationsModule],
   controllers: [HealthController],
   providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],
   exports: [AuthModule],

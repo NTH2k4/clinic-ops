@@ -10,5 +10,6 @@ import { AppointmentsService } from "./appointments.service";
   imports: [AuthModule, PrismaModule],
   controllers: [AppointmentsController],
   providers: [AppointmentsService, AppointmentConflictsService, RolesGuard],
+  exports: [AppointmentConflictsService],
 })
 export class AppointmentsModule {}

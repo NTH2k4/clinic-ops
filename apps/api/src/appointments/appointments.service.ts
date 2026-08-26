@@ -1,12 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { AppointmentStatus, Prisma, UserRole } from "@prisma/client";
+import { AccountStatus, AppointmentStatus, Prisma, UserRole } from "@prisma/client";
 import type { AuthSession } from "../auth/auth.service";
 import { ApiError } from "../common/api-error";
+import { paginationArgs } from "../common/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { AppointmentConflictsService } from "./appointment-conflicts.service";
+import type { AppointmentCreateInput, AppointmentListQuery, AppointmentTransitionInput, AppointmentUpdateInput } from "./appointments.dto";
 import { canTransition } from "./appointment-rules";
 
-type AppointmentInput = Record<string, unknown>;
 type Actor = AuthSession["currentUser"];
 
 const appointmentDetail = {
@@ -25,16 +26,49 @@ export class AppointmentsService {
     private readonly conflicts: AppointmentConflictsService,
   ) {}
 
-  async create(input: AppointmentInput, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
-    const patientId = actor.role === UserRole.patient ? this.patientIdForActor(linkedProfile) : this.requiredString(input.patientId, "patientId");
-    const serviceId = this.requiredString(input.serviceId, "serviceId");
-    const startAt = this.dateTime(input.startAt, "startAt");
-    const doctorId = this.optionalString(input.doctorId);
+  async list(query: AppointmentListQuery, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
+    const where: Prisma.AppointmentWhereInput = {
+      status: query.status,
+      patientId: query.patientId,
+      doctorId: query.doctorId,
+      serviceId: query.serviceId,
+      service: query.specialtyId ? { specialtyId: query.specialtyId } : undefined,
+      startAt: query.from || query.to ? { gte: query.from ? new Date(query.from) : undefined, lte: query.to ? new Date(query.to) : undefined } : undefined,
+      ...(query.q ? { OR: [
+        { patient: { fullName: { contains: query.q, mode: "insensitive" } } },
+        { doctor: { fullName: { contains: query.q, mode: "insensitive" } } },
+        { service: { name: { contains: query.q, mode: "insensitive" } } },
+        { reason: { contains: query.q, mode: "insensitive" } },
+      ] } : {}),
+      ...this.actorScope(actor, linkedProfile),
+    };
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.appointment.findMany({ where, include: appointmentDetail, orderBy: [{ startAt: "asc" }, { id: "asc" }], ...paginationArgs(query) }),
+      this.prisma.appointment.count({ where }),
+    ]);
+    return { items, total };
+  }
+
+  async authorizedDetail(id: string, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
+    const appointment = await this.require(this.prisma.appointment.findUnique({ where: { id }, include: appointmentDetail }), "appointment");
+    this.assertReadActor(appointment, actor, linkedProfile);
+    return appointment;
+  }
+
+  async create(input: AppointmentCreateInput, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
+    const actorPatientId = actor.role === UserRole.patient ? this.patientIdForActor(linkedProfile) : undefined;
+    if (actorPatientId && "patientId" in input && input.patientId !== undefined && input.patientId !== actorPatientId) {
+      throw new ApiError(403, "FORBIDDEN", "You cannot create an appointment for another patient.");
+    }
+    const patientId = actorPatientId ?? ("patientId" in input ? input.patientId : undefined);
+    if (!patientId) throw new ApiError(400, "VALIDATION_ERROR", "patientId is required.");
+    const startAt = new Date(input.startAt);
     const status = actor.role === UserRole.patient ? AppointmentStatus.requested : AppointmentStatus.confirmed;
 
     return this.serializableTransaction(async (transaction) => {
-      await this.require(transaction.patient.findUnique({ where: { id: patientId } }), "patient");
-      const slot = await this.conflicts.assertSlotAvailable({ doctorId, serviceId, startAt, transaction });
+      const patient = await this.require(transaction.patient.findUnique({ where: { id: patientId } }), "patient");
+      if (patient.status !== AccountStatus.active) throw new ApiError(409, "PATIENT_INACTIVE", "patient is not active.");
+      const slot = await this.conflicts.assertSlotAvailable({ doctorId: input.doctorId, serviceId: input.serviceId, startAt, transaction });
       const appointment = await transaction.appointment.create({
         data: {
           patientId,
@@ -43,20 +77,20 @@ export class AppointmentsService {
           startAt: slot.startAt,
           endAt: slot.endAt,
           status,
-          reason: this.optionalString(input.reason),
-          internalNote: this.optionalString(input.internalNote),
+          reason: input.reason,
+          internalNote: "internalNote" in input ? input.internalNote : undefined,
           createdByUserId: actor.id,
         },
         select: { id: true },
       });
       await transaction.appointmentStatusHistory.create({ data: { appointmentId: appointment.id, toStatus: status, actorUserId: actor.id } });
-      await this.audit(transaction, actor.id, appointment.id, "appointment_created", { status });
+      await this.audit(transaction, actor.id, appointment.id, "appointment_created", { status, ...(input.source ? { source: input.source } : {}) });
       return this.detail(transaction, appointment.id);
     });
   }
 
-  async transition(id: string, target: AppointmentStatus, input: AppointmentInput, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
-    return this.prisma.$transaction(async (transaction) => {
+  async transition(id: string, target: AppointmentStatus, input: AppointmentTransitionInput, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
+    return this.serializableTransaction(async (transaction) => {
       const appointment = await this.require(transaction.appointment.findUnique({ where: { id } }), "appointment");
       this.assertTransition(appointment.status, target, actor.role);
       this.assertAppointmentActor(appointment, actor, linkedProfile, target);
@@ -64,7 +98,7 @@ export class AppointmentsService {
       const now = new Date();
       const cancellationReason = target === AppointmentStatus.cancelled
         ? actor.role === UserRole.patient
-          ? this.optionalString(input.cancellationReason)
+          ? input.cancellationReason
           : this.requiredString(input.cancellationReason, "cancellationReason")
         : undefined;
       await transaction.appointment.update({
@@ -79,30 +113,31 @@ export class AppointmentsService {
         },
       });
       await transaction.appointmentStatusHistory.create({
-        data: { appointmentId: id, fromStatus: appointment.status, toStatus: target, actorUserId: actor.id, note: this.optionalString(input.note) },
+        data: { appointmentId: id, fromStatus: appointment.status, toStatus: target, actorUserId: actor.id, note: input.note },
       });
       await this.audit(transaction, actor.id, id, this.transitionAuditAction(target), { fromStatus: appointment.status, toStatus: target });
       return this.detail(transaction, id);
     });
   }
 
-  async reschedule(id: string, input: AppointmentInput, actor: Actor) {
-    const startAt = input.startAt === undefined ? undefined : this.dateTime(input.startAt, "startAt");
-    const doctorId = input.doctorId === undefined ? undefined : this.requiredString(input.doctorId, "doctorId");
-    const serviceId = input.serviceId === undefined ? undefined : this.requiredString(input.serviceId, "serviceId");
-    if (!startAt && !doctorId && !serviceId && input.internalNote === undefined) {
-      throw new ApiError(400, "VALIDATION_ERROR", "At least one appointment field is required.");
-    }
-
+  async reschedule(id: string, input: AppointmentUpdateInput, actor: Actor) {
+    const startAt = input.startAt === undefined ? undefined : new Date(input.startAt);
     return this.serializableTransaction(async (transaction) => {
       const appointment = await this.require(transaction.appointment.findUnique({ where: { id } }), "appointment");
       if (([AppointmentStatus.completed, AppointmentStatus.cancelled, AppointmentStatus.no_show] as AppointmentStatus[]).includes(appointment.status)) {
-        throw new ApiError(409, "INVALID_APPOINTMENT_TRANSITION", "Terminal appointments cannot be rescheduled.");
+        throw new ApiError(409, "INVALID_STATUS_TRANSITION", "Terminal appointments cannot be rescheduled.");
+      }
+
+      const hasSlotChange = startAt !== undefined || input.doctorId !== undefined || input.serviceId !== undefined;
+      if (!hasSlotChange) {
+        await transaction.appointment.update({ where: { id }, data: { internalNote: input.internalNote, updatedByUserId: actor.id } });
+        await this.audit(transaction, actor.id, id, "appointment_updated", { fields: ["internalNote"] });
+        return this.detail(transaction, id);
       }
 
       const slot = await this.conflicts.assertSlotAvailable({
-        doctorId: doctorId ?? appointment.doctorId,
-        serviceId: serviceId ?? appointment.serviceId,
+        doctorId: input.doctorId ?? appointment.doctorId,
+        serviceId: input.serviceId ?? appointment.serviceId,
         startAt: startAt ?? appointment.startAt,
         excludeAppointmentId: appointment.id,
         transaction,
@@ -115,7 +150,7 @@ export class AppointmentsService {
           startAt: slot.startAt,
           endAt: slot.endAt,
           updatedByUserId: actor.id,
-          ...(input.internalNote === undefined ? {} : { internalNote: this.optionalString(input.internalNote) }),
+          ...(input.internalNote === undefined ? {} : { internalNote: input.internalNote }),
         },
       });
       await this.audit(transaction, actor.id, id, "appointment_rescheduled", {
@@ -128,12 +163,30 @@ export class AppointmentsService {
 
   private assertTransition(from: AppointmentStatus, to: AppointmentStatus, role: UserRole) {
     if (!canTransition(from, to, role)) {
-      throw new ApiError(409, "INVALID_APPOINTMENT_TRANSITION", "This appointment status transition is not allowed.");
+      throw new ApiError(409, "INVALID_STATUS_TRANSITION", "This appointment status transition is not allowed.");
     }
   }
 
   private assertAppointmentActor(appointment: { patientId: string; doctorId: string }, actor: Actor, linkedProfile: AuthSession["linkedProfile"], target: AppointmentStatus) {
     if (actor.role === UserRole.patient && (target !== AppointmentStatus.cancelled || linkedProfile?.type !== "patient" || linkedProfile.id !== appointment.patientId)) {
+      throw new ApiError(403, "FORBIDDEN", "You do not have permission to access this resource.");
+    }
+    if (actor.role === UserRole.doctor && (linkedProfile?.type !== "doctor" || linkedProfile.id !== appointment.doctorId)) {
+      throw new ApiError(403, "FORBIDDEN", "You do not have permission to access this resource.");
+    }
+  }
+
+  private actorScope(actor: Actor, linkedProfile: AuthSession["linkedProfile"]): Prisma.AppointmentWhereInput {
+    if (actor.role === UserRole.patient) return { patientId: this.patientIdForActor(linkedProfile) };
+    if (actor.role === UserRole.doctor) {
+      if (linkedProfile?.type !== "doctor") throw new ApiError(403, "FORBIDDEN", "You do not have a doctor profile.");
+      return { doctorId: linkedProfile.id };
+    }
+    return {};
+  }
+
+  private assertReadActor(appointment: { patientId: string; doctorId: string }, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
+    if (actor.role === UserRole.patient && (linkedProfile?.type !== "patient" || linkedProfile.id !== appointment.patientId)) {
       throw new ApiError(403, "FORBIDDEN", "You do not have permission to access this resource.");
     }
     if (actor.role === UserRole.doctor && (linkedProfile?.type !== "doctor" || linkedProfile.id !== appointment.doctorId)) {
@@ -190,15 +243,6 @@ export class AppointmentsService {
   }
 
   private optionalString(value: unknown) { return typeof value === "string" ? value.trim() || undefined : undefined; }
-
-  private dateTime(value: unknown, field: string) {
-    if (typeof value !== "string" || !/(?:Z|[+-]\d{2}:\d{2})$/i.test(value)) {
-      throw new ApiError(400, "VALIDATION_ERROR", `${field} must be an ISO datetime with timezone.`, { [field]: "Invalid" });
-    }
-    const result = new Date(value);
-    if (Number.isNaN(result.valueOf())) throw new ApiError(400, "VALIDATION_ERROR", `${field} must be an ISO datetime with timezone.`, { [field]: "Invalid" });
-    return result;
-  }
 
   private async require<T>(value: Promise<T | null>, entity: string): Promise<T> {
     const resource = await value;

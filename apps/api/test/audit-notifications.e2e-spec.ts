@@ -17,8 +17,9 @@ if (!databaseUrl) {
 const loginSchema = z.object({ data: z.object({ sessionToken: z.string().min(1) }) });
 const auditListSchema = z.object({
   data: z.array(z.object({ id: z.string(), entityType: z.string(), entityId: z.string(), action: z.string(), timestamp: z.string() })),
-  meta: z.object({ requestId: z.string().min(1) }),
+  meta: z.object({ requestId: z.string().min(1), page: z.number(), pageSize: z.number(), total: z.number() }),
 });
+const auditResponseSchema = z.object({ data: z.object({ id: z.string(), actorUserId: z.string(), entityId: z.string() }) });
 const notificationSchema = z.object({
   id: z.string(),
   recipientUserId: z.string(),
@@ -30,7 +31,7 @@ const notificationSchema = z.object({
   readAt: z.string().nullable(),
   createdAt: z.string(),
 });
-const notificationListSchema = z.object({ data: z.array(notificationSchema), meta: z.object({ requestId: z.string().min(1) }) });
+const notificationListSchema = z.object({ data: z.array(notificationSchema), meta: z.object({ requestId: z.string().min(1), page: z.number(), pageSize: z.number(), total: z.number() }) });
 const notificationResponseSchema = z.object({ data: notificationSchema, meta: z.object({ requestId: z.string().min(1) }) });
 const errorSchema = z.object({ error: z.object({ code: z.string() }), meta: z.object({ requestId: z.string().min(1) }) });
 
@@ -86,6 +87,31 @@ describe("Audit events and notifications", () => {
     }
   });
 
+  it("filters audit events by entity, actor, and time and returns detail", async () => {
+    const { app, server } = await createApp();
+    try {
+      const adminToken = await login(server, "admin@careflow.local");
+      await request(server)
+        .get("/api/v1/audit-events?entityId=appointment-1&actorUserId=user-patient-1&from=2026-08-24T00:00:00.000Z&to=2026-08-24T02:00:00.000Z&pageSize=1")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .expect(200)
+        .expect((response) => {
+          const result = auditListSchema.parse(response.body);
+          expect(result.data).toHaveLength(1);
+          expect(result.data[0]?.entityId).toBe("appointment-1");
+          expect(result.meta).toMatchObject({ page: 1, pageSize: 1, total: 1 });
+        });
+
+      await request(server)
+        .get("/api/v1/audit-events/audit-1")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .expect(200)
+        .expect((response) => expect(auditResponseSchema.parse(response.body).data).toMatchObject({ id: "audit-1", actorUserId: "user-patient-1" }));
+    } finally {
+      await app.close();
+    }
+  });
+
   it("forbids non-admin users from listing audit events", async () => {
     const { app, server } = await createApp();
     try {
@@ -114,6 +140,24 @@ describe("Audit events and notifications", () => {
           const notifications = notificationListSchema.parse(response.body).data;
           expect(notifications.length).toBeGreaterThan(0);
           expect(notifications.every((notification) => notification.recipientUserId === "user-patient-1")).toBe(true);
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("paginates notifications within the current user scope", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+      await request(server)
+        .get("/api/v1/notifications?page=1&pageSize=2")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200)
+        .expect((response) => {
+          const result = notificationListSchema.parse(response.body);
+          expect(result.data).toHaveLength(2);
+          expect(result.meta).toMatchObject({ page: 1, pageSize: 2, total: 4 });
         });
     } finally {
       await app.close();

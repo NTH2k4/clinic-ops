@@ -8,3 +8,15 @@ export function successEnvelope<T>(data: T) {
     },
   };
 }
+
+export function listEnvelope<T>(data: T[], page: number, pageSize: number, total: number) {
+  return {
+    data,
+    meta: {
+      requestId: randomUUID(),
+      page,
+      pageSize,
+      total,
+    },
+  };
+}

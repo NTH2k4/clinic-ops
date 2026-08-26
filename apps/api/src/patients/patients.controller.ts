@@ -2,8 +2,10 @@ import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from
 import { UserRole } from "@prisma/client";
 import { type AuthenticatedRequest, SessionGuard } from "../auth/session.guard";
 import { ApiError } from "../common/api-error";
-import { successEnvelope } from "../common/api-response";
+import { listEnvelope, successEnvelope } from "../common/api-response";
 import { Roles, RolesGuard } from "../common/roles";
+import { parseSchema } from "../common/validation";
+import { patientCreateSchema, patientListQuerySchema, patientUpdateSchema } from "./patients.dto";
 import { PatientsService } from "./patients.service";
 
 @Controller("patients")
@@ -14,7 +16,11 @@ export class PatientsController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.receptionist, UserRole.nurse, UserRole.admin)
-  async list(@Req() request: AuthenticatedRequest, @Query("q") q?: string, @Query("status") status?: string) { return successEnvelope(await this.patients.list(q, status, request.currentUser.role === UserRole.admin)); }
+  async list(@Req() request: AuthenticatedRequest, @Query() rawQuery: Record<string, unknown>) {
+    const query = parseSchema(patientListQuerySchema, rawQuery);
+    const result = await this.patients.list(query, request.currentUser.role === UserRole.admin);
+    return listEnvelope(result.items, query.page, query.pageSize, result.total);
+  }
 
   @Get(":id")
   async detail(@Param("id") id: string, @Req() request: AuthenticatedRequest) { this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.patient(id)); }
@@ -24,11 +30,16 @@ export class PatientsController {
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     const userId = request.currentUser.role === UserRole.patient ? request.currentUser.id : undefined;
-    return successEnvelope(await this.patients.create(body, userId));
+    return successEnvelope(await this.patients.create(parseSchema(patientCreateSchema, body), userId));
   }
 
   @Patch(":id")
-  async update(@Param("id") id: string, @Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) { this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.update(id, body)); }
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
+  async update(@Param("id") id: string, @Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) {
+    this.assertOwnerOrStaff(id, request);
+    return successEnvelope(await this.patients.update(id, parseSchema(patientUpdateSchema, body)));
+  }
 
   @Post(":id/deactivate")
   @UseGuards(RolesGuard)

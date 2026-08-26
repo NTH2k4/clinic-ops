@@ -1,9 +1,16 @@
 import { Test } from "@nestjs/testing";
 import { PrismaClient, UserRole } from "@prisma/client";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { z } from "zod";
 import { AppModule } from "../src/app.module";
+
+const execFileAsync = promisify(execFile);
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) throw new Error("DATABASE_URL is required for catalog e2e tests.");
 
 const loginSchema = z.object({
   data: z.object({ sessionToken: z.string().min(1) }),
@@ -11,7 +18,7 @@ const loginSchema = z.object({
 
 const listSchema = z.object({
   data: z.array(z.object({ id: z.string(), name: z.string(), status: z.string() })),
-  meta: z.object({ requestId: z.string().min(1) }),
+  meta: z.object({ requestId: z.string().min(1), page: z.number(), pageSize: z.number(), total: z.number() }),
 });
 
 const serviceSchema = z.object({
@@ -34,7 +41,14 @@ const errorSchema = z.object({
 });
 
 describe("Catalog resources", () => {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+
+  beforeEach(async () => {
+    await execFileAsync(process.execPath, ["node_modules/tsx/dist/cli.mjs", "prisma/seed.ts"], {
+      cwd: process.cwd(),
+      env: { ...process.env, DATABASE_URL: databaseUrl },
+    });
+  });
 
   afterAll(async () => {
     await prisma.patient.deleteMany({ where: { user: { email: { startsWith: "new-patient-" } } } });
@@ -89,6 +103,25 @@ describe("Catalog resources", () => {
           const parsed = listSchema.parse(response.body);
           expect(parsed.data.length).toBeGreaterThan(0);
           expect(parsed.data.every((service) => service.status === "active")).toBe(true);
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("returns bounded catalog pagination metadata", async () => {
+    const { app, server } = await createApp();
+    try {
+      const token = await login(server, "patient@careflow.local");
+      await request(server)
+        .get("/api/v1/services?page=1&pageSize=2")
+        .set("Authorization", `Bearer ${token}`)
+        .expect(200)
+        .expect((response) => {
+          const result = listSchema.parse(response.body);
+          expect(result.data).toHaveLength(2);
+          expect(result.meta).toMatchObject({ page: 1, pageSize: 2 });
+          expect(result.meta.total).toBeGreaterThan(2);
         });
     } finally {
       await app.close();
@@ -201,6 +234,72 @@ describe("Catalog resources", () => {
           .expect(409)
           .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("RESOURCE_IN_USE"));
       }
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("rejects lifecycle deactivation through generic PATCH routes", async () => {
+    const { app, server } = await createApp();
+    try {
+      const token = await login(server, "admin@careflow.local");
+      for (const path of ["/api/v1/doctors/doctor-1", "/api/v1/specialties/specialty-general", "/api/v1/services/service-general"]) {
+        await request(server)
+          .patch(path)
+          .set("Authorization", `Bearer ${token}`)
+          .send({ status: "inactive" })
+          .expect(400)
+          .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+      }
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("forbids doctors from updating patients and prevents patient status mutation", async () => {
+    const { app, server } = await createApp();
+    try {
+      const doctorToken = await login(server, "minh.nguyen@careflow.local");
+      const patientToken = await login(server, "patient@careflow.local");
+
+      await request(server).patch("/api/v1/patients/patient-1").set("Authorization", `Bearer ${doctorToken}`).send({ address: "Changed" }).expect(403);
+      await request(server)
+        .patch("/api/v1/patients/patient-1")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .send({ status: "inactive" })
+        .expect(400)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+      await expect(prisma.patient.findUniqueOrThrow({ where: { id: "patient-1" }, select: { status: true } })).resolves.toEqual({ status: "active" });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("requires date-only patient birth dates", async () => {
+    const { app, server } = await createApp();
+    try {
+      const token = await login(server, "reception@careflow.local");
+      await request(server)
+        .patch("/api/v1/patients/patient-1")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ dateOfBirth: "1990-01-01T00:00:00.000Z" })
+        .expect(400)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("maps Prisma uniqueness failures to the API error envelope", async () => {
+    const { app, server } = await createApp();
+    try {
+      const token = await login(server, "reception@careflow.local");
+      await request(server)
+        .post("/api/v1/patients")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ fullName: "Duplicate Phone", phone: "+84920000001" })
+        .expect(409)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("RESOURCE_IN_USE"));
     } finally {
       await app.close();
     }

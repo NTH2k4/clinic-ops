@@ -1,8 +1,10 @@
-import { Controller, Get, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
 import { UserRole } from "@prisma/client";
 import { SessionGuard } from "../auth/session.guard";
-import { successEnvelope } from "../common/api-response";
+import { listEnvelope, successEnvelope } from "../common/api-response";
 import { Roles, RolesGuard } from "../common/roles";
+import { parseSchema } from "../common/validation";
+import { auditListQuerySchema } from "./audit.dto";
 import { AuditService } from "./audit.service";
 
 @Controller("audit-events")
@@ -13,7 +15,16 @@ export class AuditController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
-  async list(@Query("entityType") entityType: string | undefined, @Query("action") action: string | undefined) {
-    return successEnvelope(await this.audit.list({ entityType, action }));
+  async list(@Query() rawQuery: Record<string, unknown>) {
+    const query = parseSchema(auditListQuerySchema, rawQuery);
+    const result = await this.audit.list(query);
+    return listEnvelope(result.items, query.page, query.pageSize, result.total);
+  }
+
+  @Get(":id")
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.admin)
+  async detail(@Param("id") id: string) {
+    return successEnvelope(await this.audit.detail(id));
   }
 }

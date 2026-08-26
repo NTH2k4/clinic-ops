@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { AppointmentStatus, type Prisma, ServiceStatus } from "@prisma/client";
 import { ApiError } from "../common/api-error";
+import { paginationArgs, type Pagination } from "../common/validation";
 import { PrismaService } from "../prisma/prisma.service";
 
 type CatalogFilters = {
@@ -9,7 +10,7 @@ type CatalogFilters = {
   serviceId?: string;
   status?: string;
   includeRequestedStatus: boolean;
-};
+} & Pagination;
 
 type ServiceInput = {
   name?: unknown;
@@ -45,13 +46,17 @@ const activeAppointmentStatuses: AppointmentStatus[] = [
 export class CatalogService {
   constructor(private readonly prisma: PrismaService) {}
 
-  listServices(filters: CatalogFilters) {
+  async listServices(filters: CatalogFilters) {
     const where: Prisma.ServiceWhereInput = {
       specialtyId: filters.specialtyId,
       status: this.serviceStatus(filters.status, filters.includeRequestedStatus),
       ...(filters.q ? { name: { contains: filters.q, mode: "insensitive" } } : {}),
     };
-    return this.prisma.service.findMany({ where, orderBy: { name: "asc" } });
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.service.findMany({ where, orderBy: { name: "asc" }, ...paginationArgs(filters) }),
+      this.prisma.service.count({ where }),
+    ]);
+    return { items, total };
   }
 
   async service(id: string) {
@@ -80,6 +85,7 @@ export class CatalogService {
 
   async updateService(id: string, input: ServiceInput, actorUserId: string) {
     await this.service(id);
+    if (input.status === ServiceStatus.inactive) throw new ApiError(400, "VALIDATION_ERROR", "Use the service deactivate endpoint to set inactive status.");
     const specialtyId = this.optionalString(input.specialtyId);
     if (specialtyId) await this.require(this.prisma.specialty.findUnique({ where: { id: specialtyId } }), "specialty");
     return this.prisma.$transaction(async (transaction) => {
@@ -101,18 +107,24 @@ export class CatalogService {
   async deactivateService(id: string, actorUserId: string) {
     return this.prisma.$transaction(async (transaction) => {
       const service = await this.require(transaction.service.findUnique({ where: { id } }), "service");
+      const activeAppointments = await transaction.appointment.count({ where: { serviceId: id, status: { in: activeAppointmentStatuses } } });
+      if (activeAppointments) throw new ApiError(409, "RESOURCE_IN_USE", "Service has active appointments.");
       const deactivated = await transaction.service.update({ where: { id }, data: { status: ServiceStatus.inactive } });
       await this.audit(transaction, actorUserId, "service", service.id, "admin_resource_deactivated");
       return deactivated;
     });
   }
 
-  listSpecialties(filters: CatalogFilters) {
+  async listSpecialties(filters: CatalogFilters) {
     const where: Prisma.SpecialtyWhereInput = {
       status: this.serviceStatus(filters.status, filters.includeRequestedStatus),
       ...(filters.q ? { name: { contains: filters.q, mode: "insensitive" } } : {}),
     };
-    return this.prisma.specialty.findMany({ where, orderBy: { name: "asc" } });
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.specialty.findMany({ where, orderBy: { name: "asc" }, ...paginationArgs(filters) }),
+      this.prisma.specialty.count({ where }),
+    ]);
+    return { items, total };
   }
 
   async createSpecialty(input: SpecialtyInput, actorUserId: string) {
@@ -131,6 +143,7 @@ export class CatalogService {
 
   async updateSpecialty(id: string, input: SpecialtyInput, actorUserId: string) {
     await this.require(this.prisma.specialty.findUnique({ where: { id } }), "specialty");
+    if (input.status === ServiceStatus.inactive) throw new ApiError(400, "VALIDATION_ERROR", "Use the specialty deactivate endpoint to set inactive status.");
     return this.prisma.$transaction(async (transaction) => {
       const specialty = await transaction.specialty.update({
         where: { id },
@@ -158,14 +171,18 @@ export class CatalogService {
     });
   }
 
-  listDoctors(filters: CatalogFilters) {
+  async listDoctors(filters: CatalogFilters) {
     const where: Prisma.DoctorWhereInput = {
       specialtyId: filters.specialtyId,
       status: this.doctorStatus(filters.status, filters.includeRequestedStatus),
       ...(filters.serviceId ? { services: { some: { id: filters.serviceId } } } : {}),
       ...(filters.q ? { fullName: { contains: filters.q, mode: "insensitive" } } : {}),
     };
-    return this.prisma.doctor.findMany({ where, include: { specialty: true, services: true }, orderBy: { fullName: "asc" } });
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.doctor.findMany({ where, include: { specialty: true, services: true }, orderBy: { fullName: "asc" }, ...paginationArgs(filters) }),
+      this.prisma.doctor.count({ where }),
+    ]);
+    return { items, total };
   }
 
   async doctor(id: string) {
@@ -192,6 +209,7 @@ export class CatalogService {
 
   async updateDoctor(id: string, input: DoctorInput, actorUserId: string) {
     await this.doctor(id);
+    if (input.status === "inactive") throw new ApiError(400, "VALIDATION_ERROR", "Use the doctor deactivate endpoint to set inactive status.");
     const specialtyId = this.optionalString(input.specialtyId);
     if (specialtyId) await this.require(this.prisma.specialty.findUnique({ where: { id: specialtyId } }), "specialty");
     return this.prisma.$transaction(async (transaction) => {

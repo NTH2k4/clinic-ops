@@ -15,13 +15,20 @@ if (!databaseUrl) throw new Error("DATABASE_URL is required for appointment e2e 
 const loginSchema = z.object({ data: z.object({ sessionToken: z.string().min(1) }) });
 const appointmentDataSchema = z.object({
   id: z.string(),
+  patientId: z.string(),
+  doctorId: z.string(),
   status: z.nativeEnum(AppointmentStatus),
   endAt: z.string(),
+  internalNote: z.string().nullable(),
   statusHistory: z.array(z.object({ toStatus: z.nativeEnum(AppointmentStatus) })),
 });
 const appointmentResponseSchema = z.object({ data: appointmentDataSchema });
 const statusResponseSchema = z.object({ data: appointmentDataSchema.pick({ status: true, statusHistory: true }) });
 const errorResponseSchema = z.object({ error: z.object({ code: z.string() }) });
+const appointmentListSchema = z.object({
+  data: z.array(appointmentDataSchema),
+  meta: z.object({ page: z.number(), pageSize: z.number(), total: z.number() }),
+});
 
 describe("Appointment workflows", () => {
   const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
@@ -74,6 +81,57 @@ describe("Appointment workflows", () => {
         .resolves.toEqual({ fromStatus: null, toStatus: AppointmentStatus.requested, actorUserId: "user-patient-1" });
       await expect(prisma.auditEvent.findFirstOrThrow({ where: { appointmentId: appointment.id, action: "appointment_created" }, select: { actorUserId: true, entityType: true, entityId: true } }))
         .resolves.toEqual({ actorUserId: "user-patient-1", entityType: "appointment", entityId: appointment.id });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("rejects patient-only attempts to set an internal note", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+
+      await request(server)
+        .post("/api/v1/appointments")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .send({ serviceId: "service-general", doctorId: "doctor-1", startAt: "2026-08-25T08:00:00.000Z", internalNote: "staff only" })
+        .expect(400)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("rejects appointment creation for an inactive patient", async () => {
+    const { app, server } = await createApp();
+    try {
+      const receptionistToken = await login(server, "reception@careflow.local");
+      await prisma.patient.update({ where: { id: "patient-1" }, data: { status: "inactive" } });
+
+      await request(server)
+        .post("/api/v1/appointments")
+        .set("Authorization", `Bearer ${receptionistToken}`)
+        .send({ patientId: "patient-1", serviceId: "service-general", doctorId: "doctor-1", startAt: "2026-08-25T08:00:00.000Z" })
+        .expect(409)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("PATIENT_INACTIVE"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("records the validated appointment source in audit metadata", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+      const response = await request(server)
+        .post("/api/v1/appointments")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .send({ serviceId: "service-general", doctorId: "doctor-1", startAt: "2026-08-25T08:00:00.000Z", source: "patient_portal" })
+        .expect(201);
+      const appointment = appointmentResponseSchema.parse(response.body).data;
+
+      const audit = await prisma.auditEvent.findFirstOrThrow({ where: { appointmentId: appointment.id, action: "appointment_created" } });
+      expect(audit.metadata).toMatchObject({ source: "patient_portal" });
     } finally {
       await app.close();
     }
@@ -199,6 +257,90 @@ describe("Appointment workflows", () => {
     }
   });
 
+  it("serializes concurrent transitions from the same current status", async () => {
+    const { app, server } = await createApp();
+    try {
+      const receptionistToken = await login(server, "reception@careflow.local");
+      await prisma.$executeRawUnsafe(`
+        CREATE OR REPLACE FUNCTION careflow_test_delay_appointment_update() RETURNS trigger AS $$
+        BEGIN
+          IF OLD.id = 'appointment-2' THEN PERFORM pg_sleep(0.25); END IF;
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql
+      `);
+      await prisma.$executeRawUnsafe('DROP TRIGGER IF EXISTS careflow_test_delay_appointment_update ON "Appointment"');
+      await prisma.$executeRawUnsafe(`
+        CREATE TRIGGER careflow_test_delay_appointment_update
+          BEFORE UPDATE ON "Appointment"
+          FOR EACH ROW EXECUTE FUNCTION careflow_test_delay_appointment_update();
+      `);
+
+      const responses = await Promise.all([
+        request(server).post("/api/v1/appointments/appointment-2/check-in").set("Authorization", `Bearer ${receptionistToken}`),
+        request(server).post("/api/v1/appointments/appointment-2/no-show").set("Authorization", `Bearer ${receptionistToken}`),
+      ]);
+
+      expect(responses.map((response) => response.status).sort()).toEqual([201, 409]);
+      const histories = await prisma.appointmentStatusHistory.findMany({ where: { appointmentId: "appointment-2" }, orderBy: { changedAt: "asc" } });
+      expect(histories).toHaveLength(2);
+      expect(histories[1]?.fromStatus).toBe(AppointmentStatus.confirmed);
+      expect([AppointmentStatus.checked_in, AppointmentStatus.no_show]).toContain(histories[1]?.toStatus);
+    } finally {
+      await prisma.$executeRawUnsafe('DROP TRIGGER IF EXISTS careflow_test_delay_appointment_update ON "Appointment"');
+      await prisma.$executeRawUnsafe("DROP FUNCTION IF EXISTS careflow_test_delay_appointment_update()");
+      await app.close();
+    }
+  });
+
+  it("lists and returns appointments within the actor scope", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+      const doctorToken = await login(server, "minh.nguyen@careflow.local");
+
+      await request(server)
+        .get("/api/v1/appointments?page=1&pageSize=2")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200)
+        .expect((response) => {
+          const result = appointmentListSchema.parse(response.body);
+          expect(result.data).toHaveLength(2);
+          expect(result.data.every((appointment) => appointment.patientId === "patient-1")).toBe(true);
+          expect(result.meta).toMatchObject({ page: 1, pageSize: 2 });
+          expect(result.meta.total).toBeGreaterThan(2);
+        });
+
+      await request(server)
+        .get("/api/v1/appointments?doctorId=doctor-1")
+        .set("Authorization", `Bearer ${doctorToken}`)
+        .expect(200)
+        .expect((response) => expect(appointmentListSchema.parse(response.body).data.every((appointment) => appointment.doctorId === "doctor-1")).toBe(true));
+
+      await request(server).get("/api/v1/appointments/appointment-2").set("Authorization", `Bearer ${patientToken}`).expect(403);
+      await request(server).get("/api/v1/appointments/appointment-1").set("Authorization", `Bearer ${patientToken}`).expect(200);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("rejects appointment datetimes without a timezone", async () => {
+    const { app, server } = await createApp();
+    try {
+      const receptionistToken = await login(server, "reception@careflow.local");
+      for (const startAt of ["2026-08-25T09:00:00", "2026-08-25 09:00:00Z"]) {
+        await request(server)
+          .post("/api/v1/appointments")
+          .set("Authorization", `Bearer ${receptionistToken}`)
+          .send({ patientId: "patient-1", serviceId: "service-general", startAt })
+          .expect(400)
+          .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+      }
+    } finally {
+      await app.close();
+    }
+  });
+
   it("requires a non-blank cancellation reason from staff", async () => {
     const { app, server } = await createApp();
     try {
@@ -245,7 +387,26 @@ describe("Appointment workflows", () => {
         .set("Authorization", `Bearer ${receptionistToken}`)
         .send({ startAt: "2026-08-25T06:00:00.000Z" })
         .expect(409)
-        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("INVALID_APPOINTMENT_TRANSITION"));
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("INVALID_STATUS_TRANSITION"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("updates an internal note without creating a reschedule audit event", async () => {
+    const { app, server } = await createApp();
+    try {
+      const receptionistToken = await login(server, "reception@careflow.local");
+
+      await request(server)
+        .patch("/api/v1/appointments/appointment-2")
+        .set("Authorization", `Bearer ${receptionistToken}`)
+        .send({ internalNote: "Arrive early" })
+        .expect(200)
+        .expect((response) => expect(appointmentResponseSchema.parse(response.body).data.internalNote).toBe("Arrive early"));
+
+      await expect(prisma.auditEvent.count({ where: { appointmentId: "appointment-2", action: "appointment_rescheduled" } })).resolves.toBe(0);
+      await expect(prisma.auditEvent.count({ where: { appointmentId: "appointment-2", action: "appointment_updated" } })).resolves.toBe(1);
     } finally {
       await app.close();
     }
