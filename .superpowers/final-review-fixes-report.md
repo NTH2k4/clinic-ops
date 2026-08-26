@@ -118,3 +118,87 @@ Run from `apps/api` unless stated otherwise:
 - Doctor schedule create/update/deactivate endpoints remain deferred. This fix implements only the requested Phase 4-critical schedule list and availability reads.
 - Availability uses a deterministic 30-minute slot cadence and the existing clinic timezone assumptions (`Asia/Ho_Chi_Minh`, UTC+07:00). A future product requirement for a different cadence should make it explicit in the contract.
 - No concurrent reschedule race test was added; reschedule already used the serializable retry helper before this work. The new deterministic concurrency coverage targets the reported transition defect.
+
+---
+
+# Final Review Fixes Round 2
+
+## Findings Addressed
+
+1. **Patient-owner PATCH allowlist**
+   - Added `patientOwnerUpdateSchema`, derived from the patient profile fields but excluding operational `notes`.
+   - `PatientsController` selects the owner schema only for patient actors; receptionist, nurse, and admin actors continue using the staff update schema with `notes` support.
+   - E2E coverage sets a persisted staff note, verifies a patient PATCH receives `VALIDATION_ERROR`, and confirms the note is unchanged.
+
+2. **Strict catalog mutation bodies**
+   - Added strict Zod create/update schemas for service, specialty, and doctor mutations in `catalog.dto.ts`.
+   - All six POST/PATCH controller paths parse bodies before invoking `CatalogService`.
+   - Schemas preserve the existing accepted fields and status enums. Update schemas permit `inactive` to reach the existing dedicated lifecycle rejection rather than bypass it.
+   - E2E coverage verifies unknown keys return `VALIDATION_ERROR` on every create and update route. Existing valid service mutation/audit and lifecycle PATCH tests remain green.
+
+3. **Role-appropriate appointment read projections**
+   - Added a Prisma patient projection that omits `Appointment.internalNote` and `AppointmentStatusHistory.note` at query time.
+   - Patient list, detail, create response, and cancellation response paths use the patient projection. Doctor, receptionist, nurse, and admin responses keep the operational projection.
+   - E2E coverage verifies patient list/detail omit both fields while receptionist detail retains both staff notes.
+
+4. **Date-only doctor schedule responses**
+   - `SchedulingService.listSchedules` now maps `effectiveFrom` and `effectiveTo` to exact `yyyy-MM-dd` strings after the Prisma query.
+   - E2E coverage validates the format and the exact filtered date values.
+
+5. **HttpException categories**
+   - HTTP 429 now maps to `RATE_LIMITED`.
+   - HTTP 5xx now maps to `INTERNAL_ERROR` with a generic message instead of `VALIDATION_ERROR`.
+   - Existing 400/401/403/404 mapping remains unchanged.
+   - E2E coverage exercises both 429 and 500 through the global exception filter.
+
+## TDD RED/GREEN Evidence
+
+### RED
+
+- Changed-area run: 4 suites failed, with 5 failing tests and 34 passing tests.
+- Patient owner notes PATCH returned 200 and changed persisted notes instead of returning 400.
+- Catalog mutation requests returned `[201, 200, 201, 200, 201, 200]` instead of six 400 responses.
+- Patient appointment list exposed `internalNote: "Sensitive staff note"` and history notes.
+- Schedule response validation rejected timestamp values for both date-only fields.
+- HTTP 429 returned `VALIDATION_ERROR` instead of `RATE_LIMITED`.
+
+### GREEN
+
+- Patient owner notes regression: 1/1 focused test passed.
+- Catalog strict mutation plus valid/lifecycle regression set: 3/3 focused tests passed.
+- Appointment projection and existing patient read/create regression set: 3/3 focused tests passed.
+- Schedule date-only regression: 1/1 focused test passed.
+- HTTP category regression: 1/1 focused test passed.
+- Complete changed-area run: 4 suites / 39 tests passed.
+- Full e2e run: 8 suites / 54 tests passed.
+
+## Round 2 Verification
+
+Run from `apps/api` unless stated otherwise:
+
+| Command | Result |
+| --- | --- |
+| `npm run typecheck` | PASS, exit 0 |
+| `npm run lint` | PASS, exit 0 |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm test -- --runInBand` | PASS, 3 suites / 17 tests |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npx prisma migrate deploy` | PASS, 1 migration found, no pending migrations |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run prisma:seed` | PASS, exit 0 |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | PASS, 8 suites / 54 tests |
+| `npm run build` | PASS, exit 0 |
+| `npm audit --audit-level=high` | PASS, 0 vulnerabilities |
+| `git diff --check` (worktree root) | PASS, exit 0 |
+
+## Round 2 Files Changed
+
+- Patients: `apps/api/src/patients/patients.dto.ts`, `patients.controller.ts`
+- Catalog: `apps/api/src/catalog/catalog.dto.ts`, `services.controller.ts`, `specialties.controller.ts`, `doctors.controller.ts`
+- Appointments: `apps/api/src/appointments/appointments.service.ts`
+- Scheduling: `apps/api/src/scheduling/scheduling.service.ts`
+- Common: `apps/api/src/common/api-exception.filter.ts`
+- Tests: `apps/api/test/catalog.e2e-spec.ts`, `appointments.e2e-spec.ts`, `scheduling.e2e-spec.ts`, `auth.e2e-spec.ts`
+- Report: `.superpowers/final-review-fixes-report.md`
+
+## Round 2 Concerns Or Deferrals
+
+- No new product surface was added.
+- The earlier deliberate schedule-write and availability-cadence deferrals remain unchanged.

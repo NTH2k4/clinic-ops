@@ -19,7 +19,7 @@ const appointmentDataSchema = z.object({
   doctorId: z.string(),
   status: z.nativeEnum(AppointmentStatus),
   endAt: z.string(),
-  internalNote: z.string().nullable(),
+  internalNote: z.string().nullable().optional(),
   statusHistory: z.array(z.object({ toStatus: z.nativeEnum(AppointmentStatus) })),
 });
 const appointmentResponseSchema = z.object({ data: appointmentDataSchema });
@@ -29,6 +29,11 @@ const appointmentListSchema = z.object({
   data: z.array(appointmentDataSchema),
   meta: z.object({ page: z.number(), pageSize: z.number(), total: z.number() }),
 });
+const appointmentProjectionSchema = z.object({
+  id: z.string(),
+  internalNote: z.string().nullable().optional(),
+  statusHistory: z.array(z.object({ note: z.string().nullable().optional() }).passthrough()),
+}).passthrough();
 
 describe("Appointment workflows", () => {
   const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
@@ -319,6 +324,44 @@ describe("Appointment workflows", () => {
 
       await request(server).get("/api/v1/appointments/appointment-2").set("Authorization", `Bearer ${patientToken}`).expect(403);
       await request(server).get("/api/v1/appointments/appointment-1").set("Authorization", `Bearer ${patientToken}`).expect(200);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("omits operational notes from patient appointment reads", async () => {
+    const { app, server } = await createApp();
+    try {
+      await prisma.appointment.update({ where: { id: "appointment-1" }, data: { internalNote: "Sensitive staff note" } });
+      await prisma.appointmentStatusHistory.updateMany({ where: { appointmentId: "appointment-1" }, data: { note: "Sensitive status note" } });
+      const patientToken = await login(server, "patient@careflow.local");
+      const receptionistToken = await login(server, "reception@careflow.local");
+
+      const listResponse = await request(server)
+        .get("/api/v1/appointments?pageSize=100")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200);
+      const list = z.object({ data: z.array(appointmentProjectionSchema) }).parse(listResponse.body).data;
+      const patientAppointment = list.find((appointment) => appointment.id === "appointment-1");
+      expect(patientAppointment).toBeDefined();
+      expect(patientAppointment).not.toHaveProperty("internalNote");
+      expect(patientAppointment?.statusHistory.every((history) => !("note" in history))).toBe(true);
+
+      const patientDetailResponse = await request(server)
+        .get("/api/v1/appointments/appointment-1")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200);
+      const patientDetail = z.object({ data: appointmentProjectionSchema }).parse(patientDetailResponse.body).data;
+      expect(patientDetail).not.toHaveProperty("internalNote");
+      expect(patientDetail.statusHistory.every((history) => !("note" in history))).toBe(true);
+
+      const staffDetailResponse = await request(server)
+        .get("/api/v1/appointments/appointment-1")
+        .set("Authorization", `Bearer ${receptionistToken}`)
+        .expect(200);
+      const staffDetail = z.object({ data: appointmentProjectionSchema }).parse(staffDetailResponse.body).data;
+      expect(staffDetail.internalNote).toBe("Sensitive staff note");
+      expect(staffDetail.statusHistory[0]?.note).toBe("Sensitive status note");
     } finally {
       await app.close();
     }

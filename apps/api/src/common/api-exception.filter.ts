@@ -32,6 +32,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
     }
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
+      if (status === 429) return new ApiError(status, "RATE_LIMITED", exception.message);
+      if (status >= 500) return new ApiError(status, "INTERNAL_ERROR", "An unexpected error occurred.");
       const code = status === 404 ? "NOT_FOUND" : status === 401 ? "UNAUTHENTICATED" : status === 403 ? "FORBIDDEN" : "VALIDATION_ERROR";
       return new ApiError(status, code, exception.message);
     }

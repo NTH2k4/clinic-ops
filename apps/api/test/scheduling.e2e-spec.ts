@@ -7,7 +7,12 @@ import { AppModule } from "../src/app.module";
 const loginSchema = z.object({ data: z.object({ sessionToken: z.string().min(1) }) });
 const listMetaSchema = z.object({ page: z.number(), pageSize: z.number(), total: z.number() });
 const scheduleListSchema = z.object({
-  data: z.array(z.object({ id: z.string(), doctorId: z.string(), effectiveFrom: z.string(), effectiveTo: z.string() })),
+  data: z.array(z.object({
+    id: z.string(),
+    doctorId: z.string(),
+    effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    effectiveTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  })),
   meta: listMetaSchema,
 });
 const availabilitySchema = z.object({
@@ -42,6 +47,7 @@ describe("Schedule and availability reads", () => {
           const result = scheduleListSchema.parse(response.body);
           expect(result.data).toHaveLength(1);
           expect(result.data[0]?.doctorId).toBe("doctor-1");
+          expect(result.data[0]).toMatchObject({ effectiveFrom: "2026-08-25", effectiveTo: "2026-08-25" });
           expect(result.meta).toMatchObject({ page: 1, pageSize: 5, total: 1 });
         });
     } finally {

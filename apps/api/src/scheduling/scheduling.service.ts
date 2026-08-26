@@ -23,10 +23,15 @@ export class SchedulingService {
       effectiveTo: from ? { gte: from } : undefined,
       effectiveFrom: to ? { lte: to } : undefined,
     };
-    const [items, total] = await this.prisma.$transaction([
+    const [schedules, total] = await this.prisma.$transaction([
       this.prisma.doctorSchedule.findMany({ where, orderBy: [{ effectiveFrom: "asc" }, { startTime: "asc" }, { id: "asc" }], ...paginationArgs(query) }),
       this.prisma.doctorSchedule.count({ where }),
     ]);
+    const items = schedules.map((schedule) => ({
+      ...schedule,
+      effectiveFrom: schedule.effectiveFrom.toISOString().slice(0, 10),
+      effectiveTo: schedule.effectiveTo.toISOString().slice(0, 10),
+    }));
     return { items, total };
   }
 

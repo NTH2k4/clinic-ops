@@ -4,7 +4,7 @@ import { type AuthenticatedRequest, SessionGuard } from "../auth/session.guard";
 import { listEnvelope, successEnvelope } from "../common/api-response";
 import { Roles, RolesGuard } from "../common/roles";
 import { parseSchema } from "../common/validation";
-import { serviceListQuerySchema } from "./catalog.dto";
+import { serviceCreateSchema, serviceListQuerySchema, serviceUpdateSchema } from "./catalog.dto";
 import { CatalogService } from "./catalog.service";
 
 @Controller("services")
@@ -25,12 +25,16 @@ export class ServicesController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
-  async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.createService(body, request.currentUser.id)); }
+  async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
+    return successEnvelope(await this.catalog.createService(parseSchema(serviceCreateSchema, body), request.currentUser.id));
+  }
 
   @Patch(":id")
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
-  async update(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.updateService(id, body, request.currentUser.id)); }
+  async update(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
+    return successEnvelope(await this.catalog.updateService(id, parseSchema(serviceUpdateSchema, body), request.currentUser.id));
+  }
 
   @Post(":id/deactivate")
   @UseGuards(RolesGuard)

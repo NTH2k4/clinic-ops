@@ -17,6 +17,16 @@ const appointmentDetail = {
   statusHistory: { orderBy: { changedAt: "asc" as const } },
 };
 
+const patientAppointmentDetail = {
+  omit: { internalNote: true },
+  include: {
+    patient: true,
+    doctor: true,
+    service: true,
+    statusHistory: { omit: { note: true }, orderBy: { changedAt: "asc" as const } },
+  },
+};
+
 const transactionAttempts = 3;
 
 @Injectable()
@@ -42,6 +52,13 @@ export class AppointmentsService {
       ] } : {}),
       ...this.actorScope(actor, linkedProfile),
     };
+    if (actor.role === UserRole.patient) {
+      const [items, total] = await this.prisma.$transaction([
+        this.prisma.appointment.findMany({ where, ...patientAppointmentDetail, orderBy: [{ startAt: "asc" }, { id: "asc" }], ...paginationArgs(query) }),
+        this.prisma.appointment.count({ where }),
+      ]);
+      return { items, total };
+    }
     const [items, total] = await this.prisma.$transaction([
       this.prisma.appointment.findMany({ where, include: appointmentDetail, orderBy: [{ startAt: "asc" }, { id: "asc" }], ...paginationArgs(query) }),
       this.prisma.appointment.count({ where }),
@@ -50,6 +67,11 @@ export class AppointmentsService {
   }
 
   async authorizedDetail(id: string, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
+    if (actor.role === UserRole.patient) {
+      const appointment = await this.require(this.prisma.appointment.findUnique({ where: { id }, ...patientAppointmentDetail }), "appointment");
+      this.assertReadActor(appointment, actor, linkedProfile);
+      return appointment;
+    }
     const appointment = await this.require(this.prisma.appointment.findUnique({ where: { id }, include: appointmentDetail }), "appointment");
     this.assertReadActor(appointment, actor, linkedProfile);
     return appointment;
@@ -85,7 +107,7 @@ export class AppointmentsService {
       });
       await transaction.appointmentStatusHistory.create({ data: { appointmentId: appointment.id, toStatus: status, actorUserId: actor.id } });
       await this.audit(transaction, actor.id, appointment.id, "appointment_created", { status, ...(input.source ? { source: input.source } : {}) });
-      return this.detail(transaction, appointment.id);
+      return this.detail(transaction, appointment.id, actor.role);
     });
   }
 
@@ -116,7 +138,7 @@ export class AppointmentsService {
         data: { appointmentId: id, fromStatus: appointment.status, toStatus: target, actorUserId: actor.id, note: input.note },
       });
       await this.audit(transaction, actor.id, id, this.transitionAuditAction(target), { fromStatus: appointment.status, toStatus: target });
-      return this.detail(transaction, id);
+      return this.detail(transaction, id, actor.role);
     });
   }
 
@@ -132,7 +154,7 @@ export class AppointmentsService {
       if (!hasSlotChange) {
         await transaction.appointment.update({ where: { id }, data: { internalNote: input.internalNote, updatedByUserId: actor.id } });
         await this.audit(transaction, actor.id, id, "appointment_updated", { fields: ["internalNote"] });
-        return this.detail(transaction, id);
+        return this.detail(transaction, id, actor.role);
       }
 
       const slot = await this.conflicts.assertSlotAvailable({
@@ -157,7 +179,7 @@ export class AppointmentsService {
         oldStartAt: appointment.startAt.toISOString(), oldEndAt: appointment.endAt.toISOString(),
         newStartAt: slot.startAt.toISOString(), newEndAt: slot.endAt.toISOString(),
       });
-      return this.detail(transaction, id);
+      return this.detail(transaction, id, actor.role);
     });
   }
 
@@ -232,7 +254,10 @@ export class AppointmentsService {
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
   }
 
-  private detail(transaction: Prisma.TransactionClient, id: string) {
+  private detail(transaction: Prisma.TransactionClient, id: string, role: UserRole) {
+    if (role === UserRole.patient) {
+      return this.require(transaction.appointment.findUnique({ where: { id }, ...patientAppointmentDetail }), "appointment");
+    }
     return this.require(transaction.appointment.findUnique({ where: { id }, include: appointmentDetail }), "appointment");
   }
 

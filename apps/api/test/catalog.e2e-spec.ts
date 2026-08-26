@@ -275,6 +275,53 @@ describe("Catalog resources", () => {
     }
   });
 
+  it("prevents patient owners from updating operational notes", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+      await prisma.patient.update({ where: { id: "patient-1" }, data: { notes: "Staff-only context" } });
+
+      await request(server)
+        .patch("/api/v1/patients/patient-1")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .send({ notes: "Patient changed this" })
+        .expect(400)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+
+      await expect(prisma.patient.findUniqueOrThrow({ where: { id: "patient-1" }, select: { notes: true } }))
+        .resolves.toEqual({ notes: "Staff-only context" });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("rejects unknown fields on every catalog create and update route", async () => {
+    const { app, server } = await createApp();
+    try {
+      const token = await login(server, "admin@careflow.local");
+      const authorization = `Bearer ${token}`;
+      const requests = [
+        () => request(server).post("/api/v1/services").set("Authorization", authorization).send({
+          name: "Unknown Field Service", specialtyId: "specialty-general", durationMinutes: 30, price: 100000, unexpected: true,
+        }),
+        () => request(server).patch("/api/v1/services/service-general").set("Authorization", authorization).send({ description: "Valid update", unexpected: true }),
+        () => request(server).post("/api/v1/specialties").set("Authorization", authorization).send({ name: "Unknown Field Specialty", unexpected: true }),
+        () => request(server).patch("/api/v1/specialties/specialty-general").set("Authorization", authorization).send({ description: "Valid update", unexpected: true }),
+        () => request(server).post("/api/v1/doctors").set("Authorization", authorization).send({
+          fullName: "Dr. Unknown Field", specialtyId: "specialty-general", phone: "+84909999999", email: "unknown.field@careflow.local", unexpected: true,
+        }),
+        () => request(server).patch("/api/v1/doctors/doctor-1").set("Authorization", authorization).send({ room: "A103", unexpected: true }),
+      ];
+      const responses = [];
+      for (const send of requests) responses.push(await send());
+
+      expect(responses.map((response) => response.status)).toEqual([400, 400, 400, 400, 400, 400]);
+      for (const response of responses) expect(errorSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR");
+    } finally {
+      await app.close();
+    }
+  });
+
   it("requires date-only patient birth dates", async () => {
     const { app, server } = await createApp();
     try {

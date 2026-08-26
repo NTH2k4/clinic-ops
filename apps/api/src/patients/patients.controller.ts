@@ -5,7 +5,7 @@ import { ApiError } from "../common/api-error";
 import { listEnvelope, successEnvelope } from "../common/api-response";
 import { Roles, RolesGuard } from "../common/roles";
 import { parseSchema } from "../common/validation";
-import { patientCreateSchema, patientListQuerySchema, patientUpdateSchema } from "./patients.dto";
+import { patientCreateSchema, patientListQuerySchema, patientOwnerUpdateSchema, patientUpdateSchema } from "./patients.dto";
 import { PatientsService } from "./patients.service";
 
 @Controller("patients")
@@ -38,7 +38,10 @@ export class PatientsController {
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async update(@Param("id") id: string, @Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) {
     this.assertOwnerOrStaff(id, request);
-    return successEnvelope(await this.patients.update(id, parseSchema(patientUpdateSchema, body)));
+    const input = request.currentUser.role === UserRole.patient
+      ? parseSchema(patientOwnerUpdateSchema, body)
+      : parseSchema(patientUpdateSchema, body);
+    return successEnvelope(await this.patients.update(id, input));
   }
 
   @Post(":id/deactivate")

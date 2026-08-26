@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, HttpException, UseGuards } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import type { App } from "supertest/types";
@@ -21,6 +21,16 @@ class AdminOnlyController {
   @Roles("admin")
   rolesOnly() {
     return { data: { ok: true }, meta: { requestId: "test-request" } };
+  }
+
+  @Get("rate-limited")
+  rateLimited() {
+    throw new HttpException("Too many requests.", 429);
+  }
+
+  @Get("internal-error")
+  internalError() {
+    throw new HttpException("Unexpected failure.", 500);
   }
 }
 
@@ -135,6 +145,23 @@ describe("Auth and RBAC", () => {
           expect(parsed.error.code).toBe("FORBIDDEN");
           expect(parsed.meta.requestId).toEqual(expect.any(String));
         });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("preserves rate-limit and internal HttpException categories", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      await request(server)
+        .get("/api/v1/admin-only/rate-limited")
+        .expect(429)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("RATE_LIMITED"));
+      await request(server)
+        .get("/api/v1/admin-only/internal-error")
+        .expect(500)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("INTERNAL_ERROR"));
     } finally {
       await app.close();
     }

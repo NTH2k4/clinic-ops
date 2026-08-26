@@ -18,6 +18,10 @@ export const patientUpdateSchema = patientCreateSchema.partial().refine((input) 
   message: "At least one patient field is required.",
 });
 
+export const patientOwnerUpdateSchema = patientCreateSchema.omit({ notes: true }).partial().refine((input) => Object.keys(input).length > 0, {
+  message: "At least one patient field is required.",
+});
+
 export const patientListQuerySchema = z.object({
   q: z.string().trim().min(1).max(200).optional(),
   status: z.nativeEnum(AccountStatus).optional(),
