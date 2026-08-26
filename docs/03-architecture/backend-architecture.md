@@ -202,7 +202,7 @@ For database-backed E2E tests, PostgreSQL must be running and `DATABASE_URL` mus
 - Auth sessions are in memory and disappear on process restart.
 - The demo password is hardcoded for seeded users.
 - There is no OpenAPI machine-readable specification yet.
-- There is no production CORS, cookie, TLS or deployment configuration yet.
+- CORS is configured through `CORS_ALLOWED_ORIGINS`, but TLS, hosting and production session storage are not configured yet.
 - Notifications are in-app records only.
 - Audit coverage is focused on MVP workflows, not every read/write.
 - Database migrations exist, but the project does not yet define a production migration review policy.

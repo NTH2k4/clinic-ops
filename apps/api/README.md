@@ -61,6 +61,17 @@ To use a different port:
 PORT=3001 npm run dev
 ```
 
+## Environment Variables
+
+| Variable | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | Yes | None | PostgreSQL connection string used by Prisma and E2E tests. |
+| `PORT` | No | `3000` | API listen port. Invalid values fail startup before binding the server. |
+| `CORS_ALLOWED_ORIGINS` | No | CORS disabled | Comma-separated `http://` or `https://` origins allowed to call the API from browsers. Use the deployed frontend origin in staging/production. |
+| `ALLOW_DATABASE_SEED` | No | unset | Set to `true` only when intentionally seeding a non-local database. |
+
+Copy `apps/api/.env.example` when preparing a local or hosted environment and replace values for the target deployment.
+
 ## Seeded Demo Accounts
 
 All seeded demo users use password `careflow-demo`.
@@ -132,6 +143,16 @@ The MVP auth flow is intentionally simple:
 - `POST /auth/logout` deletes the in-memory session.
 
 This model is for MVP integration only. Production work should add durable sessions or a production token strategy, expiry, password hashing for real user credentials and revocation behavior.
+
+## Browser CORS
+
+The API enables CORS only when `CORS_ALLOWED_ORIGINS` is set. Keep it unset for same-origin local proxy usage. For deployed frontend/API split-origin usage, set it to the exact frontend origin:
+
+```bash
+CORS_ALLOWED_ORIGINS=https://nth2k4.github.io
+```
+
+Do not use wildcard browser origins for production because the API uses bearer sessions.
 
 ## Main Resources
 

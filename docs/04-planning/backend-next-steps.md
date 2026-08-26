@@ -91,7 +91,7 @@ Recommended actions:
 
 1. Choose hosting for the API and PostgreSQL.
 2. Define required environment variables.
-3. Add production CORS configuration for the deployed frontend origin.
+3. Set `CORS_ALLOWED_ORIGINS` to the deployed frontend origin after the frontend/API hosting topology is chosen.
 4. Add a health endpoint check to deployment monitoring.
 5. Define migration rollout steps for production.
 6. Document rollback behavior.
@@ -100,7 +100,7 @@ Acceptance criteria:
 
 - A new engineer can deploy the API from documented steps.
 - Environment variables are listed with required/optional status.
-- CORS allows the frontend origin and rejects unexpected browser origins.
+- CORS allows the configured frontend origin and rejects unexpected browser origins.
 - Database migration steps are explicit.
 
 ## Workstream 5: Observability And Operations

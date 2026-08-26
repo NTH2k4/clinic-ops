@@ -2,6 +2,7 @@
 
 ## 2026-08-26
 
+- Added backend deployment-readiness runtime config for `PORT` and `CORS_ALLOWED_ORIGINS`, with API tests and environment documentation.
 - Added backend as-built documentation in English: `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/database-schema.md`, `apps/api/README.md` and `docs/04-planning/backend-next-steps.md`.
 - Updated documentation standards to make English the default for new and materially revised docs, with agent/subagent plans explicitly written in English.
 - Bổ sung Playwright API-mode regression gate cho login/booking conflict, operations check-in, doctor workflow, audit/notification navigation và RBAC redirect; mock e2e vẫn là mặc định, CI web khởi tạo PostgreSQL/API riêng cho gate này.
