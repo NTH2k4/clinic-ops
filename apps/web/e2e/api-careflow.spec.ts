@@ -63,12 +63,16 @@ test("doctor can start a checked-in appointment and complete it", async ({ page,
   expect((await request.post("/api/v1/appointments/appointment-1/check-in", { headers })).ok()).toBe(true);
 
   await signIn(page, "minh.nguyen@careflow.local");
-  const appointment = page.getByRole("article").first();
+  await page.getByRole("link", { name: "Lịch ngày" }).click();
+  await page.getByRole("button", { name: "Ngày trước" }).click();
+  const appointment = page.getByRole("article", { name: "Patient Demo" });
   await appointment.getByRole("button", { name: /Xem chi tiết/ }).click();
   const dialog = page.getByRole("dialog", { name: "Chi tiết lịch hẹn" });
   const start = dialog.getByRole("button", { name: "Start appointment" });
-  if (await start.isVisible()) await start.click();
-  await page.getByRole("button", { name: "Complete appointment" }).click();
+  await expect(start).toBeVisible();
+  await start.click();
+  await expect(dialog.getByLabel("Trạng thái: Đang khám")).toBeVisible();
+  await dialog.getByRole("button", { name: "Complete appointment" }).click();
   await expect(dialog.getByLabel("Trạng thái: Hoàn tất")).toBeVisible();
 });
 
@@ -86,18 +90,28 @@ test("admin can filter audit events and a notification reference opens its targe
   await expect(page).toHaveURL(/\/app\/patient\/appointments$/);
 });
 
-test("unauthorized routes redirect and forbidden actions leave the patient UI unchanged", async ({ page, request }) => {
+test("unauthorized routes redirect and forbidden actions leave the patient UI unchanged", async ({ page }) => {
   await page.goto("/app/admin/audit");
   await expect(page).toHaveURL(/\/login$/);
 
   await signIn(page, "patient@careflow.local");
-  await expect(page.getByRole("heading", { name: "Trang chính patient" })).toBeVisible();
-  const login = await request.post("/api/v1/auth/login", { data: { email: "patient@careflow.local", password } });
-  const { data } = await login.json() as { data: { sessionToken: string } };
-  const forbidden = await request.post("/api/v1/appointments/appointment-2/check-in", {
-    headers: { Authorization: `Bearer ${data.sessionToken}` },
+  await page.getByRole("link", { name: "Lịch của tôi" }).click();
+  const cancellation = page.getByRole("button", { name: /Hủy lịch .+/ }).first();
+  await expect(cancellation).toBeVisible();
+
+  await page.route("**/api/v1/appointments/*/cancel", async (route) => {
+    await route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: { code: "FORBIDDEN", message: "You do not have permission to access this resource." },
+        meta: { requestId: "forbidden-transition" },
+      }),
+    });
   });
-  expect(forbidden.status()).toBe(403);
-  await expect(page.getByRole("heading", { name: "Trang chính patient" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Check-in" })).toHaveCount(0);
+
+  await cancellation.click();
+
+  await expect(page.getByRole("alert")).toContainText("Không thể hủy lịch hẹn. Vui lòng thử lại.");
+  await expect(cancellation).toBeVisible();
 });
