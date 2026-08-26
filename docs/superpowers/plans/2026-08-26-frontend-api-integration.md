@@ -115,7 +115,7 @@
 
 - [ ] **Step 5: Implement API error and envelope types**
 
-  Create `types.ts` with `ApiMeta`, `ApiSuccess<T>`, `ApiErrorEnvelope`, `ApiListMeta`, and `ApiListResponse<T>`.
+  Create `types.ts` with `ApiMeta`, `ApiSuccess<T>`, `ApiErrorEnvelope`, `ApiListMeta`, and `ApiListResponse<T>`. `ApiErrorEnvelope.error.fields` must accept the backend's `Record<string, string>` shape; the HTTP client may normalize those messages to arrays for `ApiClientError.fields`.
 
   Create `errors.ts`:
 
@@ -163,18 +163,29 @@
   Create `auth.ts` with:
 
   ```ts
-  import type { User, Patient, Doctor } from "../../types/models";
+  import type { User } from "../../types/models";
+
+  export type CurrentUser = Pick<User, "id" | "displayName" | "email" | "role"> & {
+    status: "active" | "inactive" | "locked";
+  };
+
+  export type LinkedProfileRef =
+    | { type: "patient" | "staff" | "doctor"; id: string }
+    | null;
 
   export interface AuthSession {
+    currentUser: CurrentUser;
+    linkedProfile: LinkedProfileRef;
+  }
+
+  export interface AuthLoginResponse extends AuthSession {
     sessionToken: string;
-    user: User;
-    linkedProfile?: Patient | Doctor;
   }
 
   export interface AuthApi {
-    login(input: { email: string; password: string }): Promise<AuthSession>;
+    login(input: { email: string; password: string }): Promise<AuthLoginResponse>;
     logout(): Promise<void>;
-    me(): Promise<Omit<AuthSession, "sessionToken">>;
+    me(): Promise<AuthSession>;
   }
   ```
 
@@ -201,7 +212,7 @@
 
 **Interfaces:**
 - Consumes: `isApiMode`, `createApiHttpClient()`, `createAuthApi()`, `queryClient`.
-- Produces: `AuthContextValue` with async `signIn`, async `signOut`, `switchRole` available only in mock mode, and optional `authError`.
+- Produces: `AuthContextValue` with async `signIn`, async `signOut`, `switchRole` available only in mock mode, and optional `authError`. API-mode auth state uses backend `currentUser`, nullable `linkedProfile` references, and the in-memory login `sessionToken`; it must not treat those responses as full frontend `User`, `Patient`, or `Doctor` records.
 
 - [ ] **Step 1: Write RED tests for mock mode preservation**
 
@@ -227,10 +238,10 @@
   Keep mock behavior unchanged when `isApiMode` is false. In API mode:
   - hold `sessionToken` in React state only
   - create a token-aware API client
-  - `signIn` accepts `{ email, password }`, calls `authApi.login`, stores `user` and token
-  - `signOut` calls `authApi.logout`, clears token/user, and calls `queryClient.clear()`
+  - `signIn` accepts `{ email, password }`, calls `authApi.login`, stores `currentUser` and token
+  - `signOut` calls `authApi.logout`, clears token/currentUser, and calls `queryClient.clear()`
   - `switchRole` is a no-op or throws a clear error in API mode, but no UI should call it
-  - `onUnauthenticated` clears token/user/query cache
+  - `onUnauthenticated` clears token/currentUser/query cache
 
 - [ ] **Step 5: Implement API login UI**
 

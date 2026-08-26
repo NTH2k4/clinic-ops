@@ -10,6 +10,10 @@ export interface ApiHttpClientOptions {
 
 export type ApiRequest = <T>(path: string, init?: RequestInit) => Promise<T>;
 
+function normalizeFields(fields: ApiErrorEnvelope["error"]["fields"]): Record<string, string[]> | undefined {
+  return fields && Object.fromEntries(Object.entries(fields).map(([field, message]) => [field, [message]]));
+}
+
 export function createApiHttpClient(options: ApiHttpClientOptions) {
   const apiRequest: ApiRequest = async <T>(path: string, init?: RequestInit): Promise<T> => {
     const headers = new Headers(init?.headers);
@@ -30,7 +34,7 @@ export function createApiHttpClient(options: ApiHttpClientOptions) {
 
     const error = "error" in body ? body.error : { code: "INTERNAL_ERROR", message: "Unexpected API response." };
     const requestId = body.meta?.requestId;
-    const clientError = new ApiClientError(error.code, error.message, requestId, error.fields, response.status);
+    const clientError = new ApiClientError(error.code, error.message, requestId, normalizeFields(error.fields), response.status);
 
     if (response.status === 401 && clientError.code === "UNAUTHENTICATED") {
       options.onUnauthenticated?.();

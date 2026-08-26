@@ -11,7 +11,7 @@ export interface ApiErrorEnvelope {
   error: {
     code: string;
     message: string;
-    fields?: Record<string, string[]>;
+    fields?: Record<string, string>;
   };
   meta: ApiMeta;
 }

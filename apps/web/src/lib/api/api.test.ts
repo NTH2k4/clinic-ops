@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createAuthApi } from "./auth";
+import type { AuthLoginResponse, AuthSession } from "./auth";
 import { ApiClientError } from "./errors";
 import { createApiHttpClient } from "./http";
 
@@ -52,14 +53,14 @@ describe("API HTTP client", () => {
     expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer token-1");
   });
 
-  it("preserves API error details from error envelopes", async () => {
+  it("normalizes backend string field errors while preserving API error details", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(
         JSON.stringify({
           error: {
             code: "VALIDATION_ERROR",
             message: "Request validation failed.",
-            fields: { email: ["Invalid email address."] },
+            fields: { email: "Invalid email address." },
           },
           meta: { requestId: "req-400" },
         }),
@@ -101,17 +102,35 @@ describe("API HTTP client", () => {
 
 describe("auth API", () => {
   it("uses the auth endpoints with their required methods and login payload", async () => {
+    const currentUser = {
+      id: "user-1",
+      displayName: "Patient Demo",
+      email: "patient@example.test",
+      role: "patient" as const,
+      status: "active" as const,
+    };
+    const loginResponse: AuthLoginResponse = {
+      sessionToken: "session-1",
+      currentUser,
+      linkedProfile: { type: "patient", id: "patient-1" },
+    };
+    const session: AuthSession = {
+      currentUser,
+      linkedProfile: null,
+    };
     const request = vi.fn()
-      .mockResolvedValueOnce({ sessionToken: "session-1", user: { id: "user-1" } })
+      .mockResolvedValueOnce(loginResponse)
       .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ user: { id: "user-1" } });
+      .mockResolvedValueOnce(session);
     const authApi = createAuthApi(request);
 
     await expect(authApi.login({ email: "patient@example.test", password: "secret" })).resolves.toMatchObject({
       sessionToken: "session-1",
+      currentUser,
+      linkedProfile: { type: "patient", id: "patient-1" },
     });
     await expect(authApi.logout()).resolves.toBeUndefined();
-    await expect(authApi.me()).resolves.toMatchObject({ user: { id: "user-1" } });
+    await expect(authApi.me()).resolves.toEqual(session);
 
     expect(request).toHaveBeenNthCalledWith(1, "/auth/login", {
       method: "POST",
