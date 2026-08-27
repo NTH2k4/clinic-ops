@@ -4,7 +4,7 @@ import { ApiError } from "../common/api-error";
 import { paginationArgs } from "../common/validation";
 import { AppointmentConflictsService } from "../appointments/appointment-conflicts.service";
 import { PrismaService } from "../prisma/prisma.service";
-import type { AvailabilityQuery, ScheduleListQuery } from "./scheduling.dto";
+import type { AvailabilityQuery, ScheduleCreateInput, ScheduleListQuery, ScheduleUpdateInput } from "./scheduling.dto";
 
 const unavailableCodes = new Set(["APPOINTMENT_CONFLICT", "DOCTOR_UNAVAILABLE", "NO_DOCTOR_AVAILABLE", "OUTSIDE_WORKING_HOURS"]);
 
@@ -27,12 +27,67 @@ export class SchedulingService {
       this.prisma.doctorSchedule.findMany({ where, orderBy: [{ effectiveFrom: "asc" }, { startTime: "asc" }, { id: "asc" }], ...paginationArgs(query) }),
       this.prisma.doctorSchedule.count({ where }),
     ]);
-    const items = schedules.map((schedule) => ({
-      ...schedule,
-      effectiveFrom: schedule.effectiveFrom.toISOString().slice(0, 10),
-      effectiveTo: schedule.effectiveTo.toISOString().slice(0, 10),
-    }));
+    const items = schedules.map((schedule) => this.serializeSchedule(schedule));
     return { items, total };
+  }
+
+  async createSchedule(input: ScheduleCreateInput, actorUserId: string) {
+    await this.require(this.prisma.doctor.findUnique({ where: { id: input.doctorId } }), "doctor");
+    this.assertScheduleRange(input);
+    return this.prisma.$transaction(async (transaction) => {
+      const schedule = await transaction.doctorSchedule.create({
+        data: {
+          doctorId: input.doctorId,
+          dayOfWeek: input.dayOfWeek,
+          startTime: input.startTime,
+          endTime: input.endTime,
+          effectiveFrom: this.date(input.effectiveFrom),
+          effectiveTo: this.date(input.effectiveTo),
+          type: input.type,
+        },
+      });
+      await this.audit(transaction, actorUserId, schedule.id, "doctor_schedule_created");
+      return this.serializeSchedule(schedule);
+    });
+  }
+
+  async updateSchedule(id: string, input: ScheduleUpdateInput, actorUserId: string) {
+    return this.prisma.$transaction(async (transaction) => {
+      const existing = await this.require(transaction.doctorSchedule.findUnique({ where: { id } }), "doctor schedule");
+      if (input.doctorId) await this.require(transaction.doctor.findUnique({ where: { id: input.doctorId } }), "doctor");
+
+      const next = {
+        startTime: input.startTime ?? existing.startTime,
+        endTime: input.endTime ?? existing.endTime,
+        effectiveFrom: input.effectiveFrom ?? existing.effectiveFrom.toISOString().slice(0, 10),
+        effectiveTo: input.effectiveTo ?? existing.effectiveTo.toISOString().slice(0, 10),
+      };
+      this.assertScheduleRange(next);
+
+      const schedule = await transaction.doctorSchedule.update({
+        where: { id },
+        data: {
+          doctorId: input.doctorId,
+          dayOfWeek: input.dayOfWeek,
+          startTime: input.startTime,
+          endTime: input.endTime,
+          effectiveFrom: input.effectiveFrom === undefined ? undefined : this.date(input.effectiveFrom),
+          effectiveTo: input.effectiveTo === undefined ? undefined : this.date(input.effectiveTo),
+          type: input.type,
+        },
+      });
+      await this.audit(transaction, actorUserId, schedule.id, "doctor_schedule_updated");
+      return this.serializeSchedule(schedule);
+    });
+  }
+
+  async deactivateSchedule(id: string, actorUserId: string) {
+    return this.prisma.$transaction(async (transaction) => {
+      const existing = await this.require(transaction.doctorSchedule.findUnique({ where: { id } }), "doctor schedule");
+      const schedule = await transaction.doctorSchedule.update({ where: { id: existing.id }, data: { status: AccountStatus.inactive } });
+      await this.audit(transaction, actorUserId, schedule.id, "doctor_schedule_deactivated");
+      return this.serializeSchedule(schedule);
+    });
   }
 
   async availability(query: AvailabilityQuery) {
@@ -96,5 +151,32 @@ export class SchedulingService {
   private minutes(value: string) {
     const [hours, minutes] = value.split(":").map(Number);
     return hours * 60 + minutes;
+  }
+
+  private assertScheduleRange(schedule: { startTime: string; endTime: string; effectiveFrom: string; effectiveTo: string }) {
+    if (this.minutes(schedule.startTime) >= this.minutes(schedule.endTime)) {
+      throw new ApiError(400, "VALIDATION_ERROR", "startTime must be before endTime.", { startTime: "Invalid", endTime: "Invalid" });
+    }
+    if (schedule.effectiveFrom > schedule.effectiveTo) {
+      throw new ApiError(400, "VALIDATION_ERROR", "effectiveFrom must be before or equal to effectiveTo.", { effectiveFrom: "Invalid" });
+    }
+  }
+
+  private serializeSchedule(schedule: { effectiveFrom: Date; effectiveTo: Date } & Record<string, unknown>) {
+    return {
+      ...schedule,
+      effectiveFrom: schedule.effectiveFrom.toISOString().slice(0, 10),
+      effectiveTo: schedule.effectiveTo.toISOString().slice(0, 10),
+    };
+  }
+
+  private async require<T>(value: Promise<T | null>, entity: string): Promise<T> {
+    const resource = await value;
+    if (!resource) throw new ApiError(404, "NOT_FOUND", `${entity} was not found.`);
+    return resource;
+  }
+
+  private audit(transaction: Prisma.TransactionClient, actorUserId: string, scheduleId: string, action: string) {
+    return transaction.auditEvent.create({ data: { actorUserId, entityType: "doctor_schedule", entityId: scheduleId, action } });
   }
 }

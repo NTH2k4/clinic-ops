@@ -149,15 +149,15 @@ Acceptance criteria:
 
 ## Workstream 7: Appointment Scheduling Depth
 
+Status: baseline implemented; admin schedule create/update/deactivate endpoints, blocked schedule availability behavior and scheduling API contract coverage are implemented.
+
 Goal: support more realistic clinic scheduling once MVP flows are stable.
 
 Recommended actions:
 
-1. Decide whether schedule management endpoints are in scope for admin/operations.
-2. Add schedule create/update/deactivate flows if needed.
-3. Add support for blocked/leave intervals from the UI.
-4. Define timezone behavior for all user-facing date displays.
-5. Expand E2E tests for cross-day, unavailable doctor and automatic doctor selection cases.
+1. Add blocked/leave interval controls to the UI when admin schedule management becomes a frontend slice.
+2. Expand E2E tests for cross-day, unavailable doctor and automatic doctor selection cases.
+3. Add richer unavailable-slot explanations if operations staff need diagnostics inside the product UI.
 
 Acceptance criteria:
 

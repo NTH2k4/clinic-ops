@@ -63,6 +63,9 @@ describe("OpenAPI contract", () => {
       ["patch", "/api/v1/patients/{id}"],
       ["post", "/api/v1/patients/{id}/deactivate"],
       ["get", "/api/v1/doctor-schedules"],
+      ["post", "/api/v1/doctor-schedules"],
+      ["patch", "/api/v1/doctor-schedules/{id}"],
+      ["post", "/api/v1/doctor-schedules/{id}/deactivate"],
       ["get", "/api/v1/availability/slots"],
       ["get", "/api/v1/appointments"],
       ["get", "/api/v1/appointments/{id}"],
@@ -96,6 +99,14 @@ describe("OpenAPI contract", () => {
     expect(spec.paths?.["/api/v1/services/{id}"]?.patch?.requestBody?.$ref).toBe("#/components/requestBodies/ServiceUpdate");
     expect(spec.paths?.["/api/v1/specialties/{id}"]?.patch?.requestBody?.$ref).toBe("#/components/requestBodies/SpecialtyUpdate");
     expect(spec.paths?.["/api/v1/patients/{id}"]?.patch?.requestBody?.$ref).toBe("#/components/requestBodies/PatientUpdate");
+    expect(spec.paths?.["/api/v1/doctor-schedules/{id}"]?.patch?.requestBody?.$ref).toBe("#/components/requestBodies/ScheduleUpdate");
+  });
+
+  it("matches schedule DTO constraints", () => {
+    const scheduleCreate = spec.components?.schemas?.ScheduleCreateRequest;
+    expect(scheduleCreate?.required).toEqual(["doctorId", "dayOfWeek", "startTime", "endTime", "effectiveFrom", "effectiveTo", "type"]);
+    expect(scheduleCreate?.properties?.dayOfWeek).toMatchObject({ type: "integer", minimum: 1, maximum: 7 });
+    expect(scheduleCreate?.properties?.type).toEqual({ enum: ["working", "blocked", "leave"] });
   });
 
   it("matches patient DTO constraints", () => {

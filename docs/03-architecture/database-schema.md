@@ -136,6 +136,7 @@ Important rules:
 - `type=working` provides availability.
 - `type=blocked` and `type=leave` remove availability.
 - Indexed by `[doctorId, effectiveFrom, effectiveTo]`.
+- Admin schedule create/update/deactivate operations write `doctor_schedule_*` audit events.
 
 The API requires appointment slots to fit inside one local clinic day.
 

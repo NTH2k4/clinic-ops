@@ -171,6 +171,8 @@ Active conflict statuses are `requested`, `confirmed`, `checked_in` and `in_prog
 
 Appointment create and reschedule operations run inside Serializable Prisma transactions and retry Prisma `P2034` serialization conflicts up to three attempts.
 
+Admin users manage doctor schedules through `POST /doctor-schedules`, `PATCH /doctor-schedules/:id` and `POST /doctor-schedules/:id/deactivate`. Schedule `startTime` and `endTime` are local `HH:mm` values interpreted in `Asia/Ho_Chi_Minh`; `effectiveFrom` and `effectiveTo` are date-only values.
+
 ## Audit And Notification Boundaries
 
 Audit events are currently written for appointment lifecycle actions and admin-managed catalog/patient changes. The audit log is admin-only through `/audit-events`.
@@ -187,7 +189,7 @@ Notifications are modeled as persisted inbox rows. Users can list their own noti
 | Catalog | `GET /specialties`, `POST /specialties`, `PATCH /specialties/:id`, `POST /specialties/:id/deactivate` |
 | Catalog | `GET /services`, `GET /services/:id`, `POST /services`, `PATCH /services/:id`, `POST /services/:id/deactivate` |
 | Patients | `GET /patients`, `GET /patients/:id`, `POST /patients`, `PATCH /patients/:id`, `POST /patients/:id/deactivate` |
-| Scheduling | `GET /doctor-schedules`, `GET /availability/slots` |
+| Scheduling | `GET /doctor-schedules`, `POST /doctor-schedules`, `PATCH /doctor-schedules/:id`, `POST /doctor-schedules/:id/deactivate`, `GET /availability/slots` |
 | Appointments | `GET /appointments`, `GET /appointments/:id`, `POST /appointments`, `PATCH /appointments/:id` |
 | Appointment actions | `POST /appointments/:id/confirm`, `POST /appointments/:id/cancel`, `POST /appointments/:id/check-in`, `POST /appointments/:id/start`, `POST /appointments/:id/complete`, `POST /appointments/:id/no-show` |
 | Audit | `GET /audit-events`, `GET /audit-events/:id` |

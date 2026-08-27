@@ -24,6 +24,7 @@ The backend writes durable `AuditEvent` records for operational mutations that a
 | `service` | `admin_resource_created`, `admin_resource_updated`, `admin_resource_deactivated` | Catalog lifecycle events store only entity identity and action. |
 | `specialty` | `admin_resource_created`, `admin_resource_updated`, `admin_resource_deactivated` | Catalog lifecycle events store only entity identity and action. |
 | `doctor` | `admin_resource_created`, `admin_resource_updated`, `admin_resource_deactivated` | Catalog lifecycle events store only entity identity and action. |
+| `doctor_schedule` | `doctor_schedule_created`, `doctor_schedule_updated`, `doctor_schedule_deactivated` | Schedule lifecycle events store only entity identity and action. |
 
 Authentication events are not yet written to `AuditEvent`; failed login diagnostics remain in structured server logs. Add auth audit events only after account lockout and password reset flows are defined.
 
@@ -62,4 +63,3 @@ Future production policy should define:
 - notification retention or archival behavior;
 - whether deleted users/patients require pseudonymized historical audit records;
 - export and deletion workflows for jurisdiction-specific compliance needs.
-
