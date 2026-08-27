@@ -8,12 +8,11 @@ import { auditListQuerySchema } from "./audit.dto";
 import { AuditService } from "./audit.service";
 
 @Controller("audit-events")
-@UseGuards(SessionGuard)
+@UseGuards(SessionGuard, RolesGuard)
 export class AuditController {
   constructor(private readonly audit: AuditService) {}
 
   @Get()
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async list(@Query() rawQuery: Record<string, unknown>) {
     const query = parseSchema(auditListQuerySchema, rawQuery);
@@ -22,7 +21,6 @@ export class AuditController {
   }
 
   @Get(":id")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async detail(@Param("id") id: string) {
     return successEnvelope(await this.audit.detail(id));

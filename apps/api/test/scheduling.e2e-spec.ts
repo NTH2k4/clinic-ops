@@ -227,6 +227,21 @@ describe("Schedule and availability reads", () => {
     }
   });
 
+  it("forbids doctors from checking patient-facing availability", async () => {
+    const { app, server } = await createApp();
+    try {
+      const doctorToken = await login(server, "minh.nguyen@careflow.local");
+
+      await request(server)
+        .get("/api/v1/availability/slots?serviceId=service-general&date=2026-08-25&doctorId=doctor-1")
+        .set("Authorization", `Bearer ${doctorToken}`)
+        .expect(403)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("FORBIDDEN"));
+    } finally {
+      await app.close();
+    }
+  });
+
   it("rejects blocked schedules that overlap active appointments", async () => {
     const { app, server } = await createApp();
     try {

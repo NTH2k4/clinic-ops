@@ -281,6 +281,21 @@ describe("Appointment workflows", () => {
     }
   });
 
+  it("forbids a doctor from starting another doctor's appointment", async () => {
+    const { app, server } = await createApp();
+    try {
+      const doctorToken = await login(server, "minh.nguyen@careflow.local");
+
+      await request(server)
+        .post("/api/v1/appointments/appointment-3/start")
+        .set("Authorization", `Bearer ${doctorToken}`)
+        .expect(403)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("FORBIDDEN"));
+    } finally {
+      await app.close();
+    }
+  });
+
   it("confirms a requested appointment as a receptionist and records the transition", async () => {
     const { app, server } = await createApp();
     try {

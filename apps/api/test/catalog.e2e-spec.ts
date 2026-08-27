@@ -232,6 +232,22 @@ describe("Catalog resources", () => {
     }
   });
 
+  it("forbids patient owners from reading another patient profile", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+
+      await request(server)
+        .get("/api/v1/patients/patient-2")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(403)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("FORBIDDEN"));
+    } finally {
+      await app.close();
+    }
+  });
+
   it("writes audit events when staff create and update patients", async () => {
     const { app, server } = await createApp();
 

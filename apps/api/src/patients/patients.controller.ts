@@ -9,12 +9,11 @@ import { patientCreateSchema, patientListQuerySchema, patientOwnerCreateSchema, 
 import { PatientsService } from "./patients.service";
 
 @Controller("patients")
-@UseGuards(SessionGuard)
+@UseGuards(SessionGuard, RolesGuard)
 export class PatientsController {
   constructor(private readonly patients: PatientsService) {}
 
   @Get()
-  @UseGuards(RolesGuard)
   @Roles(UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async list(@Req() request: AuthenticatedRequest, @Query() rawQuery: Record<string, unknown>) {
     const query = parseSchema(patientListQuerySchema, rawQuery);
@@ -29,7 +28,6 @@ export class PatientsController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     const userId = request.currentUser.role === UserRole.patient ? request.currentUser.id : undefined;
@@ -38,7 +36,6 @@ export class PatientsController {
   }
 
   @Patch(":id")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async update(@Param("id") id: string, @Req() request: AuthenticatedRequest, @Body() body: Record<string, unknown>) {
     this.assertOwnerOrStaff(id, request);
@@ -49,7 +46,6 @@ export class PatientsController {
   }
 
   @Post(":id/deactivate")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async deactivate(@Param("id") id: string, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.patients.deactivate(id, request.currentUser.id)); }
 

@@ -9,7 +9,7 @@ import { availabilityQuerySchema, scheduleCreateSchema, scheduleListQuerySchema,
 import { SchedulingService } from "./scheduling.service";
 
 @Controller()
-@UseGuards(SessionGuard)
+@UseGuards(SessionGuard, RolesGuard)
 export class SchedulingController {
   constructor(private readonly scheduling: SchedulingService) {}
 
@@ -21,28 +21,24 @@ export class SchedulingController {
   }
 
   @Post("doctor-schedules")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async createSchedule(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.scheduling.createSchedule(parseSchema(scheduleCreateSchema, body), request.currentUser.id));
   }
 
   @Patch("doctor-schedules/:id")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async updateSchedule(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.scheduling.updateSchedule(id, parseSchema(scheduleUpdateSchema, body), request.currentUser.id));
   }
 
   @Post("doctor-schedules/:id/deactivate")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async deactivateSchedule(@Param("id") id: string, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.scheduling.deactivateSchedule(id, request.currentUser.id));
   }
 
   @Get("availability/slots")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async availability(@Query() rawQuery: Record<string, unknown>) {
     const query = parseSchema(availabilityQuerySchema, rawQuery);

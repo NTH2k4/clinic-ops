@@ -8,7 +8,7 @@ import { doctorCreateSchema, doctorListQuerySchema, doctorUpdateSchema } from ".
 import { CatalogService } from "./catalog.service";
 
 @Controller("doctors")
-@UseGuards(SessionGuard)
+@UseGuards(SessionGuard, RolesGuard)
 export class DoctorsController {
   constructor(private readonly catalog: CatalogService) {}
 
@@ -23,21 +23,18 @@ export class DoctorsController {
   async detail(@Param("id") id: string) { return successEnvelope(await this.catalog.doctor(id)); }
 
   @Post()
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.catalog.createDoctor(parseSchema(doctorCreateSchema, body), request.currentUser.id));
   }
 
   @Patch(":id")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async update(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.catalog.updateDoctor(id, parseSchema(doctorUpdateSchema, body), request.currentUser.id));
   }
 
   @Post(":id/deactivate")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async deactivate(@Param("id") id: string, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.deactivateDoctor(id, request.currentUser.id)); }
 }

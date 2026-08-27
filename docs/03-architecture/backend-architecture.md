@@ -218,7 +218,7 @@ For database-backed E2E tests, PostgreSQL must be running and `DATABASE_URL` mus
 
 - Auth uses persisted bearer sessions and bcrypt password hashes, but demo users still share the seeded `careflow-demo` password.
 - The demo password hash is hardcoded for seeded users and migration backfill.
-- There is no OpenAPI machine-readable specification yet.
+- The checked-in OpenAPI baseline is maintained manually in `docs/03-architecture/openapi.json` and validated by `apps/api/src/openapi-contract.spec.ts`.
 - CORS is configured through `CORS_ALLOWED_ORIGINS`; TLS is owned by the hosting provider.
 - Notifications are in-app records only.
 - Audit coverage is focused on MVP workflows, not every read/write.

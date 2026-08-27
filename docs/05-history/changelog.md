@@ -2,6 +2,8 @@
 
 ## 2026-08-27
 
+- Hardened API authorization regression coverage for patient-owner, doctor-owner and role-excluded scheduling boundaries, and moved role guard wiring to controller class level for role-protected controllers.
+- Marked `/users` administration as planned rather than implemented and fixed backend architecture drift around the checked-in OpenAPI baseline.
 - Added persisted API bearer session hashes in PostgreSQL with 12-hour expiry, logout revocation, restart-persistence E2E coverage and auth/session documentation updates.
 - Added bcrypt `User.passwordHash` login verification, seeded demo password hashes and inactive/locked account auth coverage.
 - Added backend request ID propagation, structured request/error logging, appointment workflow action logs and a baseline backend operations runbook.

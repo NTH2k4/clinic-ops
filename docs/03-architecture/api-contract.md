@@ -111,6 +111,8 @@ Common error codes:
 
 ### Users
 
+Status: planned, not implemented in the current backend. The current admin workspace still uses mock staff data for this surface.
+
 | Method | Path | Role | Mục đích |
 | --- | --- | --- | --- |
 | GET | `/users` | admin | List users với filter `role`, `status`, `q`. |
@@ -298,5 +300,7 @@ Phase backend đầu tiên nên triển khai theo thứ tự:
 4. Appointment status transition endpoints.
 5. Operations/admin management endpoints.
 6. Audit events và notifications.
+
+Implemented authorization boundaries use `SessionGuard` for bearer-session authentication, `RolesGuard` with `@Roles(...)` for route-level role gates, and domain-level ownership checks for patient and doctor scoped actions. `/users` administration remains a later admin-management slice.
 
 Không tích hợp payment, insurance, prescription, telemedicine hoặc external SMS/email/push trong API v1.

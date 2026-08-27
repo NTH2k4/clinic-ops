@@ -8,7 +8,7 @@ import { serviceCreateSchema, serviceListQuerySchema, serviceUpdateSchema } from
 import { CatalogService } from "./catalog.service";
 
 @Controller("services")
-@UseGuards(SessionGuard)
+@UseGuards(SessionGuard, RolesGuard)
 export class ServicesController {
   constructor(private readonly catalog: CatalogService) {}
 
@@ -23,21 +23,18 @@ export class ServicesController {
   async detail(@Param("id") id: string) { return successEnvelope(await this.catalog.service(id)); }
 
   @Post()
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.catalog.createService(parseSchema(serviceCreateSchema, body), request.currentUser.id));
   }
 
   @Patch(":id")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async update(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.catalog.updateService(id, parseSchema(serviceUpdateSchema, body), request.currentUser.id));
   }
 
   @Post(":id/deactivate")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async deactivate(@Param("id") id: string, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.deactivateService(id, request.currentUser.id)); }
 }
