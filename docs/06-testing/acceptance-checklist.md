@@ -29,3 +29,11 @@
 - Docs trong `docs/04-planning/` phản ánh đúng branch, commit, verification và deployment status.
 - Release notes ghi rõ scope MVP, known constraints và demo safety note.
 - Render health/login smoke được kiểm tra nếu `RENDER_EXTERNAL_URL` khả dụng và push/deploy đã được người dùng duyệt.
+
+## Task 2 API Verification (2026-08-27)
+
+- [ ] API verification gate sau merge. **Partially blocked**: `docker compose up -d postgres` failed. First actionable error: `permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock`; cấp quyền Docker daemon hoặc dùng môi trường có daemon khả dụng, rồi hoàn tất database-dependent commands.
+- [ ] Prisma generate, migrate deploy và deterministic seed. Generate pass; migrate deploy và seed không chạy vì PostgreSQL local không khởi động được.
+- [x] API typecheck và lint. Cả hai pass.
+- [ ] API unit và E2E tests. Unit pass: 6/6 suites, 37/37 tests. E2E không chạy vì phụ thuộc PostgreSQL, migrations và seed.
+- [x] API build và `npm audit --audit-level=high`. Build pass; audit báo `found 0 vulnerabilities`.

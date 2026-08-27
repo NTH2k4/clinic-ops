@@ -47,6 +47,25 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 - Merge commit local trên `main`: `7d5a5194 merge: authorization hardening`.
 - Trạng thái tích hợp: đã merge local vào `main`; chưa push và chưa chạy lại full verification sau merge.
 
+## API Verification Gate Sau Merge (Task 2)
+
+Trạng thái: **blocked một phần** tại bước khởi động PostgreSQL local. Các command không phụ thuộc database đã chạy; migrations, deterministic seed và E2E không thể chạy.
+
+| Command | Kết quả | Chi tiết |
+| --- | --- | --- |
+| `docker compose up -d postgres` | Fail | Docker daemon socket không cho phép user hiện tại kết nối: `permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock`. First actionable error: cần cấp quyền truy cập Docker daemon hoặc chạy trong môi trường có Docker daemon khả dụng. |
+| `cd apps/api && npm run prisma:generate` | Pass | Prisma Client v6.12.0 generated successfully. |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npx prisma migrate deploy` | Không chạy | Phụ thuộc PostgreSQL. |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run prisma:seed` | Không chạy | Phụ thuộc PostgreSQL và migrations. |
+| `npm run typecheck` | Pass | `tsc --noEmit` exited 0. |
+| `npm run lint` | Pass | ESLint exited 0. |
+| `npm test -- --runInBand` | Pass | 6/6 test suites and 37/37 tests passed. |
+| `npm run test:e2e -- --runInBand` | Không chạy | Phụ thuộc PostgreSQL, migrations và seed; không có E2E test count mới. |
+| `npm run build` | Pass | `nest build` exited 0. |
+| `npm audit --audit-level=high` | Pass | `found 0 vulnerabilities`. |
+
+API verification sau merge chưa đạt đầy đủ. Cần khôi phục quyền truy cập Docker daemon, sau đó chạy các database-dependent commands theo thứ tự từ `docker compose up -d postgres`, rồi migrations, seed và E2E; không suy diễn kết quả từ verification trước merge.
+
 ## Workstream Đang Chờ Quyết Định
 
 ### Workstream 6A: Authorization Matrix Hardening
@@ -74,7 +93,7 @@ Verification đã chạy trong plan triển khai:
 
 Trạng thái verification sau merge:
 
-- Chưa chạy lại API gate sau merge.
+- API gate: partially verified; Docker/PostgreSQL startup blocked migrations, seed và E2E; xem mục `API Verification Gate Sau Merge (Task 2)`.
 - Chưa chạy lại Web gate sau merge.
 
 ## Bước Tiếp Theo Được Khuyến Nghị
