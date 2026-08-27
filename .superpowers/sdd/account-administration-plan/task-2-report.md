@@ -97,3 +97,28 @@ None. The deterministic synchronization no longer has connection-scoped state ou
 ### Residual Concern
 
 None. The test no longer relies on elapsed time to decide the request ordering; its short polling interval only waits for explicit database state.
+
+## Fix Round 4
+
+### Changed Files
+
+- `apps/api/test/auth.e2e-spec.ts`
+- `.superpowers/sdd/account-administration-plan/task-2-report.md`
+
+### Fix
+
+- Replaced the global `pg_locks` waiter probe with a lookup for the delayed login transaction's granted advisory lock. The two-part transaction-scoped lock uses a fixed test namespace and a key derived from the test user's ID, and the lookup captures the exact PostgreSQL backend PID holding that gate.
+- The second synchronization point now accepts a lock wait only when `pg_blocking_pids` proves that the password-hash `UPDATE` is blocked by that delayed login backend. An unrelated database waiter cannot release the gate.
+- Retained the scoped committed-state alternative for the vulnerable mutation path and the `finally` cleanup that releases the gate before dropping the trigger, function, and table.
+- Kept production code unchanged and introduced no session-scoped advisory locks.
+
+### Tests Run
+
+- Mutation RED: temporarily removed the production login transaction and conditional hash lock, then ran `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand auth.e2e-spec.ts`: 1 suite failed, 1 test failed, 15 tests passed. The delayed old-password token received `200` where the test requires `401`.
+- GREEN after restoring the exact production guard: the same auth E2E command passed 1 suite and all 16 tests.
+- `npm run typecheck`: exit 0.
+- `npm run lint`: exit 0.
+
+### Residual Concern
+
+None. Both synchronization points are scoped to the delayed login for this test user, and all database gate state is transaction-scoped or removed in `finally`.

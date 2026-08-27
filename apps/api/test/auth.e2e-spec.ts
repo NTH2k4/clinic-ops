@@ -412,6 +412,8 @@ describe("Auth and RBAC", () => {
         .expect(201);
       const initialLogin = loginResponseSchema.parse(initialLoginResponse.body);
       const user = await prisma.user.findUniqueOrThrow({ where: { email } });
+      const loginGateLockNamespace = 82461;
+      const loginGateLockKey = Number.parseInt(user.id.slice(0, 8), 16) % 2_147_483_647;
       await prisma.$executeRawUnsafe('CREATE TABLE careflow_test_login_gate ("userId" TEXT PRIMARY KEY, "release" BOOLEAN NOT NULL DEFAULT FALSE)');
       await prisma.$executeRawUnsafe('INSERT INTO careflow_test_login_gate ("userId") VALUES ($1)', user.id);
       await prisma.$executeRawUnsafe(`
@@ -419,7 +421,7 @@ describe("Auth and RBAC", () => {
         RETURNS TRIGGER AS $$
         BEGIN
           IF NEW."userId" = '${user.id}' THEN
-            PERFORM pg_advisory_xact_lock(82461);
+            PERFORM pg_advisory_xact_lock(${loginGateLockNamespace}, ${loginGateLockKey});
             WHILE NOT (SELECT "release" FROM careflow_test_login_gate WHERE "userId" = NEW."userId") LOOP
               PERFORM pg_sleep(0.01);
             END LOOP;
@@ -438,13 +440,23 @@ describe("Auth and RBAC", () => {
         .send({ email, password: "custom-password" })
         .expect(201)
         .then((response) => response);
+      let delayedLoginBackendPid: number | undefined;
       for (let attempt = 0; attempt < 50; attempt += 1) {
-        const lock = await prisma.$queryRawUnsafe<Array<{ acquired: boolean }>>('SELECT pg_try_advisory_xact_lock(82461) AS "acquired"');
-        if (!lock[0]?.acquired) break;
+        const lockHolders = await prisma.$queryRaw<Array<{ pid: number }>>`
+          SELECT pid
+          FROM pg_locks
+          WHERE locktype = 'advisory'
+            AND classid::bigint = ${loginGateLockNamespace}
+            AND objid::bigint = ${loginGateLockKey}
+            AND objsubid = 2
+            AND granted
+        `;
+        delayedLoginBackendPid = lockHolders[0]?.pid;
+        if (delayedLoginBackendPid !== undefined) break;
         await new Promise((resolve) => setTimeout(resolve, 20));
       }
-      const lock = await prisma.$queryRawUnsafe<Array<{ acquired: boolean }>>('SELECT pg_try_advisory_xact_lock(82461) AS "acquired"');
-      expect(lock[0]?.acquired).toBe(false);
+      expect(delayedLoginBackendPid).toEqual(expect.any(Number));
+      if (delayedLoginBackendPid === undefined) throw new Error("Delayed login did not reach the test gate.");
 
       const passwordChangePromise = request(server)
         .post("/api/v1/auth/change-password")
@@ -462,16 +474,16 @@ describe("Auth and RBAC", () => {
           changeReachedSecondSyncPoint = true;
           break;
         }
-        const waitingChange = await prisma.$queryRawUnsafe<Array<{ waiting: boolean }>>(`
+        const waitingChange = await prisma.$queryRaw<Array<{ waiting: boolean }>>`
           SELECT EXISTS (
             SELECT 1
-            FROM pg_locks waiting
-            JOIN pg_stat_activity activity ON activity.pid = waiting.pid
-            WHERE NOT waiting.granted
-              AND activity.datname = current_database()
+            FROM pg_stat_activity activity
+            WHERE activity.datname = current_database()
               AND activity.wait_event_type = 'Lock'
+              AND activity.query LIKE 'UPDATE %"User"%passwordHash%'
+              AND ${delayedLoginBackendPid}::integer = ANY(pg_blocking_pids(activity.pid))
           ) AS "waiting"
-        `);
+        `;
         if (waitingChange[0]?.waiting) {
           changeReachedSecondSyncPoint = true;
           break;
