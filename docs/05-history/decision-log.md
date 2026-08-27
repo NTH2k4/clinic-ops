@@ -79,3 +79,11 @@ Ngày: 2026-08-27
 Quyết định: Đích cuối cho CareFlow v1 là một production-like demo có thể kiểm chứng end-to-end trên Render Free + Neon Free, bao gồm appointment operations, API-backed frontend, account administration foundation, scheduling operations UI, deploy/runbook và v1 acceptance closure. Các hạng mục EHR đầy đủ, prescription, insurance, payment, telemedicine, external notification provider, multi-branch và compliance certification không nằm trong v1.
 
 Lý do: Người dùng cần kế hoạch rõ để đi đến kết quả cuối cùng nhưng vẫn không có ngân sách cho hạ tầng/dịch vụ trả phí. V1 nên tập trung hoàn thiện một sản phẩm demo vận hành được, traceable và có thể review, thay vì mở các mảng domain/compliance vượt quá khả năng hoàn thành trong scope hiện tại.
+
+## DEC-011: Tích Hợp Authorization Hardening Bằng Local Merge
+
+Ngày: 2026-08-27
+
+Quyết định: Sau khi người dùng yêu cầu triển khai theo kế hoạch đã duyệt, branch `authorization-hardening` được merge local vào `main` bằng merge commit `7d5a5194`. Các conflict documentation được resolve theo hướng giữ `mvp-release-readiness.md` và roadmap v1 mới trên `main`, đồng thời nhập lại changelog authorization hardening từ branch.
+
+Lý do: Roadmap yêu cầu hoàn tất MVP release candidate trước khi mở feature mới. Local merge giữ lịch sử rõ ràng, bảo toàn code regression hardening và không push/deploy khi chưa qua full verification gate.
