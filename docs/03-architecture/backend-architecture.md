@@ -103,7 +103,7 @@ The API uses stored password hashes and bearer sessions:
 - `POST /auth/logout` revokes the token by setting `revokedAt`.
 - `GET /auth/me` returns the current user and linked profile.
 
-This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. Production hardening should define account lockout, password reset and password rotation behavior.
+This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. The next auth slice should add patient registration, authenticated password change, admin reset and admin lock/unlock flows without adding external email reset or SSO.
 
 Authorization uses two layers:
 

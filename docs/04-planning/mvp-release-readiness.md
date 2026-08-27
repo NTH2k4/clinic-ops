@@ -33,13 +33,13 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã tích hợp vào `main` và đã qua regression verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194`, API E2E 71/71 |
-| MVP Release Completion | Đã push release candidate lên `origin/main`; CI pass; Render login smoke đang được sửa bằng demo auth repair | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
+| MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 
 ## Trạng Thái Branch Hiện Tại
 
-- Root worktree `clinic-ops` đang ở `main`; release candidate `4b1ff302` đã push lên `origin/main`.
+- Root worktree `clinic-ops` đang ở `main`; release candidate docs/deploy status mới nhất trên `origin/main` là `91fd347f`.
 - Worktree triển khai authorization hardening nằm tại `.worktrees/authorization-hardening`.
 - Branch triển khai: `authorization-hardening`.
 - Commit triển khai authorization hardening: `e6ed2c18 fix(api): harden authorization boundaries`.
@@ -86,18 +86,18 @@ Không có failure command hoặc actionable error trong Web gate. Các warning 
 
 ## Push Và Deployment Gate (Task 5)
 
-Trạng thái: **blocked ở Render auto-deploy**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng. Production hiện vẫn serve commit `b782b730b309599c27eb58a2711acfb2364b824b`, nơi login smoke còn trả `401 UNAUTHENTICATED`. Fix mới nhất ở `44b5b9cf44509f999ac7cddf54f0f922c7966f06` đưa demo auth repair vào API startup hosted-demo mode (`SERVE_WEB_APP=true`) và đã pass local API verification, nhưng Render Deployment workflow fail vì `/api/v1/health` không đổi sang commit mới trong 10 phút.
+Trạng thái: **pass sau manual deploy latest commit**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng. Production `https://clinic-ops.onrender.com` đang serve commit `91fd347fe479a174026a69f0e2b782316e39944d`; health smoke pass và login smoke với demo admin pass sau khi `DemoAuthRepairService` chạy trong API startup hosted-demo mode (`SERVE_WEB_APP=true`).
 
 | Check | Kết quả | Chi tiết |
 | --- | --- | --- |
-| `git push origin main` | Pass | Pushed `origin/main` từ `f996c809` lên `44b5b9cf`. |
-| `git ls-remote origin refs/heads/main` | Pass | Remote `main` trỏ tới `44b5b9cf44509f999ac7cddf54f0f922c7966f06`. |
-| GitHub Actions API/Web | Pass | API CI và Web CI đều `completed/success` cho `44b5b9cf`. |
-| GitHub Deployment API | Pass | Deployment `render-free` success, URL `https://clinic-ops.onrender.com`. |
-| Render health smoke | Blocked | `/api/v1/health` vẫn trả commit `b782b730b309599c27eb58a2711acfb2364b824b`; workflow cho `44b5b9cf` fail ở step `Wait for Render health`. |
-| Render login smoke | Blocked | Production login vẫn kiểm chứng trên bản cũ `b782b730` và trả `401 UNAUTHENTICATED`; cần Render deploy `44b5b9cf` rồi chạy lại login smoke. |
+| `git push origin main` | Pass | Release candidate và các fix deploy/auth đã push lên `main`; production smoke được xác minh tại `91fd347f`. |
+| `git ls-remote origin refs/heads/main` | Pass | Tại thời điểm smoke, deployed commit là `91fd347fe479a174026a69f0e2b782316e39944d`; docs-only commits sau đó không thay đổi runtime behavior. |
+| GitHub Actions API/Web | Pass | API CI và Web CI đều `completed/success` cho code fix `44b5b9cf`; docs-only commit `91fd347f` được manual deploy sau đó. |
+| GitHub Deployment workflow | Stale run ignored | Workflow cho `44b5b9cf` fail vì sau manual deploy Render serve commit mới hơn `91fd347f`; production smoke được xác minh trực tiếp bằng health/login curl. |
+| Render health smoke | Pass | `/api/v1/health` trả commit `91fd347fe479a174026a69f0e2b782316e39944d`. |
+| Render login smoke | Pass | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả user role `admin` và session token. Token không được ghi vào docs. |
 
-Fix đã push nhưng chưa được Render serve: `DemoAuthRepairService` chạy khi Nest bootstrap trong hosted demo mode (`SERVE_WEB_APP=true`) và gọi cùng logic với `npm run prisma:seed:demo-auth`. Script/service này chỉ upsert demo login users/password hashes và không reset database.
+Fix đã được Render serve: `DemoAuthRepairService` chạy khi Nest bootstrap trong hosted demo mode (`SERVE_WEB_APP=true`) và gọi cùng logic với `npm run prisma:seed:demo-auth`. Script/service này chỉ upsert demo login users/password hashes và không reset database.
 
 Local verification cho fix:
 
@@ -108,8 +108,6 @@ Local verification cho fix:
 - API unit: `6/6` suites, `37/37` tests pass.
 - API E2E full sau test mới: `9/9` suites, `72/72` tests pass.
 - API-startup repair fix `44b5b9cf`: targeted unit pass 3/3; API typecheck, lint, unit 7/7 suites 40/40 tests, build và full API E2E 9/9 suites 72/72 tests đều pass.
-
-Required external action: kiểm tra Render dashboard cho service `clinic-ops`, xác nhận auto-deploy từ `main` đang bật, xem deploy log của commit `44b5b9cf44509f999ac7cddf54f0f922c7966f06`, hoặc bấm manual deploy latest commit. Sau khi Render health trả `44b5b9cf44509f999ac7cddf54f0f922c7966f06`, chạy lại login smoke với `admin@careflow.local` / `careflow-demo`.
 
 ## Workstream Đang Chờ Quyết Định
 
@@ -143,8 +141,8 @@ Trạng thái verification sau merge:
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Push bugfix demo auth repair lên `main`.
-2. Đợi GitHub Actions/Render Deployment success cho commit mới.
-3. Chạy lại Render health/login smoke và ghi kết quả cuối vào checklist/readiness.
+1. Tạo và duyệt `docs/04-planning/account-administration-plan.md`.
+2. Triển khai Phase 2 theo hướng authentication-first: patient registration, password change, admin account actions và audit.
+3. Sau Phase 2, chạy lại API/Web verification và production smoke trước khi chuyển sang Scheduling Operations UI.
 
-Khuyến nghị: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.
+Khuyến nghị: bắt đầu Phase 2 bằng auth/account lifecycle vì người dùng cần đăng ký, đăng nhập và truy cập app bằng luồng gần sản phẩm thật trước khi mở thêm scheduling operations UI.

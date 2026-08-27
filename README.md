@@ -7,7 +7,7 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 ## Định Hướng Dự Án
 
 - Xây frontend trước với `mock data` và ranh giới `mock API`.
-- Dùng frontend prototype để kiểm chứng workflow sản phẩm trước khi triển khai backend.
+- Dùng frontend prototype và API-backed production demo để kiểm chứng workflow sản phẩm trước khi mở rộng các lát vận hành tiếp theo.
 - Giữ dữ liệu y tế ở mức nhẹ trong MVP; không triển khai electronic health record đầy đủ, đơn thuốc, bảo hiểm, telemedicine hoặc tích hợp thanh toán thật.
 - Ghi lại thay đổi scope và quyết định kỹ thuật trong docs trước khi implementation.
 - Viết tài liệu dự án bằng tiếng Việt theo mặc định; technical terms, command, API names và tài liệu agent-only có thể giữ tiếng Anh khi giúp triển khai chính xác hơn.

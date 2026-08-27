@@ -243,7 +243,7 @@ Quan hệ:
 
 ## Mô Hình Auth Và Security
 
-Phần này mô tả các entity liên quan đến authentication/session ở mức conceptual. Đây chưa phải security design cuối cùng, nhưng đủ để frontend spec và backend phase không hiểu nhầm rằng hệ thống lưu plaintext password.
+Phần này mô tả các entity liên quan đến authentication/session. Backend hiện đã lưu `User.passwordHash` bằng bcrypt và lưu bearer session hash trong `AuthSession`; các field còn lại dưới đây là hướng mở rộng cho account lifecycle v1 và production hardening sau v1.
 
 ### Trường User Authentication
 
@@ -261,9 +261,9 @@ Quy tắc:
 
 - Không lưu field `password` trong database.
 - `password` chỉ tồn tại tạm thời trong request đăng ký, đăng nhập, đổi mật khẩu hoặc reset mật khẩu.
-- Backend phải hash password trước khi lưu, ví dụ bằng Argon2id hoặc bcrypt.
+- Backend phải hash password trước khi lưu; baseline hiện dùng bcrypt.
 - Frontend không lưu password trong localStorage, sessionStorage, IndexedDB hoặc mock persisted state.
-- Frontend prototype có thể mock login bằng user có sẵn, nhưng phải ghi rõ đây không phải auth thật.
+- Frontend API mode dùng backend login thật; mock mode vẫn có thể chọn user mẫu cho local prototype và regression coverage.
 
 ### RefreshToken
 
@@ -438,7 +438,7 @@ User 1--many AuditEvent
 - Register, login, logout, refresh token, forgot password và reset password là workflows riêng của auth domain.
 - Frontend chỉ hiển thị form và gửi request; backend chịu trách nhiệm hash password, issue token, revoke token và validate reset token.
 - Role-based navigation trong frontend chỉ là UX. Backend vẫn phải enforce authorization.
-- Session state trong frontend prototype nên nằm trong memory hoặc mock store, không lưu credential nhạy cảm.
+- Session state trong frontend API mode nằm trong memory; mock mode dùng mock store và không lưu credential nhạy cảm.
 
 ## Hướng Dẫn Mock Data
 

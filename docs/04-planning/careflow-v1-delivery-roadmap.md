@@ -53,7 +53,7 @@ Các hạng mục sau không nằm trong CareFlow v1 vì kéo theo compliance, d
 
 ## Phase 1: MVP Release Candidate
 
-Trạng thái: local release candidate đã verified; push/deploy còn chờ approval và `RENDER_EXTERNAL_URL`.
+Trạng thái: hoàn thành. Release candidate đã push lên `main`, API/Web gates pass, production Render health/login smoke pass sau manual deploy latest commit.
 
 Plan chính: `docs/04-planning/mvp-release-completion-plan.md`.
 
@@ -73,7 +73,7 @@ Exit criteria:
 
 ## Phase 2: Account Administration Foundation
 
-Trạng thái: chưa bắt đầu.
+Trạng thái: plan đã soạn, chờ người dùng duyệt trước khi triển khai code.
 
 Mục tiêu:
 
@@ -92,7 +92,7 @@ Tài liệu cần có trước khi triển khai:
 
 - `docs/04-planning/account-administration-plan.md`.
 - Cập nhật `docs/03-architecture/security-notes.md`.
-- Cập nhật `docs/03-architecture/api-contract.md` và `docs/03-architecture/openapi.json`.
+- Cập nhật `docs/03-architecture/api-contract.md` và `docs/03-architecture/openapi.json` trong task implementation khi endpoint mới được thêm vào code.
 
 Exit criteria:
 
@@ -192,7 +192,7 @@ Exit criteria:
 4. Phase 4: Production Demo Operations.
 5. Phase 5: V1 Documentation And Acceptance Closure.
 
-Không bắt đầu Phase 2 trước khi Phase 1 được merge và verification xanh, vì các phase sau cần một baseline `main` ổn định.
+Không bắt đầu triển khai code Phase 2 trước khi `docs/04-planning/account-administration-plan.md` được người dùng duyệt, vì phase này thay đổi auth/account lifecycle và API contract.
 
 ## Cách Duyệt Roadmap
 

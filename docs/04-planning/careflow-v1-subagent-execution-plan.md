@@ -49,7 +49,7 @@ Plan này không thay thế implementation plan chi tiết của từng phase. N
 
 ## Package 2: Account Administration Foundation
 
-**Plan to create after Package 1:** `docs/04-planning/account-administration-plan.md`
+**Plan:** `docs/04-planning/account-administration-plan.md`
 
 **Objective:** Hoàn thiện account lifecycle tối thiểu cho v1.
 

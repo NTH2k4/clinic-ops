@@ -399,7 +399,7 @@ Quy tắc:
 - Dùng auth surface compact ở giữa màn hình, không dùng marketing page.
 - Mock user có thể hiển thị dưới dạng row/card có thể chọn.
 - Role và user identity phải nhìn thấy trước khi submit.
-- Error state không nên nhắc đến credential rule thật vì auth đang mock.
+- API-mode error state không được tiết lộ password rule, token hoặc thông tin tồn tại tài khoản; mock-mode chỉ dùng demo role selection cho local prototype.
 
 ### Màn Hình Patient
 

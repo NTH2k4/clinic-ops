@@ -2,6 +2,7 @@
 
 ## 2026-08-27
 
+- Ghi nhận Render manual deploy latest commit `91fd347f` và production health/login smoke pass sau API-startup demo auth repair.
 - Đưa demo auth repair vào API startup hosted-demo mode (`SERVE_WEB_APP=true`) để production runtime tự upsert demo login users/password hashes khi Render service start command chưa được sync từ blueprint.
 - Thêm `prisma:seed:demo-auth` và gọi trong Render `startCommand` trước khi start API để repair demo login users/password hashes idempotently trên runtime database; bug này được phát hiện khi Render health pass nhưng login smoke trả `401`.
 - Cập nhật `frontend-api-integration-plan.md` để phản ánh baseline sau merge: backend bearer sessions đã persisted trong PostgreSQL, API integration v1 flows đã hoàn thành, mock mode vẫn là default local runtime và các slice còn lại là user administration/scheduling operations UI.

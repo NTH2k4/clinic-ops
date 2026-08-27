@@ -73,15 +73,16 @@ Acceptance criteria:
 
 ## Workstream 3: Production Auth And Session Hardening
 
-Status: in progress only for account lockout and password reset requirements; durable bearer sessions, expiry, logout revocation, bcrypt password verification, inactive/locked account coverage and authorization regression coverage are implemented.
+Status: baseline implemented for durable bearer sessions, expiry, logout revocation, bcrypt password verification, inactive/locked account coverage and authorization regression coverage. The next slice is account lifecycle UX/API: patient registration, authenticated password change, admin reset and admin lock/unlock.
 
 Goal: complete the remaining production-login requirements without reopening the verified session or authorization baseline.
 
 Recommended actions:
 
 1. Keep server-side persisted bearer sessions unless a later product/security decision chooses signed tokens.
-2. Add account lockout and password reset requirements if production login is in scope.
-3. Keep route-level role gates covered by focused E2E authorization tests before adding new admin or patient-facing endpoints.
+2. Add public patient registration without allowing public staff, doctor or admin registration.
+3. Add authenticated password change and admin demo-safe reset without storing plaintext passwords.
+4. Keep route-level role gates covered by focused E2E authorization tests before adding new admin or patient-facing endpoints.
 
 Acceptance criteria:
 
@@ -229,6 +230,6 @@ Acceptance criteria:
 
 ## Open Decisions
 
-- Production password, account lockout and password reset strategy.
+- Account lifecycle UI and API details for patient registration, password change, admin reset and lock/unlock.
 - Whether OpenAPI should remain manually checked in or move to code generation after the API surface grows.
 - Whether schedule management UI belongs in the next product slice or a later operations slice.

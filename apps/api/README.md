@@ -148,7 +148,7 @@ The current auth flow uses stored password hashes and durable API sessions:
 - `POST /auth/logout` revokes the persisted session by setting `revokedAt`.
 - Restarting the API process does not invalidate unexpired, unrevoked sessions.
 
-This model is still not a complete production auth system. Production work should add account lockout, password reset requirements and password rotation flows.
+This model is sufficient for the v1 production-like demo. The next account slice is patient registration, authenticated password change, admin reset and admin lock/unlock flows; external email reset and SSO remain outside v1.
 
 ## Browser CORS
 
