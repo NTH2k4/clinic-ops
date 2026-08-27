@@ -165,25 +165,25 @@ Acceptance criteria:
 - Scheduling remains deterministic under concurrent booking attempts.
 - Timezone rules are documented and tested.
 
-## Workstream 8: Documentation Language Migration
+## Workstream 8: Documentation Language Alignment
 
-Status: in progress; new backend/agent-facing docs are English-first and `security-notes.md` has been translated after material revision.
+Status: in progress; user-facing planning/status docs are Vietnamese-first, while agent-only execution references may use English when that improves tool reliability.
 
-Goal: align the documentation set with the English-first policy without creating a noisy bulk rewrite.
+Goal: keep documentation readable for the Vietnamese project owner while preserving precise technical instructions for agent/subagent execution.
 
 Recommended actions:
 
-1. Keep new agent/subagent plans, architecture references, review handoffs and verification docs in English.
-2. When an existing Vietnamese document is materially revised, translate that whole document to English in the same change.
-3. Prioritize documents that agents read during implementation: implementation plans, API contract, architecture references, testing strategy and acceptance checklists.
-4. Keep user-facing Vietnamese product copy documented where the application itself displays Vietnamese text.
-5. Record each translated document in `docs/05-history/changelog.md`.
+1. Keep user-facing roadmap, planning status, release readiness and approval documents in Vietnamese.
+2. Keep exact commands, API names, file paths, framework names and technical terms in English where translation would reduce clarity.
+3. Allow agent-only implementation references to use English when required by subagent workflow, but maintain Vietnamese summary/status in `docs/04-planning/`.
+4. Do not perform noisy bulk translation. Update language only when a document is materially revised for real project work.
+5. Record material language-policy or documentation-structure changes in `docs/05-history/changelog.md`.
 
 Acceptance criteria:
 
-- Agent execution documents are no longer extended in Vietnamese.
-- Mixed-language drift decreases over time.
-- Product copy remains intentional and traceable.
+- Project owner can understand roadmap, progress and approval gates from Vietnamese docs.
+- Agent execution remains precise enough to run task-by-task without chat history.
+- Mixed-language areas are intentional and explained, not accidental drift.
 
 ## Recommended Execution Order
 
@@ -207,7 +207,7 @@ Acceptance criteria:
 | Observability            | Manual log correlation using one failing and one successful request.                                              |
 | Audit/data governance    | E2E tests for audit writes and projection boundaries.                                                             |
 | Scheduling depth         | E2E tests for conflict, blocked, leave, cross-day and concurrent booking cases.                                   |
-| Documentation migration  | Link check, placeholder scan and reviewer pass for translated documents.                                          |
+| Documentation alignment  | Link check, placeholder scan and reviewer pass for materially revised documents.                                  |
 
 ## Open Decisions
 

@@ -337,9 +337,9 @@ Update `docs/05-history/release-notes.md` with:
 - Known free-tier constraints.
 - Demo safety note: no real patient data.
 
-- [ ] **Step 5: Update README if language/policy is stale**
+- [ ] **Step 5: Update README if documentation policy summary is stale**
 
-Update `README.md` if it still states English-first documentation as the default. It should point to the Vietnamese-first documentation policy with technical English allowed where clearer.
+Update `README.md` if its documentation policy summary no longer matches `docs/00-project/documentation-standards.md`. It should point to the Vietnamese-first documentation policy with technical English allowed where clearer.
 
 - [ ] **Step 6: Commit docs sync**
 

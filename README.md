@@ -18,7 +18,7 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 - `docs/01-requirements/`: yêu cầu MVP, vai trò người dùng, user stories và change requests.
 - `docs/02-product/`: workflow sản phẩm, danh sách màn hình và mô hình trạng thái appointment.
 - `docs/03-architecture/`: frontend architecture, backend architecture, API contract, OpenAPI spec, data model, database schema and security notes.
-- `docs/04-planning/`: roadmap, implementation plans, backend next steps and subagent work packages.
+- `docs/04-planning/`: roadmap, implementation plans, release readiness, CareFlow v1 delivery roadmap, backend next steps and subagent work packages.
 - `docs/05-history/`: changelog, decision log và release notes.
 - `docs/06-testing/`: test strategy và acceptance checklist.
 

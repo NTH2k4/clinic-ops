@@ -6,6 +6,7 @@
 - Frontend và backend baseline đã có; vòng này không mở thêm user administration, password reset, schedule management UI, payment, insurance hoặc external notification provider.
 - Render Free + Neon Free vẫn là hạ tầng demo đã chốt. Không dùng dữ liệu bệnh nhân thật trên môi trường demo này.
 - Kế hoạch triển khai chi tiết nằm tại `docs/04-planning/mvp-release-completion-plan.md`.
+- Roadmap sau MVP release candidate nằm tại `docs/04-planning/careflow-v1-delivery-roadmap.md`; execution map subagent-driven nằm tại `docs/04-planning/careflow-v1-subagent-execution-plan.md`.
 
 ## 2026-08-26
 

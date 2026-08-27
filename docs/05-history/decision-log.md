@@ -71,3 +71,11 @@ Ngày: 2026-08-27
 Quyết định: Sau khi frontend và backend đều có baseline, bước tiếp theo là hoàn tất MVP release candidate thay vì mở thêm feature mới. Phạm vi release completion gồm tích hợp authorization hardening, chạy full local verification, cập nhật docs/status/release notes và chuẩn bị push/deploy nếu người dùng duyệt.
 
 Lý do: Dự án hiện đã có frontend, backend, API integration, Render deployment path và authorization hardening trên branch riêng. Việc có giá trị nhất là đưa baseline này về trạng thái sạch, traceable và có thể deploy, rồi mới tiếp tục các slice lớn hơn như user administration, password reset hoặc schedule management UI.
+
+## DEC-010: Chốt Đích CareFlow V1 Theo Hướng Production-Like Demo
+
+Ngày: 2026-08-27
+
+Quyết định: Đích cuối cho CareFlow v1 là một production-like demo có thể kiểm chứng end-to-end trên Render Free + Neon Free, bao gồm appointment operations, API-backed frontend, account administration foundation, scheduling operations UI, deploy/runbook và v1 acceptance closure. Các hạng mục EHR đầy đủ, prescription, insurance, payment, telemedicine, external notification provider, multi-branch và compliance certification không nằm trong v1.
+
+Lý do: Người dùng cần kế hoạch rõ để đi đến kết quả cuối cùng nhưng vẫn không có ngân sách cho hạ tầng/dịch vụ trả phí. V1 nên tập trung hoàn thiện một sản phẩm demo vận hành được, traceable và có thể review, thay vì mở các mảng domain/compliance vượt quá khả năng hoàn thành trong scope hiện tại.

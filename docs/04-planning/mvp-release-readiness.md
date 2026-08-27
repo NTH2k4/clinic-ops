@@ -34,6 +34,8 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã triển khai trên branch riêng, chờ quyết định tích hợp | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, branch `authorization-hardening`, commit `e6ed2c18` |
 | MVP Release Completion | Đã có plan, chờ người dùng duyệt trước khi triển khai bằng subagent-driven | `docs/04-planning/mvp-release-completion-plan.md` |
+| CareFlow V1 Delivery Roadmap | Đã có roadmap, chờ người dùng duyệt trước khi mở workstream sau MVP release candidate | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
+| CareFlow V1 Subagent Execution | Đã có execution map, chờ người dùng duyệt trước khi điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -78,8 +80,9 @@ Các lựa chọn tích hợp:
 ## Bước Tiếp Theo Được Khuyến Nghị
 
 1. Người dùng review và duyệt `docs/04-planning/mvp-release-completion-plan.md`.
-2. Sau khi được duyệt, execute plan bằng subagent-driven development trong execution cycle này.
-3. Tích hợp `authorization-hardening`, chạy API/Web verification và cập nhật docs theo kết quả thật.
-4. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
+2. Người dùng review và duyệt `docs/04-planning/careflow-v1-delivery-roadmap.md` và `docs/04-planning/careflow-v1-subagent-execution-plan.md` để chốt đường đi tới v1.
+3. Sau khi được duyệt, execute `mvp-release-completion-plan.md` bằng subagent-driven development trước.
+4. Tích hợp `authorization-hardening`, chạy API/Web verification và cập nhật docs theo kết quả thật.
+5. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
 
 Khuyến nghị: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.

@@ -35,3 +35,24 @@
 - Thay mock auth bằng backend session và giữ mock/API feature switch trong lúc migration.
 - Thêm API-mode Playwright regression gates bên cạnh mock smoke tests.
 - Polish UI và release notes.
+
+## Phase 5: MVP Release Candidate
+
+- Thực hiện `docs/04-planning/mvp-release-completion-plan.md`.
+- Merge authorization hardening vào `main`.
+- Chạy full API/Web verification sau merge.
+- Đồng bộ release readiness, acceptance checklist, changelog và release notes.
+- Push/deploy nếu người dùng duyệt push/deploy.
+
+## Phase 6: CareFlow V1 Delivery
+
+Roadmap tổng thể sau MVP release candidate nằm tại `docs/04-planning/careflow-v1-delivery-roadmap.md`.
+
+Các phase v1 còn lại:
+
+- Account Administration Foundation.
+- Scheduling Operations UI.
+- Production Demo Operations.
+- V1 Documentation And Acceptance Closure.
+
+Kế hoạch điều phối subagent-driven nằm tại `docs/04-planning/careflow-v1-subagent-execution-plan.md`.
