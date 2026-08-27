@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --color-bg: #f7fafa;
+  --color-bg: #f3f7f7;
   --color-surface: #ffffff;
-  --color-surface-muted: #eef6f5;
-  --color-border: #d7e3e1;
-  --color-border-strong: #afc6c3;
-  --color-text: #172326;
-  --color-text-muted: #52666b;
+  --color-surface-muted: #edf5f4;
+  --color-border: #d4e2df;
+  --color-border-strong: #9fbab5;
+  --color-text: #142326;
+  --color-text-muted: #52686d;
   --color-primary: #0f766e;
   --color-primary-hover: #0b5f59;
   --color-accent: #2563eb;

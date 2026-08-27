@@ -46,18 +46,21 @@ export function DoctorDashboard() {
 
   return (
     <section className="mx-auto max-w-6xl">
-      <p className="text-sm font-medium text-primary">Lịch làm việc hôm nay</p>
-      <h1 className="mt-1 text-2xl font-semibold text-text">Không gian bác sĩ</h1>
+      <div className="rounded-lg border border-border bg-surface p-5 shadow-panel md:p-6">
+        <p className="text-sm font-medium text-primary">Lịch làm việc hôm nay</p>
+        <h1 className="mt-1 text-2xl font-semibold text-text">Không gian bác sĩ</h1>
+        <p className="mt-1 text-sm text-text-muted">Theo dõi queue lâm sàng, lịch tiếp theo và trạng thái khám trong ngày.</p>
+      </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <MetricCard label="Lịch hẹn hôm nay" value={appointments.length} />
-        {statusMetrics.map(({ label, status }) => <MetricCard key={status} label={label} value={counts[status] ?? 0} />)}
+        <MetricCard label="Lịch hẹn hôm nay" tone="accent" value={appointments.length} />
+        {statusMetrics.map(({ label, status }) => <MetricCard key={status} label={label} tone={status === "checked_in" ? "warning" : status === "in_progress" ? "accent" : status === "completed" ? "success" : "neutral"} value={counts[status] ?? 0} />)}
       </div>
       <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div>
+        <div className="rounded-lg border border-border bg-surface p-5 shadow-panel">
           <div className="flex items-end justify-between gap-4"><div><h2 className="text-lg font-semibold text-text">Lịch hẹn theo thời gian</h2><p className="mt-1 text-sm text-text-muted">Danh sách được sắp xếp theo giờ hẹn.</p></div></div>
           <div className="mt-4">{appointments.length ? <AppointmentTimeline appointments={appointments} patients={patients} services={services} onSelect={setSelectedAppointment} /> : <EmptyState description="Không có lịch hẹn trong ngày hôm nay." title="Chưa có lịch hẹn" />}</div>
         </div>
-        <aside className="border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0"><p className="text-sm font-semibold text-text">Lịch hẹn tiếp theo</p>{nextAppointment ? <div className="mt-3"><p className="text-lg font-semibold text-primary">{formatDateTime(nextAppointment.startAt)}</p><p className="mt-1 text-sm text-text-muted">{patients.find((patient) => patient.id === nextAppointment.patientId)?.fullName}</p><button className="mt-3 h-10 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={() => setSelectedAppointment(nextAppointment)} type="button">Xem chi tiết</button></div> : <p className="mt-3 text-sm text-text-muted">Không còn lịch hẹn cần xử lý.</p>}</aside>
+        <aside className="rounded-lg border border-border bg-surface p-5 shadow-panel"><p className="text-sm font-semibold text-text">Lịch hẹn tiếp theo</p>{nextAppointment ? <div className="mt-3 rounded-md bg-blue-50 p-3"><p className="text-lg font-semibold text-accent">{formatDateTime(nextAppointment.startAt)}</p><p className="mt-1 text-sm text-text-muted">{patients.find((patient) => patient.id === nextAppointment.patientId)?.fullName}</p><button className="mt-3 h-10 rounded-md border border-border bg-white px-3 text-sm font-semibold text-text transition-colors hover:border-border-strong hover:bg-surface-muted" onClick={() => setSelectedAppointment(nextAppointment)} type="button">Xem chi tiết</button></div> : <p className="mt-3 text-sm text-text-muted">Không còn lịch hẹn cần xử lý.</p>}</aside>
       </section>
       <DetailDrawer actorRole={user?.role ?? "doctor"} actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
     </section>

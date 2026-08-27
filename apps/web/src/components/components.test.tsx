@@ -198,7 +198,7 @@ describe("shared UI components", () => {
   it("renders metric, empty, loading and error states", () => {
     renderWithProviders(
       <>
-        <MetricCard label="Lịch hẹn hôm nay" value={12} helper="Tăng 3 lịch so với hôm qua" />
+        <MetricCard label="Lịch hẹn hôm nay" value={12} helper="Tăng 3 lịch so với hôm qua" tone="primary" trend="+3 hôm nay" />
         <EmptyState title="Không có dữ liệu" description="Chưa có lịch hẹn trong bộ lọc này." />
         <LoadingState label="Đang tải lịch hẹn" />
         <ErrorState title="Không tải được dữ liệu" description="Vui lòng thử lại sau." />
@@ -207,6 +207,7 @@ describe("shared UI components", () => {
 
     expect(screen.getByText("Lịch hẹn hôm nay")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
+    expect(screen.getByText("+3 hôm nay")).toBeInTheDocument();
     expect(screen.getByText("Không có dữ liệu")).toBeInTheDocument();
     expect(screen.getByText("Đang tải lịch hẹn")).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Không tải được dữ liệu");

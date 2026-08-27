@@ -37,10 +37,10 @@ export function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-muted px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#f7fbfb_0%,#edf5f4_100%)] px-4 py-10">
       <section className="w-full max-w-md rounded-lg border border-border bg-surface p-6 shadow-panel">
         <div className="flex items-center gap-3">
-          <span aria-hidden="true" className="flex size-10 items-center justify-center rounded-md bg-primary text-white">
+          <span aria-hidden="true" className="flex size-11 items-center justify-center rounded-md bg-primary text-white shadow-panel">
             <Stethoscope size={22} />
           </span>
           <div>
@@ -54,7 +54,7 @@ export function LoginPage() {
               Email
               <input
                 autoComplete="email"
-                className="h-11 rounded-md border border-border bg-surface px-3 text-text"
+              className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent"
                 id="login-email"
                 onChange={(event) => setEmail(event.target.value)}
                 required
@@ -66,7 +66,7 @@ export function LoginPage() {
               Mật khẩu
               <input
                 autoComplete="current-password"
-                className="h-11 rounded-md border border-border bg-surface px-3 text-text"
+              className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent"
                 id="login-password"
                 onChange={(event) => setPassword(event.target.value)}
                 required
@@ -76,7 +76,7 @@ export function LoginPage() {
             </label>
             {authError ? <p className="text-sm text-danger" role="alert">{authError}</p> : null}
             <button
-              className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
               disabled={isSubmitting}
               type="submit"
             >
@@ -89,7 +89,7 @@ export function LoginPage() {
             <div className="mt-6 grid gap-3">
               {mockStore.users.map((user) => (
                 <button
-                  className="flex items-center justify-between rounded-md border border-border px-4 py-3 text-left text-sm font-medium text-text transition-colors hover:border-primary hover:bg-surface-muted"
+                  className="flex items-center justify-between gap-3 rounded-md border border-border bg-white px-4 py-3 text-left text-sm font-medium text-text shadow-[0_1px_0_rgb(20_35_38/0.03)] transition-colors hover:border-primary hover:bg-teal-50"
                   key={user.id}
                   onClick={() => signInAs(user.id)}
                   type="button"

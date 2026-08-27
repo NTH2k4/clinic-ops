@@ -29,7 +29,7 @@ export function RoleSwitcher() {
     <select
       aria-description="Công cụ prototype để xem các không gian làm việc theo vai trò."
       aria-label="Chuyển vai trò"
-      className="h-11 max-w-32 rounded-md border border-border bg-surface px-2 text-sm text-text"
+      className="h-11 max-w-32 rounded-md border border-border bg-surface px-2 text-sm font-medium text-text transition-colors hover:border-border-strong hover:bg-surface-muted"
       onChange={(event) => handleRoleChange(event.target.value as UserRole)}
       value={user.role}
     >

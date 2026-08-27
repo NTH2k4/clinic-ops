@@ -26,7 +26,8 @@ export default {
         lg: "8px",
       },
       boxShadow: {
-        panel: "0 1px 2px rgb(23 35 38 / 0.06)",
+        panel: "0 1px 2px rgb(20 35 38 / 0.06), 0 10px 30px rgb(20 35 38 / 0.04)",
+        popover: "0 18px 45px rgb(20 35 38 / 0.16)",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],

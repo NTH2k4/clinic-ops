@@ -58,7 +58,7 @@ export function StatusBadge({ status }: { status: Status }) {
   return (
     <span
       aria-label={`Trạng thái: ${label}`}
-      className={`inline-flex h-7 items-center gap-1.5 rounded-sm border px-2.5 text-sm font-medium ${styles[status]}`}
+      className={`inline-flex h-7 items-center gap-1.5 rounded-sm border px-2.5 text-sm font-semibold shadow-[inset_0_1px_0_rgb(255_255_255/0.65)] ${styles[status]}`}
     >
       <Icon aria-hidden="true" className="h-4 w-4" />
       {label}

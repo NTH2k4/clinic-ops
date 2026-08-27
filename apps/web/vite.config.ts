@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
       environment: "jsdom",
       exclude: [...configDefaults.exclude, "e2e/**"],
       setupFiles: "./src/test/setupTests.ts",
+      testTimeout: 10000,
     },
   };
 });

@@ -2,6 +2,8 @@
 
 ## 2026-08-26
 
+- Fixed the Web API-mode Playwright gate by scoping the patient appointments navigation selector, avoiding ambiguity with the refreshed patient-home CTA.
+- Refreshed the web UI toward a more production-like clinic operations workspace: updated app shell, sidebar/topbar, login surface, dashboard header surfaces, metric card tones, appointment timeline cards and frontend design-system documentation.
 - Added backend deployment-readiness runtime config for `PORT` and `CORS_ALLOWED_ORIGINS`, with API tests and environment documentation.
 - Added backend as-built documentation in English: `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/database-schema.md`, `apps/api/README.md` and `docs/04-planning/backend-next-steps.md`.
 - Updated documentation standards to make English the default for new and materially revised docs, with agent/subagent plans explicitly written in English.

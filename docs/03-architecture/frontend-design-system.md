@@ -6,9 +6,9 @@
 | --- | --- |
 | Tên tài liệu | Frontend Design System |
 | Sản phẩm | CareFlow - Đặt lịch khám online |
-| Phiên bản | 1.0 |
-| Ngày | 2026-08-25 |
-| Trạng thái | draft |
+| Phiên bản | 1.1 |
+| Ngày | 2026-08-26 |
+| Trạng thái | baseline |
 | Phạm vi | Design system cho frontend-first MVP |
 | Đối tượng đọc | Product owner, frontend developer, QA, agent contributors |
 
@@ -16,6 +16,7 @@
 
 | Phiên bản | Ngày | Nội dung thay đổi |
 | --- | --- | --- |
+| 1.1 | 2026-08-26 | Ghi nhận production-style visual refresh cho app shell, dashboard surfaces, metric cards, timeline cards, login surface và token thực tế trong `apps/web`. |
 | 1.0 | 2026-08-25 | Bản design system đầu tiên cho frontend MVP. |
 
 ## Mục Đích
@@ -89,13 +90,13 @@ Tên token nên được map sang Tailwind config hoặc CSS variables khi scaff
 
 | Token | Hex | Cách dùng |
 | --- | --- | --- |
-| `color-bg` | `#F7FAFA` | Nền page |
+| `color-bg` | `#F3F7F7` | Nền page |
 | `color-surface` | `#FFFFFF` | Bề mặt nội dung chính |
-| `color-surface-muted` | `#EEF6F5` | Vùng nhóm nhẹ, filter đang chọn |
-| `color-border` | `#D7E3E1` | Border mặc định |
-| `color-border-strong` | `#AFC6C3` | Border khi focus/active |
-| `color-text` | `#172326` | Text chính |
-| `color-text-muted` | `#52666B` | Text phụ |
+| `color-surface-muted` | `#EDF5F4` | Vùng nhóm nhẹ, filter đang chọn |
+| `color-border` | `#D4E2DF` | Border mặc định |
+| `color-border-strong` | `#9FBAB5` | Border khi focus/active |
+| `color-text` | `#142326` | Text chính |
+| `color-text-muted` | `#52686D` | Text phụ |
 | `color-text-subtle` | `#73858A` | Text metadata |
 | `color-primary` | `#0F766E` | Action chính, nav active |
 | `color-primary-hover` | `#0B5F59` | Hover cho action chính |
@@ -203,8 +204,9 @@ Quy tắc:
 
 - Card phải giữ radius tối đa `8px`.
 - Không lồng card trong card.
-- Ưu tiên border và tương phản background thay vì shadow nặng.
-- Shadow chỉ dành cho dropdown, popover, modal và drawer.
+- Ưu tiên border, bề mặt trắng và tương phản background thay vì shadow nặng.
+- Shadow nhẹ được dùng cho shell/card production refresh; shadow mạnh hơn chỉ dành cho dropdown, popover, modal, drawer và mobile bottom nav.
+- Tailwind as-built dùng `shadow-panel` cho card/shell/action nổi nhẹ và `shadow-popover` cho overlay/dropdown/mobile nav.
 
 ### Focus Và Motion
 
@@ -227,14 +229,17 @@ Motion:
 Shell desktop:
 
 - Sidebar trái cho điều hướng chính theo role.
-- Top bar cho page title, role switcher, notifications và user menu.
+- Top bar cho role switcher, notifications, user identity và sign-out.
 - Nội dung chính dùng width có giới hạn và responsive grid.
+- Sidebar expanded as-built dùng khoảng `256px`; collapsed dùng khoảng `80px`.
+- Active nav dùng primary filled state để dễ scan hơn prototype outline state.
+- App background dùng gradient tuyến tính rất nhẹ để tạo chiều sâu, không dùng orb/blob hoặc decorative illustration.
 
 Shell mobile:
 
-- Top app bar hiển thị section hiện tại và menu trigger.
+- Top app bar hiển thị brand compact, role switcher, notifications và sign-out.
 - Role switcher vẫn phải truy cập được nhưng không chiếm ưu tiên ở first screen.
-- Primary nav có thể dùng drawer hoặc bottom navigation cho các route chính của role.
+- Primary nav dùng bottom navigation sticky, scroll ngang khi role có nhiều route.
 
 Quy tắc:
 
@@ -250,12 +255,16 @@ Desktop:
 - KPI strip ở trên cùng với 3-5 metrics.
 - Vùng workflow chính chiếm 7-8 cột.
 - Panel insight/activity phụ chiếm 4-5 cột.
+- Mỗi dashboard role phải có header surface riêng: eyebrow, `h1`, supporting copy ngắn và primary action nếu có.
+- KPI dùng `MetricCard` tone theo ý nghĩa vận hành, không dùng một tone cho toàn bộ dashboard.
+- Workflow chính như operations queue hoặc doctor timeline nằm trong surface riêng để tách khỏi page background.
 
 Mobile:
 
 - KPI card chuyển thành horizontal scroll hoặc compact grid 2 cột.
 - Queue, timeline và next appointment section xếp dọc.
 - Giữ primary action gần section liên quan, không chỉ đặt ở cuối page.
+- Header/action phải wrap trước khi đè lên badge hoặc button; badge status có thể xuống dòng dưới heading trên mobile.
 
 ### Forms
 
@@ -339,6 +348,9 @@ Quy tắc:
 - Card header nên vừa trong một hoặc hai dòng mà không đè lên action button.
 - Appointment card nên chừa vùng ổn định cho status và time.
 - Card có action phải có hover/focus state rõ.
+- Metric cards có thể dùng tone `neutral`, `primary`, `accent`, `success`, `warning` hoặc `danger`; tone chỉ dùng để phân cấp và không thay thế label/helper text.
+- Metric cards có thể hiển thị `trend` ngắn ở góc phải khi có so sánh đáng tin cậy; không tự tạo trend nếu dữ liệu không có.
+- Appointment timeline card as-built dùng time block ổn định bên trái, content ở giữa và icon action bên phải.
 
 ### Filter Và Segment
 
@@ -463,7 +475,7 @@ Khi scaffold `apps/web`, định nghĩa:
 Shared components đề xuất:
 
 - `AppShell`
-- `PageHeader`
+- Dashboard header surface trong từng feature page; chỉ tách `PageHeader` khi duplication tăng rõ.
 - `SidebarNav`
 - `TopBar`
 - `RoleSwitcher`
@@ -511,6 +523,7 @@ Trước khi xem frontend MVP đạt yêu cầu visual:
 - Keyboard focus nhìn thấy và dùng được.
 - Không có page section dùng marketing-style hero layout.
 - Không có nested card hoặc background trang trí nặng.
+- Visual refresh phải chạy qua `npm run typecheck`, `npm run lint`, `npm test -- --run`, `npm run build` và Playwright responsive/accessibility smoke trước khi xem là xong.
 
 ## Ngoài Phạm Vi
 

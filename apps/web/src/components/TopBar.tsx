@@ -42,10 +42,10 @@ export function TopBar() {
   }
 
   return (
-    <header className="flex min-h-16 items-center justify-between gap-3 border-b border-border bg-surface px-4 md:px-6">
+    <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-white/90 px-4 shadow-[0_1px_0_rgb(212_226_223/0.55)] backdrop-blur md:px-6">
       <p className="font-semibold text-text md:hidden">CareFlow</p>
       <div className="ml-auto flex items-center gap-2">
-        <div className="hidden text-right sm:block">
+        <div className="hidden rounded-md border border-border bg-surface px-3 py-1.5 text-right sm:block">
           <p className="text-sm font-medium text-text">{user?.displayName}</p>
           <p className="text-xs text-text-muted">{user?.role}</p>
         </div>
@@ -55,16 +55,16 @@ export function TopBar() {
             aria-label="Thông báo"
             aria-expanded={notificationsOpen}
             aria-haspopup="dialog"
-            className="relative flex h-11 items-center gap-2 rounded-md border border-border px-3 text-sm font-semibold text-text-muted hover:bg-surface-muted hover:text-text"
+            className="relative flex h-11 items-center gap-2 rounded-md border border-border bg-surface px-3 text-sm font-semibold text-text-muted transition-colors hover:border-border-strong hover:bg-surface-muted hover:text-text"
             onClick={() => setNotificationsOpen((open) => !open)}
             type="button"
           >
             <Bell aria-hidden="true" size={18} />
             <span className="hidden sm:inline">Thông báo</span>
-            {unreadCount ? <span aria-hidden="true" className="flex size-5 items-center justify-center rounded-full bg-danger text-xs font-semibold text-white">{unreadCount}</span> : null}
+            {unreadCount ? <span aria-hidden="true" className="flex size-5 items-center justify-center rounded-full bg-danger text-xs font-semibold text-white shadow-panel">{unreadCount}</span> : null}
           </button>
           {notificationsOpen ? (
-            <section aria-label="Thông báo" className="fixed inset-x-4 top-16 z-20 rounded-md border border-border bg-surface shadow-panel sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-[min(22rem,calc(100vw-2rem))]" role="dialog">
+            <section aria-label="Thông báo" className="fixed inset-x-4 top-16 z-20 rounded-lg border border-border bg-surface shadow-popover sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-[min(22rem,calc(100vw-2rem))]" role="dialog">
               <div className="flex items-start justify-between gap-3 border-b border-border p-4">
                 <div>
                   <h2 className="text-base font-semibold text-text">Thông báo</h2>
@@ -83,7 +83,7 @@ export function TopBar() {
               </div>
               <ul className="max-h-96 divide-y divide-border overflow-y-auto">
                 {notifications.length ? notifications.map((notification) => (
-                  <li className={`px-4 py-3 ${notification.readAt ? "font-normal" : "bg-primary/5 font-semibold"}`} key={notification.id}>
+                  <li className={`px-4 py-3 ${notification.readAt ? "font-normal" : "bg-teal-50 font-semibold"}`} key={notification.id}>
                     <div className="flex items-start gap-3">
                       <span aria-label={notification.readAt ? "Đã đọc" : "Chưa đọc"} className={`mt-1.5 size-2.5 shrink-0 rounded-full ${notification.readAt ? "bg-border" : "bg-primary"}`} />
                       <div className="min-w-0">
@@ -124,7 +124,7 @@ export function TopBar() {
         </div>
         <button
           aria-label="Đăng xuất"
-          className="flex size-11 items-center justify-center rounded-md border border-border text-text-muted hover:bg-surface-muted hover:text-text"
+          className="flex size-11 items-center justify-center rounded-md border border-border bg-surface text-text-muted transition-colors hover:border-border-strong hover:bg-surface-muted hover:text-text"
           onClick={handleSignOut}
           title="Đăng xuất"
           type="button"

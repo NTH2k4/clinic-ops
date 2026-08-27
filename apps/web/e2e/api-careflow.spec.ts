@@ -96,7 +96,7 @@ test("unauthorized routes redirect and forbidden actions leave the patient UI un
   await expect(page).toHaveURL(/\/login$/);
 
   await signIn(page, "patient@careflow.local");
-  await page.getByRole("link", { name: "Lịch của tôi" }).click();
+  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Lịch của tôi", exact: true }).click();
   const cancellation = page.getByRole("button", { name: /Hủy lịch .+/ }).first();
   await expect(cancellation).toBeVisible();
 
