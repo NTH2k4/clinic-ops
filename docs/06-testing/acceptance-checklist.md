@@ -32,7 +32,7 @@
 
 ## Phase 2 Account Administration (2026-08-27)
 
-- [x] Patient có thể đăng ký account mới và vào ngay patient workspace có quyền đặt lịch. Playwright API-mode dùng email và số điện thoại sinh duy nhất theo từng lần chạy để tránh va chạm dữ liệu.
+- [x] Patient có thể đăng ký account mới và vào ngay patient workspace có quyền đặt lịch. Playwright API-mode dùng email và số điện thoại sinh duy nhất theo từng lần chạy để tránh va chạm dữ liệu; teardown reset DB về seeded baseline sau suite.
 - [x] Patient có thể đổi mật khẩu; session hiện tại bị xoá, mật khẩu cũ bị từ chối và chỉ mật khẩu mới đăng nhập lại được.
 - [x] Admin có thể tìm account patient mới tạo và smoke action lock/unlock qua `/users/:id/lock` và `/users/:id/unlock`. Test không gọi reset-password nên không đọc, log hoặc ghi temporary password.
 - [x] API verification đầy đủ: typecheck, lint, build và high-severity audit pass; unit `7/7` suites, `41/41` tests; E2E `10/10` suites, `84/84` tests.

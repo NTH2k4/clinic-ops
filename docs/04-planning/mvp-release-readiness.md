@@ -70,7 +70,7 @@ API verification sau merge đạt đầy đủ trên configured host PostgreSQL 
 
 ## Phase 2 Account Administration Verification (Task 7)
 
-Trạng thái: **pass local verification** trên branch `account-administration`. Tasks 1-6 cung cấp public patient registration, password change với session revocation, admin user list/status/reset APIs và frontend auth/admin workspace. Task 7 bổ sung browser regression cho registration vào patient booking workspace, password change bắt buộc re-login và admin lock/unlock account action. Test tạo email/số điện thoại duy nhất; không ghi session token, mật khẩu hoặc temporary password vào output/tài liệu.
+Trạng thái: **pass local verification** trên branch `account-administration`. Task 7 commit: `848cafa23ba99f169450f8de0fa7fbaa81d37582`. Tasks 1-6 cung cấp public patient registration, password change với session revocation, admin user list/status/reset APIs và frontend auth/admin workspace. Task 7 bổ sung browser regression cho registration vào patient booking workspace, password change bắt buộc re-login và admin lock/unlock account action. Test tạo email/số điện thoại duy nhất; API-mode teardown reset database về seeded baseline sau suite; không ghi session token, mật khẩu hoặc temporary password vào output/tài liệu.
 
 | Command | Kết quả | Chi tiết |
 | --- | --- | --- |
