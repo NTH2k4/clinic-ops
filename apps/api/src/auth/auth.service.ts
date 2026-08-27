@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { UserRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { createHash, randomUUID } from "node:crypto";
 import { ApiError } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
@@ -34,16 +35,12 @@ export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
   async login(email: string, password: string) {
-    if (password !== "careflow-demo") {
-      throw this.unauthenticated();
-    }
-
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { patient: true, staff: true, doctor: true },
     });
 
-    if (!user || user.status !== "active") {
+    if (!user || user.status !== "active" || !(await bcrypt.compare(password, user.passwordHash))) {
       throw this.unauthenticated();
     }
 

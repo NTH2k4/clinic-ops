@@ -35,6 +35,8 @@ const patientSchema = z.object({
   data: z.object({ userId: z.string() }),
 });
 
+const demoPasswordHash = "$2a$10$Gfgzco0n8DMTE/AqMyfb.ekoNCRoI6QlhM88/1a.dgKwKEkX.Xmwi";
+
 const errorSchema = z.object({
   error: z.object({ code: z.string() }),
   meta: z.object({ requestId: z.string().min(1) }),
@@ -207,7 +209,7 @@ describe("Catalog resources", () => {
       const suffix = Date.now().toString();
       const email = `new-patient-${suffix}@careflow.local`;
       const user = await prisma.user.create({
-        data: { displayName: "New Patient", email, role: UserRole.patient, status: "active" },
+        data: { displayName: "New Patient", email, passwordHash: demoPasswordHash, role: UserRole.patient, status: "active" },
       });
       const patientToken = await login(server, email);
 

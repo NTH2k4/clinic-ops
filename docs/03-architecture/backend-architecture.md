@@ -82,16 +82,17 @@ The implementation deliberately keeps the envelope helper small in `apps/api/src
 
 ## Authentication And Authorization
 
-The API uses a demo-credential bearer-session model:
+The API uses stored password hashes and bearer sessions:
 
-- `POST /auth/login` accepts seeded user email plus password `careflow-demo`.
+- `POST /auth/login` verifies the submitted password against `User.passwordHash` with bcrypt.
+- Seeded demo users still use password `careflow-demo`.
 - `AuthService` creates a random UUID session token and stores only its SHA-256 hash in PostgreSQL in `AuthSession`.
 - Sessions expire after 12 hours and can be revoked.
 - `SessionGuard` attaches `currentUser` and `linkedProfile` to the request.
 - `POST /auth/logout` revokes the token by setting `revokedAt`.
 - `GET /auth/me` returns the current user and linked profile.
 
-This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. Production hardening should replace the shared demo password with hashed credential verification and define account lockout/password reset behavior.
+This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. Production hardening should define account lockout, password reset and password rotation behavior.
 
 Authorization uses two layers:
 
@@ -200,8 +201,8 @@ For database-backed E2E tests, PostgreSQL must be running and `DATABASE_URL` mus
 
 ## Known MVP Limits
 
-- Auth uses persisted bearer sessions, but the password is still the shared seeded demo password.
-- The demo password is hardcoded for seeded users.
+- Auth uses persisted bearer sessions and bcrypt password hashes, but demo users still share the seeded `careflow-demo` password.
+- The demo password hash is hardcoded for seeded users and migration backfill.
 - There is no OpenAPI machine-readable specification yet.
 - CORS is configured through `CORS_ALLOWED_ORIGINS`; TLS is owned by the hosting provider.
 - Notifications are in-app records only.

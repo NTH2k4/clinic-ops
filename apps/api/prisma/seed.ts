@@ -10,6 +10,7 @@ import {
 const prisma = new PrismaClient();
 const seedTimestamp = new Date("2026-08-01T00:00:00.000Z");
 const baseDate = new Date("2026-08-24T00:00:00.000Z");
+const demoPasswordHash = "$2a$10$Gfgzco0n8DMTE/AqMyfb.ekoNCRoI6QlhM88/1a.dgKwKEkX.Xmwi";
 // 01:00Z-06:00Z is 08:00-13:00 in Vietnam, leaving room for the 45-minute service.
 const appointmentStartHoursUtc = [1, 2, 3, 4, 5, 6];
 
@@ -84,11 +85,11 @@ function seededAppointmentStartAt(index: number) {
 async function seedDatabase(db: SeedClient) {
   await db.user.createMany({
     data: [
-      { id: "user-patient-1", displayName: "Patient Demo", email: "patient@careflow.local", phone: "+84910000001", role: UserRole.patient, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
-      { id: "user-doctor-1", displayName: "Dr. Minh Nguyen", email: "minh.nguyen@careflow.local", phone: "+84900000001", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
-      { id: "user-receptionist-1", displayName: "Reception Demo", email: "reception@careflow.local", phone: "+84910000002", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
-      { id: "user-nurse-1", displayName: "Nurse Demo", email: "nurse@careflow.local", phone: "+84910000003", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
-      { id: "user-admin-1", displayName: "Admin Demo", email: "admin@careflow.local", phone: "+84910000004", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-patient-1", displayName: "Patient Demo", email: "patient@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000001", role: UserRole.patient, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-doctor-1", displayName: "Dr. Minh Nguyen", email: "minh.nguyen@careflow.local", passwordHash: demoPasswordHash, phone: "+84900000001", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-receptionist-1", displayName: "Reception Demo", email: "reception@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000002", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-nurse-1", displayName: "Nurse Demo", email: "nurse@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000003", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-admin-1", displayName: "Admin Demo", email: "admin@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000004", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
     ],
   });
 

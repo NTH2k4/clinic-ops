@@ -40,11 +40,12 @@ The initial migration is stored at `apps/api/prisma/migrations/20260826000000_in
 
 ### `User`
 
-`User` is the authentication identity. It stores display name, email, phone, role, status and optional avatar URL.
+`User` is the authentication identity. It stores display name, email, bcrypt password hash, phone, role, status and optional avatar URL.
 
 Important rules:
 
 - `email` is unique.
+- `passwordHash` is required and must contain a bcrypt hash, never a plaintext password.
 - One user may link to exactly one patient, staff or doctor profile.
 - Appointment creator/updater relations point back to `User`.
 - Audit events, notifications and auth sessions reference `User`.

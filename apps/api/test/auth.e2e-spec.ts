@@ -1,6 +1,6 @@
 import { Controller, Get, HttpException, UseGuards } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, UserRole } from "@prisma/client";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { z } from "zod";
@@ -52,6 +52,8 @@ const errorResponseSchema = z.object({
   error: z.object({ code: z.string() }),
   meta: z.object({ requestId: z.string().min(1) }),
 });
+
+const customPasswordHash = "$2a$10$c1VsAHp3ekzMRZ.TnR0uSu89qTaTlpJmq1tVRFQirbbDBHvIyxrfO";
 
 describe("Auth and RBAC", () => {
   const prisma = new PrismaClient();
@@ -121,6 +123,79 @@ describe("Auth and RBAC", () => {
           expect(parsed.meta.requestId).toEqual(expect.any(String));
         });
     } finally {
+      await app.close();
+    }
+  });
+
+  it("verifies stored password hashes for login", async () => {
+    const { app, server } = await createApp();
+    const email = `custom-password-${Date.now()}@careflow.local`;
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: "Custom Password User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.admin,
+          status: "active",
+        },
+      });
+
+      await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "careflow-demo" })
+        .expect(401)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = errorResponseSchema.parse(body);
+          expect(parsed.error.code).toBe("UNAUTHENTICATED");
+        });
+
+      await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = loginResponseSchema.parse(body);
+          expect(parsed.data.currentUser.email).toBe(email);
+        });
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it.each([
+    ["inactive", "inactive"],
+    ["locked", "locked"],
+  ] as const)("rejects %s account login", async (_label, status) => {
+    const { app, server } = await createApp();
+    const email = `${status}-account-${Date.now()}@careflow.local`;
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: `${status} Account`,
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.admin,
+          status,
+        },
+      });
+
+      await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(401)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = errorResponseSchema.parse(body);
+          expect(parsed.error.code).toBe("UNAUTHENTICATED");
+        });
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
       await app.close();
     }
   });

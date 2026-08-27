@@ -62,6 +62,7 @@ model User {
   id                       String                     @id @default(uuid())
   displayName              String
   email                    String                     @unique
+  passwordHash             String
   phone                    String?
   role                     UserRole
   status                   AccountStatus              @default(active)

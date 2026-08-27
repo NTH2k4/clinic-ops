@@ -7,7 +7,7 @@ MVP nên tránh thu thập dữ liệu lâm sàng nhạy cảm. Lightweight mock
 ## Yêu Cầu Backend Sau Này
 
 - Role-based access control.
-- Authentication và session management. Backend hiện đã lưu bearer session hashes trong PostgreSQL với expiry 12 giờ và logout revocation; phần còn thiếu là hashed password thật, account lockout và password reset.
+- Authentication và session management. Backend hiện đã lưu bcrypt password hashes và bearer session hashes trong PostgreSQL với expiry 12 giờ và logout revocation; phần còn thiếu là account lockout, password reset và password rotation.
 - Audit logging cho các thay đổi appointment.
 - Input validation tại API boundary.
 - Bảo vệ khỏi truy cập trái phép vào dữ liệu patient.

@@ -137,16 +137,17 @@ E2E tests require a reachable PostgreSQL database through `DATABASE_URL`.
 
 ## Auth Model
 
-The current auth flow is still demo-credential based, but API sessions are durable:
+The current auth flow uses stored password hashes and durable API sessions:
 
-- `POST /auth/login` accepts seeded email plus password `careflow-demo`.
+- `POST /auth/login` verifies the submitted password against `User.passwordHash` with bcrypt.
+- Seeded demo users still use password `careflow-demo`.
 - The API creates a random bearer session token and stores only its SHA-256 hash in PostgreSQL in `AuthSession`.
 - Sessions expire after 12 hours.
 - Protected endpoints require `Authorization: Bearer <sessionToken>`.
 - `POST /auth/logout` revokes the persisted session by setting `revokedAt`.
 - Restarting the API process does not invalidate unexpired, unrevoked sessions.
 
-This model is still not a complete production auth system. Production work should add password hashing for real user credentials, account lockout and password reset requirements.
+This model is still not a complete production auth system. Production work should add account lockout, password reset requirements and password rotation flows.
 
 ## Browser CORS
 

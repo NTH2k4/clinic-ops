@@ -73,23 +73,22 @@ Acceptance criteria:
 
 ## Workstream 3: Production Auth And Session Hardening
 
-Status: in progress; durable bearer sessions, expiry and logout revocation are implemented.
+Status: in progress; durable bearer sessions, expiry, logout revocation, bcrypt password verification and inactive/locked account login coverage are implemented.
 
 Goal: replace MVP demo auth with deployable auth behavior.
 
 Recommended actions:
 
 1. Keep server-side persisted bearer sessions unless a later product/security decision chooses signed tokens.
-2. Replace demo password logic with hashed credential verification.
-3. Add account lockout and password reset requirements if production login is in scope.
-4. Add security tests for inactive and locked accounts.
-5. Add a cleanup job or operational task for expired/revoked sessions if session volume becomes meaningful.
+2. Add account lockout and password reset requirements if production login is in scope.
+3. Add password rotation/change-password flows when real user administration is added.
+4. Add a cleanup job or operational task for expired/revoked sessions if session volume becomes meaningful.
 
 Acceptance criteria:
 
 - Restarting the API does not silently invalidate unexpired, unrevoked sessions.
 - Tokens/sessions expire and can be revoked.
-- Demo password logic remains only as the next known auth gap and should be replaced before real users.
+- Passwords are verified from stored hashes; demo users still share the seeded `careflow-demo` password until real user administration exists.
 
 ## Workstream 4: Backend Deployment Readiness
 
