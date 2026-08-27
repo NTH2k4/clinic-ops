@@ -86,7 +86,7 @@ Không có failure command hoặc actionable error trong Web gate. Các warning 
 
 ## Push Và Deployment Gate (Task 5)
 
-Trạng thái: **đang xử lý deployed login smoke**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng; GitHub Actions và Render Deployment workflow cho commit `4b1ff302` đều success. Render health pass đúng commit, nhưng login smoke lần đầu trả `401 UNAUTHENTICATED`, nên đang bổ sung demo auth repair idempotent vào Render build.
+Trạng thái: **đang xử lý deployed login smoke**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng; GitHub Actions và Render Deployment workflow cho commit `4b1ff302` đều success. Render health pass đúng commit, nhưng login smoke lần đầu trả `401 UNAUTHENTICATED`. Build-time demo auth repair ở commit `4c39911a` vẫn cho health pass nhưng login tiếp tục trả `401`, nên repair được chuyển sang Render `startCommand` để chạy trên đúng runtime database trước khi API start.
 
 | Check | Kết quả | Chi tiết |
 | --- | --- | --- |
@@ -95,9 +95,9 @@ Trạng thái: **đang xử lý deployed login smoke**. Push `main` đã đượ
 | GitHub Actions API | Pass | API CI, Web CI và Render Deployment đều `completed/success` cho `4b1ff302`. |
 | GitHub Deployment API | Pass | Deployment `render-free` success, URL `https://clinic-ops.onrender.com`. |
 | Render health smoke | Pass | `/api/v1/health` trả commit `4b1ff30211c024f16fc0cc36af15c9aeb2b19225`. |
-| Render login smoke | Fail | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả `401 UNAUTHENTICATED`; root cause là deployed demo credentials không được repair bởi `initialDeployHook` sau auth-related migrations. |
+| Render login smoke | Fail | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả `401 UNAUTHENTICATED` trên `4b1ff302`; vẫn fail sau build-time repair `4c39911a`, nên repair được chuyển sang `startCommand`. |
 
-Fix đang triển khai: `render.yaml` sẽ chạy `npm run prisma:seed:demo-auth` sau `npx prisma migrate deploy` trong `buildCommand`. Script này chỉ upsert demo login users/password hashes và không reset database.
+Fix đang triển khai: `render.yaml` sẽ chạy `npm run prisma:seed:demo-auth --prefix apps/api` trong `startCommand` trước `npm run start --prefix apps/api`. Script này chỉ upsert demo login users/password hashes và không reset database.
 
 Local verification cho fix:
 
