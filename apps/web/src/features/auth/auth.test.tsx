@@ -206,7 +206,7 @@ describe("authentication and role routing", () => {
 
     const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng di động" });
     expect(mobileNavigation).toHaveClass("sticky", "bottom-0");
-    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(6);
+    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(7);
     expect(within(mobileNavigation).getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
 
     await user.click(within(mobileNavigation).getByRole("link", { name: "Audit log" }));

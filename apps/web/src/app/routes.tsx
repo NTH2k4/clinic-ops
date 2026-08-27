@@ -9,6 +9,7 @@ import { AdminServices } from "../features/admin/AdminServices";
 import { AdminSpecialties } from "../features/admin/AdminSpecialties";
 import { AdminStaff } from "../features/admin/AdminStaff";
 import { AuditLog } from "../features/admin/AuditLog";
+import { AdminAccounts } from "../features/admin/AdminAccounts";
 import { DoctorDashboard } from "../features/doctors/DoctorDashboard";
 import { DoctorDaySchedule } from "../features/doctors/DoctorDaySchedule";
 import { DoctorWeekSchedule } from "../features/doctors/DoctorWeekSchedule";
@@ -48,6 +49,7 @@ export function AppRoutes() {
           </Route>
           <Route element={<RequireRole allowedRoles={["admin"]} />}>
             <Route element={<AdminDashboard />} path="admin" />
+            <Route element={<AdminAccounts />} path="admin/accounts" />
             <Route element={<AdminDoctors />} path="admin/doctors" />
             <Route element={<AdminServices />} path="admin/services" />
             <Route element={<AdminSpecialties />} path="admin/specialties" />

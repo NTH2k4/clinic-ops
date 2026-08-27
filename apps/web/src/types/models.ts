@@ -9,7 +9,7 @@ export type AppointmentStatus =
   | "cancelled"
   | "no_show";
 
-export type UserStatus = "active" | "inactive";
+export type UserStatus = "active" | "inactive" | "locked";
 export type PatientStatus = "active" | "inactive";
 export type DoctorStatus = "active" | "inactive" | "on_leave";
 export type ServiceStatus = "active" | "inactive";

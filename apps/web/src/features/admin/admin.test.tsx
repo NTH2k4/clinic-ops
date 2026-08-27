@@ -2,6 +2,7 @@ import userEvent from "@testing-library/user-event";
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
+import { navigationForRole } from "../../components/navigation";
 import { mockStore } from "../../mocks/mockStore";
 import { renderWithProviders } from "../../test/render";
 import { AdminDashboard } from "./AdminDashboard";
@@ -30,6 +31,31 @@ const apiAuditEvent = {
   metadata: { source: "api" },
 };
 
+const apiUsers = [
+  {
+    id: "user-active-1",
+    displayName: "Nguyen Minh Anh",
+    email: "minh.anh@example.test",
+    phone: "0901000001",
+    role: "patient",
+    status: "active",
+    createdAt: "2026-08-01T08:00:00.000Z",
+    updatedAt: "2026-08-24T02:00:00.000Z",
+    linkedProfile: { type: "patient", id: "patient-1" },
+  },
+  {
+    id: "user-locked-1",
+    displayName: "Locked Doctor",
+    email: "locked.doctor@example.test",
+    phone: "0901000002",
+    role: "doctor",
+    status: "locked",
+    createdAt: "2026-08-01T08:00:00.000Z",
+    updatedAt: "2026-08-24T02:00:00.000Z",
+    linkedProfile: { type: "doctor", id: "doctor-1" },
+  },
+];
+
 async function renderApiAuditLog(fetcher: typeof fetch) {
   vi.resetModules();
   vi.stubEnv("VITE_DATA_SOURCE", "api");
@@ -41,7 +67,75 @@ async function renderApiAuditLog(fetcher: typeof fetch) {
   return renderApiWithProviders(<ApiAuditLog />);
 }
 
+async function renderApiAdminAccounts(fetcher: typeof fetch) {
+  vi.resetModules();
+  vi.stubEnv("VITE_DATA_SOURCE", "api");
+  vi.stubGlobal("fetch", fetcher);
+  const [{ AdminAccounts }, { renderWithProviders: renderApiWithProviders }, { setApiSessionToken }] = await Promise.all([
+    import("./AdminAccounts"),
+    import("../../test/render"),
+    import("../../lib/api/session"),
+  ]);
+  setApiSessionToken("admin-session-token");
+  return renderApiWithProviders(<AdminAccounts />);
+}
+
 describe("admin workspace", () => {
+  it("includes the Accounts navigation target for administrators", () => {
+    expect(navigationForRole("admin")).toContainEqual({
+      icon: expect.anything(),
+      label: "Accounts",
+      to: "/app/admin/accounts",
+    });
+  });
+
+  it("renders account email, role, and status from the admin API", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => apiListResponse(apiUsers, "req-users"));
+    await renderApiAdminAccounts(fetcher);
+
+    expect(await screen.findByText("minh.anh@example.test")).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "Accounts" })).toHaveTextContent("patient");
+    expect(screen.getByRole("table", { name: "Accounts" })).toHaveTextContent("locked");
+  });
+
+  it("calls the lock and unlock endpoints for explicit account status actions", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/lock")) return new Response(JSON.stringify({ data: { ...apiUsers[0], status: "locked" }, meta: { requestId: "req-lock" } }), { status: 200 });
+      if (url.endsWith("/unlock")) return new Response(JSON.stringify({ data: { ...apiUsers[1], status: "active" }, meta: { requestId: "req-unlock" } }), { status: 200 });
+      return apiListResponse(apiUsers, "req-users");
+    });
+    const user = userEvent.setup();
+    await renderApiAdminAccounts(fetcher);
+
+    await user.click(await screen.findByRole("button", { name: "Lock Nguyen Minh Anh" }));
+    await user.click(screen.getByRole("button", { name: "Unlock Locked Doctor" }));
+
+    await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toEqual(expect.arrayContaining([
+      "/api/v1/users/user-active-1/lock",
+      "/api/v1/users/user-locked-1/unlock",
+    ])));
+  });
+
+  it("shows a reset password exactly in the controlled result panel without browser storage", async () => {
+    const temporaryPassword = "temporary-password-123";
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      if (String(input).endsWith("/reset-password")) {
+        return new Response(JSON.stringify({ data: { temporaryPassword }, meta: { requestId: "req-reset" } }), { status: 200 });
+      }
+      return apiListResponse(apiUsers, "req-users");
+    });
+    const user = userEvent.setup();
+    await renderApiAdminAccounts(fetcher);
+
+    await user.click(await screen.findByRole("button", { name: "Reset password for Nguyen Minh Anh" }));
+
+    const result = await screen.findByRole("status", { name: "Temporary password result" });
+    expect(result).toHaveTextContent(temporaryPassword);
+    expect(window.localStorage.getItem("temporaryPassword")).toBeNull();
+    expect(window.sessionStorage.getItem("temporaryPassword")).toBeNull();
+  });
+
   it("derives the active doctor metric from mock data", () => {
     renderWithProviders(<AdminDashboard />);
 
