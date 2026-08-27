@@ -2,12 +2,86 @@ import { expect, type Page, test } from "@playwright/test";
 
 const password = "careflow-demo";
 
-async function signIn(page: Page, email: string) {
+type PatientCredentials = {
+  displayName: string;
+  email: string;
+  phone: string;
+  password: string;
+};
+
+function createPatientCredentials(): PatientCredentials {
+  const suffix = `${Date.now()}${Math.floor(Math.random() * 1_000_000)}`;
+
+  return {
+    displayName: `API Patient ${suffix}`,
+    email: `api.patient.${suffix}@example.test`,
+    phone: `+849${suffix.slice(-8).padStart(8, "0")}`,
+    password: `CareFlow!${suffix}`,
+  };
+}
+
+async function signIn(page: Page, email: string, signInPassword = password) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Mật khẩu").fill(password);
+  await page.getByLabel("Mật khẩu").fill(signInPassword);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
 }
+
+async function registerPatient(page: Page, patient: PatientCredentials) {
+  await page.goto("/register");
+  await page.getByLabel("Họ và tên").fill(patient.displayName);
+  await page.getByLabel("Email").fill(patient.email);
+  await page.getByLabel("Số điện thoại").fill(patient.phone);
+  await page.getByLabel("Mật khẩu").fill(patient.password);
+  await page.getByRole("button", { name: "Tạo tài khoản" }).click();
+}
+
+test("patient registration creates an authenticated booking workspace", async ({ page }) => {
+  const patient = createPatientCredentials();
+
+  await registerPatient(page, patient);
+
+  await expect(page).toHaveURL(/\/app\/patient$/);
+  await expect(page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Đặt lịch", exact: true })).toBeVisible();
+});
+
+test("password change clears the session and requires login with the new password", async ({ page }) => {
+  const patient = createPatientCredentials();
+  const newPassword = `${patient.password}-new`;
+
+  await registerPatient(page, patient);
+  await page.getByRole("button", { name: "Bảo mật tài khoản" }).click();
+  await page.getByLabel("Mật khẩu hiện tại").fill(patient.password);
+  await page.getByLabel("Mật khẩu mới").fill(newPassword);
+  await page.getByRole("button", { name: "Đổi mật khẩu" }).click();
+
+  await expect(page).toHaveURL(/\/login$/);
+  await signIn(page, patient.email, patient.password);
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("alert")).toBeVisible();
+
+  await signIn(page, patient.email, newPassword);
+  await expect(page).toHaveURL(/\/app\/patient$/);
+});
+
+test("admin can lock and unlock a registered patient account", async ({ page, request }) => {
+  const patient = createPatientCredentials();
+
+  const registration = await request.post("/api/v1/auth/register", { data: patient });
+  expect(registration.ok()).toBe(true);
+
+  await signIn(page, "admin@careflow.local");
+  await expect(page).toHaveURL(/\/app\/admin$/);
+  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Accounts", exact: true }).click();
+  await page.getByLabel("Search").fill(patient.email);
+
+  const account = page.getByRole("row", { name: new RegExp(patient.email) });
+  await expect(account).toBeVisible();
+  await account.getByRole("button", { name: `Lock ${patient.displayName}` }).click();
+  await expect(account.getByRole("button", { name: `Unlock ${patient.displayName}` })).toBeVisible();
+  await account.getByRole("button", { name: `Unlock ${patient.displayName}` }).click();
+  await expect(account.getByRole("button", { name: `Lock ${patient.displayName}` })).toBeVisible();
+});
 
 test("patient can request an appointment and sees a duplicate-slot conflict", async ({ page }) => {
   await signIn(page, "patient@careflow.local");
