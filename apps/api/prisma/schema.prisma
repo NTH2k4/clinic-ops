@@ -62,6 +62,7 @@ model User {
   id                       String                     @id @default(uuid())
   displayName              String
   email                    String                     @unique
+  passwordHash             String
   phone                    String?
   role                     UserRole
   status                   AccountStatus              @default(active)
@@ -76,6 +77,21 @@ model User {
   appointmentStatusHistory AppointmentStatusHistory[]
   notifications            Notification[]
   auditEvents              AuditEvent[]
+  authSessions             AuthSession[]
+}
+
+model AuthSession {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime  @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
 }
 
 model Patient {

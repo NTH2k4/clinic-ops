@@ -22,7 +22,7 @@ This document explains the implemented PostgreSQL schema behind the CareFlow bac
 - Local deterministic seed: `npm run prisma:seed`.
 - Seed safety: `prisma/seed.ts` refuses to seed a non-local database unless `ALLOW_DATABASE_SEED=true`.
 
-The initial migration is stored at `apps/api/prisma/migrations/20260826000000_init/migration.sql`.
+The initial migration is stored at `apps/api/prisma/migrations/20260826000000_init/migration.sql`. Auth session persistence is added by `apps/api/prisma/migrations/20260827000000_auth_sessions/migration.sql`.
 
 ## Enum Reference
 
@@ -40,14 +40,28 @@ The initial migration is stored at `apps/api/prisma/migrations/20260826000000_in
 
 ### `User`
 
-`User` is the authentication identity. It stores display name, email, phone, role, status and optional avatar URL.
+`User` is the authentication identity. It stores display name, email, bcrypt password hash, phone, role, status and optional avatar URL.
 
 Important rules:
 
 - `email` is unique.
+- `passwordHash` is required and must contain a bcrypt hash, never a plaintext password.
 - One user may link to exactly one patient, staff or doctor profile.
 - Appointment creator/updater relations point back to `User`.
-- Audit events and notifications reference `User`.
+- Audit events, notifications and auth sessions reference `User`.
+
+### `AuthSession`
+
+`AuthSession` stores bearer session token hashes for API authentication.
+
+Important rules:
+
+- `tokenHash` is unique and stores the SHA-256 hash of the bearer token sent in `Authorization: Bearer <token>`.
+- `userId` links the session to `User`.
+- `expiresAt` controls session expiry.
+- `revokedAt` being non-null means logout or administrative revocation invalidated the token.
+- Deleting a user cascades to that user's sessions.
+- Indexed by `[userId, revokedAt]` for user session lookups and `[expiresAt]` for future cleanup jobs.
 
 ### `Patient`
 
@@ -59,6 +73,7 @@ Important rules:
 - `phone` is unique.
 - `dateOfBirth` is a database `Date`, not a timestamp.
 - Patient-scoped API reads must filter by the linked patient profile.
+- `notes` is a staff-only operational field and is omitted from patient owner projections.
 
 ### `Staff`
 
@@ -121,6 +136,7 @@ Important rules:
 - `type=working` provides availability.
 - `type=blocked` and `type=leave` remove availability.
 - Indexed by `[doctorId, effectiveFrom, effectiveTo]`.
+- Admin schedule create/update/deactivate operations write `doctor_schedule_*` audit events.
 
 The API requires appointment slots to fit inside one local clinic day.
 
@@ -176,6 +192,7 @@ Important rules:
 - `entityType`, `entityId` and `action` identify what changed.
 - `metadata` is JSON for structured context.
 - Indexed by `[entityType, entityId, timestamp]` and `[actorUserId, timestamp]`.
+- Patient audit events should not include demographics, contact details or notes in `metadata`.
 
 ### `Notification`
 
@@ -201,6 +218,7 @@ Important rules:
 The deterministic seed creates:
 
 - 5 users: patient, doctor, receptionist, nurse and admin.
+- 0 auth sessions; sessions are created by login and cleared by seed resets.
 - 6 patients.
 - 3 staff profiles.
 - 3 specialties.

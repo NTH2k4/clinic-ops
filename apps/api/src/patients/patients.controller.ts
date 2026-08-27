@@ -5,7 +5,7 @@ import { ApiError } from "../common/api-error";
 import { listEnvelope, successEnvelope } from "../common/api-response";
 import { Roles, RolesGuard } from "../common/roles";
 import { parseSchema } from "../common/validation";
-import { patientCreateSchema, patientListQuerySchema, patientOwnerUpdateSchema, patientUpdateSchema } from "./patients.dto";
+import { patientCreateSchema, patientListQuerySchema, patientOwnerCreateSchema, patientOwnerUpdateSchema, patientUpdateSchema } from "./patients.dto";
 import { PatientsService } from "./patients.service";
 
 @Controller("patients")
@@ -23,14 +23,18 @@ export class PatientsController {
   }
 
   @Get(":id")
-  async detail(@Param("id") id: string, @Req() request: AuthenticatedRequest) { this.assertOwnerOrStaff(id, request); return successEnvelope(await this.patients.patient(id)); }
+  async detail(@Param("id") id: string, @Req() request: AuthenticatedRequest) {
+    this.assertOwnerOrStaff(id, request);
+    return successEnvelope(await this.patients.patient(id, request.currentUser.role !== UserRole.patient));
+  }
 
   @Post()
   @UseGuards(RolesGuard)
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     const userId = request.currentUser.role === UserRole.patient ? request.currentUser.id : undefined;
-    return successEnvelope(await this.patients.create(parseSchema(patientCreateSchema, body), userId));
+    const schema = request.currentUser.role === UserRole.patient ? patientOwnerCreateSchema : patientCreateSchema;
+    return successEnvelope(await this.patients.create(parseSchema(schema, body), request.currentUser.id, userId, request.currentUser.role !== UserRole.patient));
   }
 
   @Patch(":id")
@@ -41,7 +45,7 @@ export class PatientsController {
     const input = request.currentUser.role === UserRole.patient
       ? parseSchema(patientOwnerUpdateSchema, body)
       : parseSchema(patientUpdateSchema, body);
-    return successEnvelope(await this.patients.update(id, input));
+    return successEnvelope(await this.patients.update(id, input, request.currentUser.id, request.currentUser.role !== UserRole.patient));
   }
 
   @Post(":id/deactivate")

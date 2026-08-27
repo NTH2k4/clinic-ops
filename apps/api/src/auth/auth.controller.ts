@@ -23,10 +23,10 @@ export class AuthController {
 
   @Post("logout")
   @UseGuards(SessionGuard)
-  logout(@Req() request: AuthenticatedRequest) {
+  async logout(@Req() request: AuthenticatedRequest) {
     const sessionToken = extractBearerToken(request.headers.authorization);
     if (sessionToken) {
-      this.authService.logout(sessionToken);
+      await this.authService.logout(sessionToken);
     }
     return successEnvelope({});
   }

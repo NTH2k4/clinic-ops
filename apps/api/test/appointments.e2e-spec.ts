@@ -1,4 +1,5 @@
 import { Test } from "@nestjs/testing";
+import { Logger } from "@nestjs/common";
 import { AppointmentStatus, PrismaClient } from "@prisma/client";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -87,6 +88,48 @@ describe("Appointment workflows", () => {
       await expect(prisma.auditEvent.findFirstOrThrow({ where: { appointmentId: appointment.id, action: "appointment_created" }, select: { actorUserId: true, entityType: true, entityId: true } }))
         .resolves.toEqual({ actorUserId: "user-patient-1", entityType: "appointment", entityId: appointment.id });
     } finally {
+      await app.close();
+    }
+  });
+
+  it("logs key appointment workflow actions with the request id", async () => {
+    const { app, server } = await createApp();
+    const logSpy = jest.spyOn(Logger.prototype, "log").mockImplementation();
+
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+      const response = await request(server)
+        .post("/api/v1/appointments")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .set("x-request-id", "appointment-log-1")
+        .send({
+          patientId: "patient-1",
+          doctorId: "doctor-1",
+          serviceId: "service-general",
+          startAt: "2026-08-25T01:00:00.000Z",
+          reason: "Follow-up consultation",
+        })
+        .expect(201);
+      const appointment = appointmentResponseSchema.parse(response.body).data;
+
+      expect(logSpy.mock.calls.some(([message]) => {
+        if (typeof message !== "string") return false;
+        const parsed: unknown = JSON.parse(message);
+        const log = z.object({
+          event: z.literal("appointment_workflow"),
+          requestId: z.string(),
+          action: z.string(),
+          appointmentId: z.string(),
+          actorUserId: z.string(),
+        }).safeParse(parsed);
+        return log.success
+          && log.data.requestId === "appointment-log-1"
+          && log.data.action === "appointment_created"
+          && log.data.appointmentId === appointment.id
+          && log.data.actorUserId === "user-patient-1";
+      })).toBe(true);
+    } finally {
+      logSpy.mockRestore();
       await app.close();
     }
   });

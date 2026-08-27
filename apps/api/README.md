@@ -137,14 +137,17 @@ E2E tests require a reachable PostgreSQL database through `DATABASE_URL`.
 
 ## Auth Model
 
-The MVP auth flow is intentionally simple:
+The current auth flow uses stored password hashes and durable API sessions:
 
-- `POST /auth/login` accepts seeded email plus password `careflow-demo`.
-- The API creates an in-memory bearer session token.
+- `POST /auth/login` verifies the submitted password against `User.passwordHash` with bcrypt.
+- Seeded demo users still use password `careflow-demo`.
+- The API creates a random bearer session token and stores only its SHA-256 hash in PostgreSQL in `AuthSession`.
+- Sessions expire after 12 hours.
 - Protected endpoints require `Authorization: Bearer <sessionToken>`.
-- `POST /auth/logout` deletes the in-memory session.
+- `POST /auth/logout` revokes the persisted session by setting `revokedAt`.
+- Restarting the API process does not invalidate unexpired, unrevoked sessions.
 
-This model is for MVP integration only. Production work should add durable sessions or a production token strategy, expiry, password hashing for real user credentials and revocation behavior.
+This model is still not a complete production auth system. Production work should add account lockout, password reset requirements and password rotation flows.
 
 ## Browser CORS
 

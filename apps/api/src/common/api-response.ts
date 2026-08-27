@@ -1,10 +1,10 @@
-import { randomUUID } from "node:crypto";
+import { currentRequestId } from "./request-context";
 
 export function successEnvelope<T>(data: T) {
   return {
     data,
     meta: {
-      requestId: randomUUID(),
+      requestId: currentRequestId(),
     },
   };
 }
@@ -13,7 +13,7 @@ export function listEnvelope<T>(data: T[], page: number, pageSize: number, total
   return {
     data,
     meta: {
-      requestId: randomUUID(),
+      requestId: currentRequestId(),
       page,
       pageSize,
       total,

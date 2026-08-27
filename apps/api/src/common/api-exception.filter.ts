@@ -1,14 +1,32 @@
-import { Catch, HttpException, HttpStatus, type ArgumentsHost, type ExceptionFilter } from "@nestjs/common";
+import { Catch, HttpException, HttpStatus, Logger, type ArgumentsHost, type ExceptionFilter } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { randomUUID } from "node:crypto";
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { ApiError } from "./api-error";
+import { currentRequestId } from "./request-context";
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(ApiExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
-    const response = host.switchToHttp().getResponse<Response>();
+    const http = host.switchToHttp();
+    const request = http.getRequest<Request>();
+    const response = http.getResponse<Response>();
     const mapped = this.map(exception);
+    const requestId = currentRequestId();
+
+    const logPayload = JSON.stringify({
+      requestId,
+      method: request.method,
+      path: request.path,
+      statusCode: mapped.statusCode,
+      code: mapped.code,
+    });
+    if (mapped.statusCode >= 500) {
+      this.logger.error(logPayload, exception instanceof Error ? exception.stack : undefined);
+    } else {
+      this.logger.warn(logPayload);
+    }
 
     response.status(mapped.statusCode).json({
       error: {
@@ -17,7 +35,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
         fields: mapped.fields,
       },
       meta: {
-        requestId: randomUUID(),
+        requestId,
       },
     });
   }

@@ -28,7 +28,7 @@ This document describes the implemented backend architecture for CareFlow. It is
 | --- | --- | --- |
 | `AppModule` | `apps/api/src/app.module.ts` | Wires shared modules, domain modules and the global exception filter. |
 | `PrismaModule` | `apps/api/src/prisma` | Provides one `PrismaService` for database access and lifecycle hooks. |
-| `AuthModule` | `apps/api/src/auth` | Demo login, bearer session lookup, logout and `/auth/me`. |
+| `AuthModule` | `apps/api/src/auth` | Demo login, persisted bearer session lookup, logout revocation and `/auth/me`. |
 | `CatalogModule` | `apps/api/src/catalog` | Doctors, specialties and services, including admin create/update/deactivate flows. |
 | `PatientsModule` | `apps/api/src/patients` | Patient search, detail, create, update and deactivate flows. |
 | `SchedulingModule` | `apps/api/src/scheduling` | Doctor schedule reads and availability slot calculation. |
@@ -40,13 +40,14 @@ This document describes the implemented backend architecture for CareFlow. It is
 ## Request Lifecycle
 
 1. Nest receives the request under `/api/v1`.
-2. Controllers parse route params, query strings and bodies.
-3. Protected controllers run `SessionGuard` to extract `Authorization: Bearer <token>` and load the in-memory session from `AuthService`.
-4. Role-restricted handlers run `RolesGuard` with metadata from the `@Roles(...)` decorator.
-5. Controllers call `parseSchema(...)` with a Zod schema. Invalid payloads raise `VALIDATION_ERROR`.
-6. Domain services execute Prisma reads/writes and throw `ApiError` for expected failures.
-7. `ApiExceptionFilter` maps known errors into the shared error envelope.
-8. Controllers wrap successful responses with `successEnvelope(...)` or `listEnvelope(...)`.
+2. `RequestLoggingMiddleware` accepts a valid inbound `x-request-id` or creates one, sets the response `x-request-id` header and stores the value in request context.
+3. Controllers parse route params, query strings and bodies.
+4. Protected controllers run `SessionGuard` to extract `Authorization: Bearer <token>` and load the persisted session from `AuthService`.
+5. Role-restricted handlers run `RolesGuard` with metadata from the `@Roles(...)` decorator.
+6. Controllers call `parseSchema(...)` with a Zod schema. Invalid payloads raise `VALIDATION_ERROR`.
+7. Domain services execute Prisma reads/writes and throw `ApiError` for expected failures.
+8. `ApiExceptionFilter` maps known errors into the shared error envelope and logs structured error metadata.
+9. Controllers wrap successful responses with `successEnvelope(...)` or `listEnvelope(...)`, reusing the request context ID.
 
 ## API Envelope
 
@@ -78,19 +79,31 @@ Errors use:
 }
 ```
 
-The implementation deliberately keeps the envelope helper small in `apps/api/src/common/api-response.ts` and the mapping logic centralized in `apps/api/src/common/api-exception.filter.ts`.
+The implementation deliberately keeps the envelope helper small in `apps/api/src/common/api-response.ts`, request ID context in `apps/api/src/common/request-context.ts` and error mapping centralized in `apps/api/src/common/api-exception.filter.ts`.
+
+## Observability
+
+`RequestLoggingMiddleware` logs a JSON payload through Nest `Logger` when each request finishes. The log includes `requestId`, HTTP method, query-free path, status code and duration in milliseconds.
+
+`ApiExceptionFilter` logs structured error metadata with the same `requestId`. Client errors use warning logs without stack traces. Server errors use error logs with stack traces. API clients still receive the stable public error envelope and do not receive stack traces or internal exception details.
+
+`AppointmentsService` logs key appointment workflow actions after successful create, update, reschedule and status transition transactions. These logs include `event=appointment_workflow`, `requestId`, `action`, `appointmentId`, `actorUserId` and metadata.
+
+Operational troubleshooting steps live in `docs/03-architecture/backend-runbook.md`.
 
 ## Authentication And Authorization
 
-The MVP uses a demo bearer-session model:
+The API uses stored password hashes and bearer sessions:
 
-- `POST /auth/login` accepts seeded user email plus password `careflow-demo`.
-- `AuthService` creates a random UUID session token and stores session state in memory.
+- `POST /auth/login` verifies the submitted password against `User.passwordHash` with bcrypt.
+- Seeded demo users still use password `careflow-demo`.
+- `AuthService` creates a random UUID session token and stores only its SHA-256 hash in PostgreSQL in `AuthSession`.
+- Sessions expire after 12 hours and can be revoked.
 - `SessionGuard` attaches `currentUser` and `linkedProfile` to the request.
-- `POST /auth/logout` deletes the in-memory token.
+- `POST /auth/logout` revokes the token by setting `revokedAt`.
 - `GET /auth/me` returns the current user and linked profile.
 
-This is sufficient for MVP integration and E2E verification, but it is not a production auth system. Production hardening should replace in-memory sessions with durable session storage or a token strategy with revocation, expiry and secure password verification.
+This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. Production hardening should define account lockout, password reset and password rotation behavior.
 
 Authorization uses two layers:
 
@@ -158,6 +171,10 @@ Active conflict statuses are `requested`, `confirmed`, `checked_in` and `in_prog
 
 Appointment create and reschedule operations run inside Serializable Prisma transactions and retry Prisma `P2034` serialization conflicts up to three attempts.
 
+Admin users manage doctor schedules through `POST /doctor-schedules`, `PATCH /doctor-schedules/:id` and `POST /doctor-schedules/:id/deactivate`. Schedule `startTime` and `endTime` are local `HH:mm` values interpreted in `Asia/Ho_Chi_Minh`; `effectiveFrom` and `effectiveTo` are date-only values.
+
+Creating or updating `blocked` and `leave` schedules is rejected when the interval overlaps active appointments for the same doctor. This prevents schedule management from silently invalidating already-booked appointment commitments.
+
 ## Audit And Notification Boundaries
 
 Audit events are currently written for appointment lifecycle actions and admin-managed catalog/patient changes. The audit log is admin-only through `/audit-events`.
@@ -174,7 +191,7 @@ Notifications are modeled as persisted inbox rows. Users can list their own noti
 | Catalog | `GET /specialties`, `POST /specialties`, `PATCH /specialties/:id`, `POST /specialties/:id/deactivate` |
 | Catalog | `GET /services`, `GET /services/:id`, `POST /services`, `PATCH /services/:id`, `POST /services/:id/deactivate` |
 | Patients | `GET /patients`, `GET /patients/:id`, `POST /patients`, `PATCH /patients/:id`, `POST /patients/:id/deactivate` |
-| Scheduling | `GET /doctor-schedules`, `GET /availability/slots` |
+| Scheduling | `GET /doctor-schedules`, `POST /doctor-schedules`, `PATCH /doctor-schedules/:id`, `POST /doctor-schedules/:id/deactivate`, `GET /availability/slots` |
 | Appointments | `GET /appointments`, `GET /appointments/:id`, `POST /appointments`, `PATCH /appointments/:id` |
 | Appointment actions | `POST /appointments/:id/confirm`, `POST /appointments/:id/cancel`, `POST /appointments/:id/check-in`, `POST /appointments/:id/start`, `POST /appointments/:id/complete`, `POST /appointments/:id/no-show` |
 | Audit | `GET /audit-events`, `GET /audit-events/:id` |
@@ -199,10 +216,10 @@ For database-backed E2E tests, PostgreSQL must be running and `DATABASE_URL` mus
 
 ## Known MVP Limits
 
-- Auth sessions are in memory and disappear on process restart.
-- The demo password is hardcoded for seeded users.
+- Auth uses persisted bearer sessions and bcrypt password hashes, but demo users still share the seeded `careflow-demo` password.
+- The demo password hash is hardcoded for seeded users and migration backfill.
 - There is no OpenAPI machine-readable specification yet.
-- CORS is configured through `CORS_ALLOWED_ORIGINS`, but TLS, hosting and production session storage are not configured yet.
+- CORS is configured through `CORS_ALLOWED_ORIGINS`; TLS is owned by the hosting provider.
 - Notifications are in-app records only.
 - Audit coverage is focused on MVP workflows, not every read/write.
 - Database migrations exist, but the project does not yet define a production migration review policy.

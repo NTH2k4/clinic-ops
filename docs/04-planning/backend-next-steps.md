@@ -20,7 +20,7 @@ The backend on `main` has:
 - NestJS API under `apps/api`.
 - Prisma/PostgreSQL schema and initial migration.
 - Deterministic local/test seed data.
-- Bearer demo auth sessions.
+- Persisted bearer demo auth sessions with expiry and logout revocation.
 - Catalog, patients, scheduling, appointments, audit and notifications modules.
 - Appointment conflict checks and status transition enforcement.
 - API CI with typecheck, lint, unit tests, E2E tests, build and dependency audit.
@@ -73,26 +73,26 @@ Acceptance criteria:
 
 ## Workstream 3: Production Auth And Session Hardening
 
+Status: in progress; durable bearer sessions, expiry, logout revocation, bcrypt password verification and inactive/locked account login coverage are implemented.
+
 Goal: replace MVP demo auth with deployable auth behavior.
 
 Recommended actions:
 
-1. Define whether production auth will use server-side sessions or signed tokens.
-2. Add persistent session storage or token revocation.
-3. Add expiry semantics.
-4. Replace demo password logic with hashed credential verification.
-5. Add account lockout and password reset requirements if production login is in scope.
-6. Add security tests for expired, revoked, inactive and locked accounts.
+1. Keep server-side persisted bearer sessions unless a later product/security decision chooses signed tokens.
+2. Add account lockout and password reset requirements if production login is in scope.
+3. Add password rotation/change-password flows when real user administration is added.
+4. Add a cleanup job or operational task for expired/revoked sessions if session volume becomes meaningful.
 
 Acceptance criteria:
 
-- Restarting the API does not silently invalidate all expected production sessions unless the design intentionally requires it.
-- Tokens/sessions can expire and be revoked.
-- Demo auth remains available only for local/test fixtures or is removed from production builds.
+- Restarting the API does not silently invalidate unexpired, unrevoked sessions.
+- Tokens/sessions expire and can be revoked.
+- Passwords are verified from stored hashes; demo users still share the seeded `careflow-demo` password until real user administration exists.
 
 ## Workstream 4: Backend Deployment Readiness
 
-Status: in progress through `render.yaml`, single-service static serving, and GitHub Deployment registration.
+Status: baseline implemented through `render.yaml`, single-service static serving, Neon database configuration guidance and GitHub Deployment registration.
 
 Goal: make the API deployable outside local development.
 
@@ -114,15 +114,14 @@ Acceptance criteria:
 
 ## Workstream 5: Observability And Operations
 
+Status: baseline implemented; request ID propagation, request completion logs, structured exception logs, appointment workflow logs and baseline backend runbook are implemented.
+
 Goal: make backend failures diagnosable after deployment.
 
 Recommended actions:
 
-1. Add structured request logging with request IDs.
-2. Propagate or accept inbound request IDs where useful.
-3. Add error logging in the global exception filter without leaking sensitive fields to API clients.
-4. Track key appointment workflow actions.
-5. Add basic operational runbooks for common failures: database down, migration failed, seed guard failure and auth failures.
+1. Expand runbooks once Render deployment has real incident examples.
+2. Decide whether logs should remain plain JSON payloads through Nest `Logger` or move to a dedicated structured logger.
 
 Acceptance criteria:
 
@@ -132,15 +131,15 @@ Acceptance criteria:
 
 ## Workstream 6: Data Governance And Audit Expansion
 
+Status: baseline implemented; patient create/update audit events, patient owner projection for staff-only notes, sensitive log rules and audit/data governance policy are implemented.
+
 Goal: make audit and data handling safer for real clinic operations.
 
 Recommended actions:
 
-1. Define which entities require audit on create/update/deactivate.
-2. Add audit coverage for important catalog and patient changes if not already covered at the desired depth.
-3. Define retention expectations for audit events and notifications.
-4. Define which patient fields are sensitive in logs and exports.
-5. Add tests for patient projection rules and staff-only fields.
+1. Define jurisdiction-specific audit and notification retention before real clinic use.
+2. Decide whether authentication events should be written to `AuditEvent` once lockout and password reset flows exist.
+3. Add export/deletion policy only after the product decides its target jurisdiction and compliance model.
 
 Acceptance criteria:
 
@@ -150,15 +149,15 @@ Acceptance criteria:
 
 ## Workstream 7: Appointment Scheduling Depth
 
+Status: baseline implemented; admin schedule create/update/deactivate endpoints, blocked schedule availability behavior and scheduling API contract coverage are implemented.
+
 Goal: support more realistic clinic scheduling once MVP flows are stable.
 
 Recommended actions:
 
-1. Decide whether schedule management endpoints are in scope for admin/operations.
-2. Add schedule create/update/deactivate flows if needed.
-3. Add support for blocked/leave intervals from the UI.
-4. Define timezone behavior for all user-facing date displays.
-5. Expand E2E tests for cross-day, unavailable doctor and automatic doctor selection cases.
+1. Add blocked/leave interval controls to the UI when admin schedule management becomes a frontend slice.
+2. Expand E2E tests for cross-day, unavailable doctor and automatic doctor selection cases.
+3. Add richer unavailable-slot explanations if operations staff need diagnostics inside the product UI.
 
 Acceptance criteria:
 
@@ -167,6 +166,8 @@ Acceptance criteria:
 - Timezone rules are documented and tested.
 
 ## Workstream 8: Documentation Language Migration
+
+Status: in progress; new backend/agent-facing docs are English-first and `security-notes.md` has been translated after material revision.
 
 Goal: align the documentation set with the English-first policy without creating a noisy bulk rewrite.
 
@@ -201,7 +202,7 @@ Acceptance criteria:
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | Frontend API integration | Web unit, typecheck, lint, build, mock Playwright and API-mode Playwright.                                        |
 | API spec                 | `npm test -- --runInBand src/openapi-contract.spec.ts` plus focused contract review against controllers and DTOs. |
-| Auth hardening           | Unit and E2E auth tests for login, logout, expiry/revocation and locked/inactive users.                           |
+| Auth hardening           | Unit and E2E auth tests for login, restart persistence, logout revocation, expiry and locked/inactive users.       |
 | Deployment               | Smoke test against deployed health and auth endpoints.                                                            |
 | Observability            | Manual log correlation using one failing and one successful request.                                              |
 | Audit/data governance    | E2E tests for audit writes and projection boundaries.                                                             |
@@ -210,8 +211,6 @@ Acceptance criteria:
 
 ## Open Decisions
 
-- API hosting provider.
-- PostgreSQL hosting provider.
-- Production auth strategy.
+- Production password, account lockout and password reset strategy.
 - Whether OpenAPI should remain manually checked in or move to code generation after the API surface grows.
-- Whether schedule management belongs in the next product slice or a later operations slice.
+- Whether schedule management UI belongs in the next product slice or a later operations slice.

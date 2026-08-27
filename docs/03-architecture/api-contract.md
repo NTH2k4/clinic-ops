@@ -165,15 +165,16 @@ Common error codes:
 | Method | Path | Role | Mục đích |
 | --- | --- | --- | --- |
 | GET | `/doctor-schedules` | authenticated | List schedule với `doctorId`, `from`, `to`. |
-| POST | `/doctor-schedules` | admin | Tạo working block hoặc unavailable block. |
+| POST | `/doctor-schedules` | admin | Tạo working, blocked hoặc leave schedule. |
 | PATCH | `/doctor-schedules/{id}` | admin | Sửa effective range/time/status. |
 | POST | `/doctor-schedules/{id}/deactivate` | admin | Ngừng áp dụng schedule block. |
 
-`DoctorSchedule` cần hỗ trợ:
+`DoctorSchedule` hỗ trợ:
 
-- `type`: `working_hours` hoặc `unavailable`.
+- `type`: `working`, `blocked` hoặc `leave`.
 - `dayOfWeek`: `1` đến `7`, với `1` là Monday.
 - `effectiveFrom` và `effectiveTo` là date-only ISO.
+- `startTime` và `endTime` là giờ địa phương dạng `HH:mm`, theo timezone clinic `Asia/Ho_Chi_Minh`.
 
 ### Availability
 
