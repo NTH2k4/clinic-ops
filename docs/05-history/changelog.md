@@ -2,6 +2,7 @@
 
 ## 2026-08-27
 
+- Thêm `docs/04-planning/mvp-release-completion-plan.md` để người dùng duyệt một lượt trước khi triển khai subagent-driven: tích hợp authorization hardening, chạy full verification, đồng bộ docs/release notes và chuẩn bị deploy.
 - Cập nhật quy chuẩn documentation-first: mọi bước triển khai mã nguồn phải có plan/status trong `docs/04-planning/`, báo cáo tiến độ phải dẫn chứng docs/branch/commit/verification và thêm tài liệu tổng quan `current-progress-and-next-steps.md` bằng tiếng Việt.
 - Hardened API authorization regression coverage for patient-owner, doctor-owner and role-excluded scheduling boundaries, and moved role guard wiring to controller class level for role-protected controllers.
 - Marked `/users` administration as planned rather than implemented and fixed backend architecture drift around the checked-in OpenAPI baseline.

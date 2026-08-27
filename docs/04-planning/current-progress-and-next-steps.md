@@ -33,6 +33,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi d�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã triển khai trên branch riêng, chờ quyết định tích hợp | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, branch `authorization-hardening`, commit `e6ed2c18` |
+| MVP Release Completion | Đã có plan, chờ người dùng duyệt trước khi triển khai bằng subagent-driven | `docs/04-planning/mvp-release-completion-plan.md` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -40,6 +41,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi d�
 - Worktree triển khai authorization hardening nằm tại `.worktrees/authorization-hardening`.
 - Branch triển khai: `authorization-hardening`.
 - Commit triển khai hiện tại: `e6ed2c18 fix(api): harden authorization boundaries`.
+- Commit docs/workflow mới nhất trên branch: `8c41ecb9 docs: document progress tracking workflow`.
 - Trạng thái tích hợp: chưa merge vào `main`, chưa push từ phiên hiện tại.
 
 ## Workstream Đang Chờ Quyết Định
@@ -75,9 +77,9 @@ Các lựa chọn tích hợp:
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Chốt cách tích hợp `authorization-hardening`.
-2. Sau khi tích hợp, cập nhật `docs/04-planning/current-progress-and-next-steps.md` để chuyển Workstream 6A sang trạng thái đã tích hợp.
-3. Kiểm tra lại production Render health/login/booking smoke nếu commit mới được deploy.
-4. Chọn workstream tiếp theo từ `docs/04-planning/backend-next-steps.md`.
+1. Người dùng review và duyệt `docs/04-planning/mvp-release-completion-plan.md`.
+2. Sau khi được duyệt, execute plan bằng subagent-driven development trong phiên hiện tại.
+3. Tích hợp `authorization-hardening`, chạy API/Web verification và cập nhật docs theo kết quả thật.
+4. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
 
-Khuyến nghị hiện tại: push branch và tạo Pull Request nếu muốn giữ lịch sử review rõ; merge local nếu ưu tiên tốc độ và dự án đang do một người kiểm soát.
+Khuyến nghị hiện tại: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.
