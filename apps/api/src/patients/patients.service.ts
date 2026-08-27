@@ -28,7 +28,7 @@ export class PatientsService {
     }));
   }
 
-  create(input: PatientCreateInput, actorUserId: string, userId?: string) {
+  create(input: PatientCreateInput, actorUserId: string, userId?: string, includeOperationalNotes = true) {
     return this.prisma.$transaction(async (transaction) => {
       const patient = await transaction.patient.create({
         data: {
@@ -37,16 +37,16 @@ export class PatientsService {
         },
       });
       await this.audit(transaction, actorUserId, patient.id, "patient_created");
-      return patient;
+      return includeOperationalNotes ? patient : this.omitOperationalNotes(patient);
     });
   }
 
-  async update(id: string, input: PatientUpdateInput, actorUserId: string) {
+  async update(id: string, input: PatientUpdateInput, actorUserId: string, includeOperationalNotes = true) {
     return this.prisma.$transaction(async (transaction) => {
       await this.require(transaction.patient.findUnique({ where: { id } }));
       const patient = await transaction.patient.update({ where: { id }, data: this.updateData(input) });
       await this.audit(transaction, actorUserId, patient.id, "patient_updated");
-      return patient;
+      return includeOperationalNotes ? patient : this.omitOperationalNotes(patient);
     });
   }
 
@@ -85,6 +85,12 @@ export class PatientsService {
       address: input.address,
       notes: input.notes,
     };
+  }
+
+  private omitOperationalNotes<T extends { notes?: string | null }>(patient: T) {
+    const publicPatient = { ...patient };
+    delete publicPatient.notes;
+    return publicPatient;
   }
 
   private async require<T>(value: Promise<T | null>): Promise<T> { const patient = await value; if (!patient) throw new ApiError(404, "NOT_FOUND", "patient was not found."); return patient; }

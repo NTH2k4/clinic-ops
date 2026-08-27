@@ -336,6 +336,27 @@ describe("Catalog resources", () => {
     }
   });
 
+  it("omits staff-only patient notes from patient owner update responses", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+      await prisma.patient.update({ where: { id: "patient-1" }, data: { notes: "Staff-only update note" } });
+
+      await request(server)
+        .patch("/api/v1/patients/patient-1")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .send({ address: "Owner visible address" })
+        .expect(200)
+        .expect((response) => {
+          const parsed = patientDetailSchema.parse(response.body);
+          expect(parsed.data.address).toBe("Owner visible address");
+          expect(parsed.data).not.toHaveProperty("notes");
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
   it("omits staff-only patient notes from patient owner reads", async () => {
     const { app, server } = await createApp();
     try {

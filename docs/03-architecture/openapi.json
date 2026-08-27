@@ -343,7 +343,7 @@
         "summary": "Create a doctor schedule",
         "requestBody": { "$ref": "#/components/requestBodies/ScheduleCreate" },
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
+          "201": { "$ref": "#/components/responses/Success" },
           "403": { "$ref": "#/components/responses/Error" }
         }
       }
@@ -366,7 +366,7 @@
         "summary": "Deactivate a doctor schedule",
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
+          "201": { "$ref": "#/components/responses/Success" },
           "403": { "$ref": "#/components/responses/Error" }
         }
       }

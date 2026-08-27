@@ -7,6 +7,23 @@ import { PrismaService } from "../prisma/prisma.service";
 import type { AvailabilityQuery, ScheduleCreateInput, ScheduleListQuery, ScheduleUpdateInput } from "./scheduling.dto";
 
 const unavailableCodes = new Set(["APPOINTMENT_CONFLICT", "DOCTOR_UNAVAILABLE", "NO_DOCTOR_AVAILABLE", "OUTSIDE_WORKING_HOURS"]);
+const clinicTimeZone = "Asia/Ho_Chi_Minh";
+const activeAppointmentStatuses = [
+  "requested",
+  "confirmed",
+  "checked_in",
+  "in_progress",
+] as const;
+
+const dateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: clinicTimeZone,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
 
 @Injectable()
 export class SchedulingService {
@@ -35,6 +52,7 @@ export class SchedulingService {
     await this.require(this.prisma.doctor.findUnique({ where: { id: input.doctorId } }), "doctor");
     this.assertScheduleRange(input);
     return this.prisma.$transaction(async (transaction) => {
+      await this.assertNoActiveAppointmentOverlap(transaction, input);
       const schedule = await transaction.doctorSchedule.create({
         data: {
           doctorId: input.doctorId,
@@ -57,12 +75,16 @@ export class SchedulingService {
       if (input.doctorId) await this.require(transaction.doctor.findUnique({ where: { id: input.doctorId } }), "doctor");
 
       const next = {
+        doctorId: input.doctorId ?? existing.doctorId,
+        dayOfWeek: input.dayOfWeek ?? existing.dayOfWeek,
         startTime: input.startTime ?? existing.startTime,
         endTime: input.endTime ?? existing.endTime,
         effectiveFrom: input.effectiveFrom ?? existing.effectiveFrom.toISOString().slice(0, 10),
         effectiveTo: input.effectiveTo ?? existing.effectiveTo.toISOString().slice(0, 10),
+        type: input.type ?? existing.type,
       };
       this.assertScheduleRange(next);
+      await this.assertNoActiveAppointmentOverlap(transaction, next);
 
       const schedule = await transaction.doctorSchedule.update({
         where: { id },
@@ -151,6 +173,45 @@ export class SchedulingService {
   private minutes(value: string) {
     const [hours, minutes] = value.split(":").map(Number);
     return hours * 60 + minutes;
+  }
+
+  private async assertNoActiveAppointmentOverlap(
+    transaction: Prisma.TransactionClient,
+    schedule: { doctorId: string; dayOfWeek: number; startTime: string; endTime: string; effectiveFrom: string; effectiveTo: string; type: ScheduleType },
+  ) {
+    if (schedule.type === ScheduleType.working) return;
+    const appointments = await transaction.appointment.findMany({
+      where: {
+        doctorId: schedule.doctorId,
+        status: { in: [...activeAppointmentStatuses] },
+        startAt: { lt: new Date(`${schedule.effectiveTo}T23:59:59.999+07:00`) },
+        endAt: { gt: new Date(`${schedule.effectiveFrom}T00:00:00.000+07:00`) },
+      },
+      select: { startAt: true, endAt: true },
+    });
+    const blockStart = this.minutes(schedule.startTime);
+    const blockEnd = this.minutes(schedule.endTime);
+    const hasOverlap = appointments.some((appointment) => {
+      const start = this.localDateTime(appointment.startAt);
+      const end = this.localDateTime(appointment.endAt);
+      return start.date >= schedule.effectiveFrom
+        && start.date <= schedule.effectiveTo
+        && start.dayOfWeek === schedule.dayOfWeek
+        && end.date === start.date
+        && start.minutes < blockEnd
+        && end.minutes > blockStart;
+    });
+    if (hasOverlap) {
+      throw new ApiError(409, "RESOURCE_IN_USE", "Schedule block overlaps active appointments.");
+    }
+  }
+
+  private localDateTime(date: Date) {
+    const parts = Object.fromEntries(dateTimeFormatter.formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]));
+    const localDate = `${parts.year}-${parts.month}-${parts.day}`;
+    return { date: localDate, dayOfWeek: this.dayOfWeek(localDate), minutes: Number(parts.hour) * 60 + Number(parts.minute) };
   }
 
   private assertScheduleRange(schedule: { startTime: string; endTime: string; effectiveFrom: string; effectiveTo: string }) {

@@ -173,6 +173,8 @@ Appointment create and reschedule operations run inside Serializable Prisma tran
 
 Admin users manage doctor schedules through `POST /doctor-schedules`, `PATCH /doctor-schedules/:id` and `POST /doctor-schedules/:id/deactivate`. Schedule `startTime` and `endTime` are local `HH:mm` values interpreted in `Asia/Ho_Chi_Minh`; `effectiveFrom` and `effectiveTo` are date-only values.
 
+Creating or updating `blocked` and `leave` schedules is rejected when the interval overlaps active appointments for the same doctor. This prevents schedule management from silently invalidating already-booked appointment commitments.
+
 ## Audit And Notification Boundaries
 
 Audit events are currently written for appointment lifecycle actions and admin-managed catalog/patient changes. The audit log is admin-only through `/audit-events`.

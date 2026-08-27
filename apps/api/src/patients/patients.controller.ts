@@ -34,7 +34,7 @@ export class PatientsController {
   async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     const userId = request.currentUser.role === UserRole.patient ? request.currentUser.id : undefined;
     const schema = request.currentUser.role === UserRole.patient ? patientOwnerCreateSchema : patientCreateSchema;
-    return successEnvelope(await this.patients.create(parseSchema(schema, body), request.currentUser.id, userId));
+    return successEnvelope(await this.patients.create(parseSchema(schema, body), request.currentUser.id, userId, request.currentUser.role !== UserRole.patient));
   }
 
   @Patch(":id")
@@ -45,7 +45,7 @@ export class PatientsController {
     const input = request.currentUser.role === UserRole.patient
       ? parseSchema(patientOwnerUpdateSchema, body)
       : parseSchema(patientUpdateSchema, body);
-    return successEnvelope(await this.patients.update(id, input, request.currentUser.id));
+    return successEnvelope(await this.patients.update(id, input, request.currentUser.id, request.currentUser.role !== UserRole.patient));
   }
 
   @Post(":id/deactivate")

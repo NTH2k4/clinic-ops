@@ -27,7 +27,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | SRS | Software requirements chi tiết | Chưa có | Để sau khi frontend workflow rõ |
 | ARCHITECTURE | Kiến trúc tổng thể | `docs/03-architecture/frontend-architecture.md`, `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/data-model.md`, `docs/03-architecture/security-notes.md`, `docs/03-architecture/audit-data-governance.md` | Có frontend và backend baseline |
 | TECHNICAL-DESIGN | Thiết kế kỹ thuật chi tiết | `docs/04-planning/frontend-implementation-plan.md` | Có frontend implementation plan |
-| UC-API-SPEC | Use case và API specification | `docs/03-architecture/api-contract.md` | Có draft rất nhẹ |
+| UC-API-SPEC | Use case và API specification | `docs/03-architecture/api-contract.md`, `docs/03-architecture/openapi.json` | Có markdown contract và OpenAPI baseline |
 | SEQUENCE | Sequence cho flow chính | `docs/02-product/workflows.md`, `docs/02-product/appointment-states.md` | Có flow text, chưa có sequence chi tiết |
 | DATABASE/ERD | Schema và quan hệ database | `docs/03-architecture/data-model.md`, `docs/03-architecture/database-schema.md` | Có conceptual model và schema reference |
 | Frontend DESIGN | Design tokens, layout, accessibility, responsive rules | `docs/03-architecture/frontend-design-system.md` | Có bản baseline |
@@ -51,14 +51,14 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có frontend implementation plan chi tiết để scaffold `apps/web` và triển khai frontend MVP theo task.
 - Đã có frontend MVP chạy với mock data, README setup/verification và Playwright smoke coverage cho patient, doctor và operations workflows.
 - Có frontend polish plan để gom UI/UX follow-up sau khi người dùng review bản MVP đầu tiên; Doctor Workspace đã polish phần điều hướng lịch ngày/tuần, App Shell đã polish sidebar/navigation, mobile navigation và TopBar notification panel, Patient Portal đã polish service browsing, booking clarity và appointment history, Operations Workspace đã polish automated scope cho queue/calendar/create appointment flow, Admin Workspace đã polish dashboard/forms/tables/audit filters ở automated scope, P6 đã bổ sung responsive/accessibility smoke ở 360/768/1280/1440.
-- Có API contract v1 với conventions, response/error envelopes, auth/catalog/scheduling/appointment/audit/notification endpoints và plan riêng cho Phase 2 API contract.
+- Có API contract v1 với conventions, response/error envelopes, auth/catalog/scheduling/appointment/audit/notification endpoints và OpenAPI machine-readable baseline.
 - Có backend implementation plan cho Node.js/NestJS/Prisma/PostgreSQL theo từng package có test/verification.
 - Có backend architecture reference mô tả module boundaries, request lifecycle, auth/RBAC, validation, appointment workflow, conflict engine, audit/notification boundary và testing gates.
 - Có database schema reference cho Prisma/PostgreSQL tables, enums, indexes, seed dataset và schema change rules.
 - Có backend README cho setup local, seed accounts, scripts, verification gate và CI.
 - Có backend runbook baseline cho request correlation, database, migration, seed guard và auth failure checks.
 - Có audit/data governance baseline cho audit coverage, patient projection và sensitive log rules.
-- Có backend next steps plan bằng tiếng Anh để agent/subagent tiếp tục frontend API integration, OpenAPI, auth hardening, deployment, observability, audit/data governance và scheduling depth.
+- Có backend next steps plan bằng tiếng Anh để agent/subagent tiếp tục auth hardening, deployment, observability, audit/data governance và scheduling depth follow-up.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -67,7 +67,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Đã có persona chi tiết ở `docs/02-product/frontend-mvp-spec.md`, nhưng chưa có stakeholder matrix riêng.
 - Đã có MoSCoW priority và acceptance criteria cho frontend MVP, nhưng chưa có trace đầy đủ theo từng requirement/user story.
 - Chưa có traceability matrix.
-- API contract v1 đã có response standard, error code convention và endpoint detail ở mức đủ để lập backend plan; chưa có OpenAPI machine-readable spec.
+- API contract v1 đã có response standard, error code convention, endpoint detail và OpenAPI machine-readable spec baseline.
 - Chưa có sequence diagram/spec cho các flow chính.
 - Chưa có ERD dạng hình/diagram; hiện đã có database schema reference dạng text.
 
@@ -75,8 +75,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Integrate the verified `frontend-api-integration` branch or open a pull request for it.
-2. Use `docs/04-planning/backend-next-steps.md` as the next backend-facing planning source.
-3. Add a machine-readable OpenAPI spec after the integrated frontend/API workflow is stable.
-4. Decide the production API hosting, PostgreSQL hosting and CORS model.
-5. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.
+1. Use `docs/04-planning/backend-next-steps.md` as the backend-facing planning source.
+2. Keep the single-service Render plus Neon deployment path documented and verified.
+3. Maintain the checked-in OpenAPI spec when endpoint behavior changes.
+4. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.

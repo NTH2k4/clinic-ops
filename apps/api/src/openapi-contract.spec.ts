@@ -15,6 +15,7 @@ type OpenApiDocument = {
 type OperationObject = {
   parameters?: Array<{ $ref?: string; name?: string }>;
   requestBody?: { $ref?: string };
+  responses?: Record<string, unknown>;
 };
 
 const specPath = resolve(__dirname, "../../../docs/03-architecture/openapi.json");
@@ -107,6 +108,11 @@ describe("OpenAPI contract", () => {
     expect(scheduleCreate?.required).toEqual(["doctorId", "dayOfWeek", "startTime", "endTime", "effectiveFrom", "effectiveTo", "type"]);
     expect(scheduleCreate?.properties?.dayOfWeek).toMatchObject({ type: "integer", minimum: 1, maximum: 7 });
     expect(scheduleCreate?.properties?.type).toEqual({ enum: ["working", "blocked", "leave"] });
+  });
+
+  it("documents schedule POST runtime response codes", () => {
+    expect(spec.paths?.["/api/v1/doctor-schedules"]?.post?.responses).toHaveProperty("201");
+    expect(spec.paths?.["/api/v1/doctor-schedules/{id}/deactivate"]?.post?.responses).toHaveProperty("201");
   });
 
   it("matches patient DTO constraints", () => {

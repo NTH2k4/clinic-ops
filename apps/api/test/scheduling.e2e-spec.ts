@@ -43,6 +43,7 @@ const availabilitySchema = z.object({
   meta: listMetaSchema,
 });
 const errorSchema = z.object({ error: z.object({ code: z.string() }) });
+const appointmentSchema = z.object({ data: z.object({ id: z.string() }) });
 
 describe("Schedule and availability reads", () => {
   const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
@@ -221,6 +222,42 @@ describe("Schedule and availability reads", () => {
         })
         .expect(403)
         .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("FORBIDDEN"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("rejects blocked schedules that overlap active appointments", async () => {
+    const { app, server } = await createApp();
+    try {
+      const adminToken = await login(server, "admin@careflow.local");
+      const receptionistToken = await login(server, "reception@careflow.local");
+      const createAppointment = await request(server)
+        .post("/api/v1/appointments")
+        .set("Authorization", `Bearer ${receptionistToken}`)
+        .send({
+          patientId: "patient-1",
+          doctorId: "doctor-1",
+          serviceId: "service-general",
+          startAt: "2026-08-25T01:00:00.000Z",
+        })
+        .expect(201);
+      expect(appointmentSchema.parse(createAppointment.body).data.id).toBeTruthy();
+
+      await request(server)
+        .post("/api/v1/doctor-schedules")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          doctorId: "doctor-1",
+          dayOfWeek: 2,
+          startTime: "08:00",
+          endTime: "08:30",
+          effectiveFrom: "2026-08-25",
+          effectiveTo: "2026-08-25",
+          type: "blocked",
+        })
+        .expect(409)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("RESOURCE_IN_USE"));
     } finally {
       await app.close();
     }
