@@ -3,11 +3,12 @@ import type { PropsWithChildren } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "../features/auth/AuthProvider";
 import { queryClient } from "../lib/queryClient";
+import { routerBasename } from "./routerBasename";
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename={routerBasename()}>
         <AuthProvider>{children}</AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

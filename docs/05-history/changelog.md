@@ -2,6 +2,7 @@
 
 ## 2026-08-26
 
+- Fixed GitHub Pages SPA routing by deriving `BrowserRouter` basename from the Vite base URL so navigation stays under `/clinic-ops`.
 - Fixed the Web API-mode Playwright gate by scoping the patient appointments navigation selector, avoiding ambiguity with the refreshed patient-home CTA.
 - Refreshed the web UI toward a more production-like clinic operations workspace: updated app shell, sidebar/topbar, login surface, dashboard header surfaces, metric card tones, appointment timeline cards and frontend design-system documentation.
 - Added backend deployment-readiness runtime config for `PORT` and `CORS_ALLOWED_ORIGINS`, with API tests and environment documentation.

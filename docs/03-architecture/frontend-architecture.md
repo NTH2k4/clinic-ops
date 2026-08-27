@@ -46,3 +46,4 @@ src/
 - Dùng shared types cho data models.
 - Tránh assumptions phụ thuộc backend cho đến khi API contract được duyệt.
 - Xây UI dạng operational, dense và dễ scan thay vì marketing-style pages.
+- Khi build cho GitHub Pages, Vite `base` là `/clinic-ops/`; `BrowserRouter` phải nhận basename tương ứng để route nội bộ và reload/deep link giữ đúng subpath deploy.

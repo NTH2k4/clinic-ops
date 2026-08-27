@@ -90,3 +90,5 @@ GitHub Pages cần bật source **GitHub Actions** trong repository settings. Kh
 ```text
 https://nth2k4.github.io/clinic-ops/
 ```
+
+GitHub Pages build dùng Vite base `/clinic-ops/`. `AppProviders` truyền base này vào `BrowserRouter` dưới dạng basename để navigation nội bộ giữ đúng `/clinic-ops/app/...` thay vì rơi về domain root `/app/...`.
