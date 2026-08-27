@@ -170,7 +170,8 @@ Key behavior:
 - Non-API browser routes fall back to the React `index.html`.
 - Frontend production build uses `VITE_DATA_SOURCE=api` and `VITE_API_BASE_URL=/api/v1`, so browser calls stay same-origin.
 - Render `buildCommand` runs Prisma migrations before the API build.
-- Render `startCommand` runs `npm run prisma:seed:demo-auth` before starting the API process, so demo login credentials are repaired against the runtime database after each deploy/restart.
+- In hosted demo mode (`SERVE_WEB_APP=true`), API startup repairs demo login credentials against the runtime database after each deploy/restart.
+- Render `startCommand` also runs `npm run prisma:seed:demo-auth` before starting the API process as an explicit operational repair step.
 - `initialDeployHook` seeds the full demo dataset once with `ALLOW_DATABASE_SEED=true`.
 
 Render configuration lives in the repository root `render.yaml`. Deployment runbook details are in `docs/04-planning/render-deployment-plan.md`.

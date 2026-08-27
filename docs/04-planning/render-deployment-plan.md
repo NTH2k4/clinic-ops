@@ -24,6 +24,7 @@ The root `render.yaml` defines:
 - `buildCommand`: installs API and web dependencies, builds the React API-mode bundle, generates Prisma Client, runs `npx prisma migrate deploy`, and builds NestJS.
 - `initialDeployHook`: seeds the full demo dataset once with `ALLOW_DATABASE_SEED=true`.
 - `startCommand`: repairs demo auth users with `npm run prisma:seed:demo-auth --prefix apps/api`, then runs `npm run start --prefix apps/api`.
+- API startup also repairs demo auth users when `SERVE_WEB_APP=true`, so hosted demo credentials stay valid even if the Render service command is not synced from the blueprint.
 - `healthCheckPath`: `/api/v1/health`.
 
 ## Required Render Environment Variables
@@ -57,7 +58,7 @@ The `Render Deployment` workflow uses this variable to create a GitHub Deploymen
 2. Copy the Neon connection string.
 3. In Render, create a Blueprint from this repository and `render.yaml`.
 4. Fill `DATABASE_URL` when Render prompts for the unsynced variable.
-5. Wait for the first deploy; Render runs migrations during build, seeds the full demo dataset once after the first successful deploy, and repairs demo auth credentials before each API start.
+5. Wait for the first deploy; Render runs migrations during build, seeds the full demo dataset once after the first successful deploy, and the API repairs demo auth credentials in hosted demo mode before serving traffic.
 6. Copy the Render service URL.
 7. In GitHub, set repository variable `RENDER_EXTERNAL_URL` to the Render service URL.
 8. Run the `Render Deployment` workflow manually once if needed to register the URL in GitHub Deployments.

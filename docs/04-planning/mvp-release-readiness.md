@@ -86,18 +86,18 @@ Không có failure command hoặc actionable error trong Web gate. Các warning 
 
 ## Push Và Deployment Gate (Task 5)
 
-Trạng thái: **đang xử lý deployed login smoke**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng; GitHub Actions và Render Deployment workflow cho commit `4b1ff302` đều success. Render health pass đúng commit, nhưng login smoke lần đầu trả `401 UNAUTHENTICATED`. Build-time demo auth repair ở commit `4c39911a` vẫn cho health pass nhưng login tiếp tục trả `401`, nên repair được chuyển sang Render `startCommand` để chạy trên đúng runtime database trước khi API start.
+Trạng thái: **đang xử lý deployed login smoke**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng; GitHub Actions và Render Deployment workflow cho commit `4b1ff302` đều success. Render health pass đúng commit, nhưng login smoke lần đầu trả `401 UNAUTHENTICATED`. Build-time demo auth repair ở commit `4c39911a` vẫn cho health pass nhưng login tiếp tục trả `401`; `startCommand` repair ở commit `b782b730` cũng chưa đủ trong production smoke, nên repair được đưa vào API startup hosted-demo mode (`SERVE_WEB_APP=true`).
 
 | Check | Kết quả | Chi tiết |
 | --- | --- | --- |
-| `git push origin main` | Pass | Pushed `origin/main` từ `f996c809` lên `4b1ff302`. |
-| `git ls-remote origin refs/heads/main` | Pass | Remote `main` trỏ tới `4b1ff30211c024f16fc0cc36af15c9aeb2b19225`. |
-| GitHub Actions API | Pass | API CI, Web CI và Render Deployment đều `completed/success` cho `4b1ff302`. |
+| `git push origin main` | Pass | Pushed `origin/main` từ `f996c809` lên `b782b730`. |
+| `git ls-remote origin refs/heads/main` | Pass | Remote `main` trỏ tới `b782b730b309599c27eb58a2711acfb2364b824b`. |
+| GitHub Actions API | Pass | API CI, Web CI và Render Deployment đều `completed/success` cho `b782b730`. |
 | GitHub Deployment API | Pass | Deployment `render-free` success, URL `https://clinic-ops.onrender.com`. |
-| Render health smoke | Pass | `/api/v1/health` trả commit `4b1ff30211c024f16fc0cc36af15c9aeb2b19225`. |
-| Render login smoke | Fail | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả `401 UNAUTHENTICATED` trên `4b1ff302`; vẫn fail sau build-time repair `4c39911a`, nên repair được chuyển sang `startCommand`. |
+| Render health smoke | Pass | `/api/v1/health` trả commit `b782b730b309599c27eb58a2711acfb2364b824b`. |
+| Render login smoke | Fail | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả `401 UNAUTHENTICATED` trên `4b1ff302`; vẫn fail sau build-time repair `4c39911a` và `startCommand` repair `b782b730`, nên repair được chuyển vào API startup hosted-demo mode. |
 
-Fix đang triển khai: `render.yaml` sẽ chạy `npm run prisma:seed:demo-auth --prefix apps/api` trong `startCommand` trước `npm run start --prefix apps/api`. Script này chỉ upsert demo login users/password hashes và không reset database.
+Fix đang triển khai: `DemoAuthRepairService` chạy khi Nest bootstrap trong hosted demo mode (`SERVE_WEB_APP=true`) và gọi cùng logic với `npm run prisma:seed:demo-auth`. Script/service này chỉ upsert demo login users/password hashes và không reset database.
 
 Local verification cho fix:
 

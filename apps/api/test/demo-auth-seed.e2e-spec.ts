@@ -4,7 +4,7 @@ import request from "supertest";
 import type { App } from "supertest/types";
 import { z } from "zod";
 import { AppModule } from "../src/app.module";
-import { ensureDemoAuthUsers } from "../prisma/demo-auth-seed";
+import { ensureDemoAuthUsers } from "../src/config/demo-auth-repair";
 
 const loginResponseSchema = z.object({
   data: z.object({
