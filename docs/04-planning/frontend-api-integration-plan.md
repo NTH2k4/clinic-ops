@@ -2,9 +2,17 @@
 
 ## Mục Tiêu
 
-Phase 4 thay các service mock trong `apps/web` bằng CareFlow API tại `/api/v1` mà không đổi route-level UI hoặc TanStack Query consumer boundaries. Backend là source of truth cho auth, authorization, appointment conflict, status transition và audit log. Mock mode vẫn là mặc định cho đến khi migration hoàn tất.
+Phase 4 thay các service mock trong `apps/web` bằng CareFlow API tại `/api/v1` mà không đổi route-level UI hoặc TanStack Query consumer boundaries. Backend là source of truth cho auth, authorization, appointment conflict, status transition và audit log. API integration baseline đã hoàn thành cho v1 MVP flows; mock mode vẫn là default local runtime để giữ demo/prototype độc lập, còn Render production build dùng API mode same-origin.
 
 Không thêm payment, insurance, prescription, telemedicine hoặc external notification provider vào API v1.
+
+## Trạng Thái Hiện Tại
+
+- Frontend API integration đã merge vào `main`.
+- API-mode Playwright gate đã pass sau authorization hardening merge: 5/5 browser tests.
+- Backend đã có persisted bearer sessions trong PostgreSQL với token hash, expiry và logout revocation; không còn là in-memory session store.
+- Frontend vẫn cố ý giữ session token trong React provider state, không persist vào `localStorage`, `sessionStorage` hoặc IndexedDB.
+- Các flow auth, catalog, patients, appointments, notifications và audit đã có API service boundary trong frontend; admin user administration và scheduling operations UI là các slice v1 sau, không thuộc plan này.
 
 ## Cấu Hình Và Chế Độ Dữ Liệu
 
@@ -45,7 +53,7 @@ api/
 ## Thay Thế Auth Session
 
 1. Đổi `AuthProvider` từ `mockStore` sang `authApi.login`, `authApi.logout` và `authApi.me` khi `VITE_DATA_SOURCE=api`.
-2. Giữ session token trong state của provider trong Phase 4. Backend hiện tại cấp bearer session in-memory, nên reload page đăng xuất và app gọi `GET /auth/me` chỉ khi token còn trong bộ nhớ.
+2. Giữ session token trong state của provider trong Phase 4 để tránh browser persistence. Backend persist bearer sessions dưới dạng token hash trong PostgreSQL với expiry/revocation, nhưng reload page vẫn đăng xuất ở frontend vì token không được lưu trong browser storage.
 3. Sau login thành công, lưu `currentUser` và `linkedProfile`, sau đó invalidate query theo user. Tất cả role và ownership UI lấy từ response này, không từ role switcher.
 4. `signOut` gọi `POST /auth/logout`, clear token và `queryClient.clear()`. Error login chỉ hiển thị message từ API, không lưu password hay token vào localStorage, sessionStorage hoặc IndexedDB.
 5. Role switcher demo chỉ tồn tại trong mock mode; API mode không cung cấp cơ chế giả mạo role.
@@ -65,7 +73,7 @@ Di chuyển từng feature sau service boundary hiện có, không để compone
 
 Khi create appointment, frontend gửi `patientId`, `doctorId`, `serviceId`, `startAt`, reason và source; backend tự tính `endAt`, kiểm tra schedule/conflict, ghi audit, và đặt `requested` cho patient hoặc `confirmed` cho staff. Status buttons phải gọi transition endpoint phù hợp, sau đó render response của backend. Admin delete luôn gọi deactivate endpoint, không hard delete.
 
-Trước khi migrate một page sang API mode, endpoint read và mutation cần thiết phải có trong backend và có E2E coverage. Các endpoint contract chưa có implementation (ví dụ availability, appointment list/detail, patient/admin management hoặc doctor schedules) là dependency cho page tương ứng; giữ page đó ở mock mode cho đến khi endpoint được giao và verify. Không che giấu gap này bằng client-side conflict hoặc status validation.
+Trước khi migrate một page mới sang API mode, endpoint read và mutation cần thiết phải có trong backend và có E2E coverage. Các endpoint auth, availability, appointment list/detail/workflow transitions, patient list/detail/create/update, catalog administration, notifications, audit và doctor schedule backend APIs đã có implementation baseline. Các dependency còn lại cho v1 sau plan này là admin user/account lifecycle UI/API slice và scheduling operations UI cho quản lý working slots, blocked intervals và leave periods. Không che giấu gap bằng client-side conflict hoặc status validation.
 
 ## Playwright Regression Gates
 
@@ -81,7 +89,7 @@ CI API-mode setup phải migrate, seed và khởi động API bằng test `DATAB
 
 ## Trình Tự Thực Hiện
 
-1. Thêm config switch, HTTP client, envelope/error types và auth API; giữ default mock và chạy toàn bộ web suite.
-2. Migrate read-only catalog, sau đó patient và appointment workflows theo endpoint coverage backend.
-3. Migrate notifications và audit, thêm API Playwright gates cho mỗi workflow đã đổi.
-4. Chuyển default sang `api` chỉ sau khi tất cả screen flow có endpoint, API suite và mock/API regression suites đều xanh. Khi đó có thể bỏ mock implementation theo feature, không bỏ toàn bộ fixtures trong một thay đổi.
+1. Đã thêm config switch, HTTP client, envelope/error types và auth API; default mock được giữ cho local runtime.
+2. Đã migrate read-only catalog, patient và appointment workflows theo endpoint coverage backend.
+3. Đã migrate notifications và audit, đồng thời thêm API Playwright gates cho các workflow chính.
+4. Chưa chuyển local default sang `api`; chỉ Render production build dùng API mode same-origin. Không bỏ mock implementation trong một thay đổi lớn vì mock vẫn hữu ích cho prototype và regression coverage.
