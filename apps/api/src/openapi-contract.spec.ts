@@ -42,8 +42,16 @@ describe("OpenAPI contract", () => {
     const requiredOperations = [
       ["get", "/api/v1/health"],
       ["post", "/api/v1/auth/login"],
+      ["post", "/api/v1/auth/register"],
+      ["post", "/api/v1/auth/change-password"],
       ["post", "/api/v1/auth/logout"],
       ["get", "/api/v1/auth/me"],
+      ["get", "/api/v1/users"],
+      ["get", "/api/v1/users/{id}"],
+      ["post", "/api/v1/users/{id}/lock"],
+      ["post", "/api/v1/users/{id}/unlock"],
+      ["post", "/api/v1/users/{id}/deactivate"],
+      ["post", "/api/v1/users/{id}/reset-password"],
       ["get", "/api/v1/doctors"],
       ["post", "/api/v1/doctors"],
       ["get", "/api/v1/doctors/{id}"],
@@ -93,6 +101,35 @@ describe("OpenAPI contract", () => {
       Object.keys(methods).map((method) => [method, path] as const),
     );
     expect(documentedOperations.sort()).toEqual([...requiredOperations].sort());
+    expect(spec.paths?.["/api/v1/users"]?.post).toBeUndefined();
+    expect(spec.paths?.["/api/v1/users/{id}"]?.patch).toBeUndefined();
+  });
+
+  it("matches account lifecycle request and response schemas", () => {
+    expect(spec.paths?.["/api/v1/auth/register"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/PatientRegistration");
+    expect(spec.paths?.["/api/v1/auth/register"]?.post?.responses).toHaveProperty("201");
+    expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/ChangePassword");
+    expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.responses).toHaveProperty("201");
+
+    const registration = spec.components?.schemas?.PatientRegistrationRequest;
+    expect(registration?.required).toEqual(["displayName", "email", "phone", "password"]);
+    expect(registration?.properties?.password).toMatchObject({ type: "string", minLength: 8, maxLength: 200 });
+
+    const changePassword = spec.components?.schemas?.ChangePasswordRequest;
+    expect(changePassword?.required).toEqual(["currentPassword", "newPassword"]);
+    expect(changePassword?.properties?.currentPassword).toMatchObject({ type: "string", minLength: 1, maxLength: 200 });
+    expect(changePassword?.properties?.newPassword).toMatchObject({ type: "string", minLength: 8, maxLength: 200 });
+
+    const user = spec.components?.schemas?.User;
+    expect(user?.required).toEqual(["id", "displayName", "email", "phone", "role", "status", "createdAt", "updatedAt", "linkedProfile"]);
+    expect(user?.properties?.status).toEqual({ enum: ["active", "inactive", "locked"] });
+    expect(user?.properties?.linkedProfile).toEqual({ $ref: "#/components/schemas/LinkedProfile" });
+
+    expect(spec.paths?.["/api/v1/users"]?.get?.parameters?.map((parameter) => parameter.$ref ?? parameter.name)).toEqual(
+      expect.arrayContaining(["#/components/parameters/Q", "#/components/parameters/UserRole", "#/components/parameters/AccountStatus", "#/components/parameters/Page", "#/components/parameters/PageSize"]),
+    );
+    expect(spec.paths?.["/api/v1/users/{id}/reset-password"]?.post?.responses).toHaveProperty("201");
+    expect(spec.components?.schemas?.PasswordResetResponse?.required).toEqual(["temporaryPassword"]);
   });
 
   it("documents partial update bodies separately from create bodies", () => {

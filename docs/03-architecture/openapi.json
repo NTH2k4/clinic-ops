@@ -14,6 +14,7 @@
   "tags": [
     { "name": "Health" },
     { "name": "Auth" },
+    { "name": "Users" },
     { "name": "Catalog" },
     { "name": "Patients" },
     { "name": "Scheduling" },
@@ -76,6 +77,31 @@
         },
         "responses": {
           "200": { "$ref": "#/components/responses/AuthSession" },
+          "401": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Đăng ký tài khoản bệnh nhân",
+        "security": [],
+        "requestBody": { "$ref": "#/components/requestBodies/PatientRegistration" },
+        "responses": {
+          "201": { "$ref": "#/components/responses/AuthSession" },
+          "400": { "$ref": "#/components/responses/Error" },
+          "409": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Đổi mật khẩu của tài khoản hiện tại",
+        "requestBody": { "$ref": "#/components/requestBodies/ChangePassword" },
+        "responses": {
+          "201": { "$ref": "#/components/responses/Success" },
+          "400": { "$ref": "#/components/responses/Error" },
           "401": { "$ref": "#/components/responses/Error" }
         }
       }
@@ -262,6 +288,91 @@
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "403": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Liệt kê tài khoản quản trị",
+        "parameters": [
+          { "$ref": "#/components/parameters/Q" },
+          { "$ref": "#/components/parameters/UserRole" },
+          { "$ref": "#/components/parameters/AccountStatus" },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PageSize" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/UserList" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Lấy chi tiết tài khoản",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/User" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/users/{id}/lock": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Khóa tài khoản và hủy session đang hoạt động",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "201": { "$ref": "#/components/responses/User" },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/users/{id}/unlock": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Mở khóa tài khoản",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "201": { "$ref": "#/components/responses/User" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/users/{id}/deactivate": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Vô hiệu hóa tài khoản và hủy session đang hoạt động",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "201": { "$ref": "#/components/responses/User" },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/users/{id}/reset-password": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Đặt lại mật khẩu và hủy tất cả session",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "201": { "$ref": "#/components/responses/PasswordReset" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" }
         }
       }
     },
@@ -628,6 +739,18 @@
         "required": false,
         "schema": { "type": "string" }
       },
+      "UserRole": {
+        "name": "role",
+        "in": "query",
+        "required": false,
+        "schema": { "$ref": "#/components/schemas/UserRole" }
+      },
+      "AccountStatus": {
+        "name": "status",
+        "in": "query",
+        "required": false,
+        "schema": { "$ref": "#/components/schemas/AccountStatus" }
+      },
       "Page": {
         "name": "page",
         "in": "query",
@@ -767,6 +890,22 @@
           }
         }
       },
+      "PatientRegistration": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PatientRegistrationRequest" }
+          }
+        }
+      },
+      "ChangePassword": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" }
+          }
+        }
+      },
       "DoctorCreate": {
         "required": true,
         "content": {
@@ -888,6 +1027,30 @@
             "schema": { "$ref": "#/components/schemas/CurrentUserEnvelope" }
           }
         }
+      },
+      "User": {
+        "description": "User account envelope",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/UserEnvelope" }
+          }
+        }
+      },
+      "UserList": {
+        "description": "Paginated user account envelope",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/UserListEnvelope" }
+          }
+        }
+      },
+      "PasswordReset": {
+        "description": "Temporary password envelope",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PasswordResetEnvelope" }
+          }
+        }
       }
     },
     "schemas": {
@@ -957,6 +1120,26 @@
           "password": { "type": "string" }
         }
       },
+      "PatientRegistrationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["displayName", "email", "phone", "password"],
+        "properties": {
+          "displayName": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string", "minLength": 1, "maxLength": 30 },
+          "password": { "type": "string", "minLength": 8, "maxLength": 200 }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["currentPassword", "newPassword"],
+        "properties": {
+          "currentPassword": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "newPassword": { "type": "string", "minLength": 8, "maxLength": 200 }
+        }
+      },
       "AuthSessionEnvelope": {
         "allOf": [
           { "$ref": "#/components/schemas/SuccessEnvelope" },
@@ -968,7 +1151,7 @@
                 "required": ["sessionToken", "currentUser", "linkedProfile"],
                 "properties": {
                   "sessionToken": { "type": "string" },
-                  "currentUser": { "$ref": "#/components/schemas/User" },
+                  "currentUser": { "$ref": "#/components/schemas/CurrentUser" },
                   "linkedProfile": {
                     "$ref": "#/components/schemas/LinkedProfile"
                   }
@@ -988,7 +1171,7 @@
                 "type": "object",
                 "required": ["currentUser", "linkedProfile"],
                 "properties": {
-                  "currentUser": { "$ref": "#/components/schemas/User" },
+                  "currentUser": { "$ref": "#/components/schemas/CurrentUser" },
                   "linkedProfile": {
                     "$ref": "#/components/schemas/LinkedProfile"
                   }
@@ -1000,14 +1183,75 @@
       },
       "User": {
         "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "displayName", "email", "phone", "role", "status", "createdAt", "updatedAt", "linkedProfile"],
+        "properties": {
+          "id": { "type": "string" },
+          "displayName": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": ["string", "null"] },
+          "role": { "$ref": "#/components/schemas/UserRole" },
+          "status": { "enum": ["active", "inactive", "locked"] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "linkedProfile": { "$ref": "#/components/schemas/LinkedProfile" }
+        }
+      },
+      "CurrentUser": {
+        "type": "object",
+        "additionalProperties": false,
         "required": ["id", "displayName", "email", "role", "status"],
         "properties": {
           "id": { "type": "string" },
           "displayName": { "type": "string" },
           "email": { "type": "string", "format": "email" },
           "role": { "$ref": "#/components/schemas/UserRole" },
-          "status": { "type": "string" }
+          "status": { "enum": ["active", "inactive", "locked"] }
         }
+      },
+      "UserEnvelope": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SuccessEnvelope" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/User" }
+            }
+          }
+        ]
+      },
+      "UserListEnvelope": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ListEnvelope" },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          }
+        ]
+      },
+      "PasswordResetResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["temporaryPassword"],
+        "properties": {
+          "temporaryPassword": { "type": "string", "minLength": 8 }
+        }
+      },
+      "PasswordResetEnvelope": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SuccessEnvelope" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/PasswordResetResponse" }
+            }
+          }
+        ]
       },
       "LinkedProfile": {
         "oneOf": [
@@ -1194,6 +1438,9 @@
       },
       "UserRole": {
         "enum": ["patient", "doctor", "receptionist", "nurse", "admin"]
+      },
+      "AccountStatus": {
+        "enum": ["active", "inactive", "locked"]
       },
       "AppointmentStatus": {
         "enum": [
