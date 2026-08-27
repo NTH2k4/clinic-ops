@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { successEnvelope } from "../common/api-response";
+import { parseSchema } from "../common/validation";
+import { patientRegistrationSchema } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { type AuthenticatedRequest, extractBearerToken, SessionGuard } from "./session.guard";
 
@@ -19,6 +21,11 @@ export class AuthController {
       typeof body.password === "string" ? body.password : "",
     );
     return successEnvelope(result);
+  }
+
+  @Post("register")
+  async register(@Body() body: unknown) {
+    return successEnvelope(await this.authService.registerPatient(parseSchema(patientRegistrationSchema, body)));
   }
 
   @Post("logout")

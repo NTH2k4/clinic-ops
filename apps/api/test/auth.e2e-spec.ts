@@ -82,6 +82,101 @@ describe("Auth and RBAC", () => {
     return session;
   }
 
+  it("registers a public patient account and returns an auth session", async () => {
+    const { app, server } = await createApp();
+    const email = "new.patient@example.test";
+    const phone = "+84919990001";
+
+    try {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+
+      const registerResponse = await request(server)
+        .post("/api/v1/auth/register")
+        .send({
+          displayName: "Nguyen Patient",
+          email,
+          phone,
+          password: "careflow-demo-123",
+        })
+        .expect(201)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = loginResponseSchema.parse(body);
+          expect(parsed.data.currentUser).toMatchObject({
+            email,
+            role: "patient",
+            status: "active",
+          });
+          expect(parsed.data.linkedProfile).toMatchObject({ type: "patient" });
+          expect(parsed.data.sessionToken).toEqual(expect.any(String));
+        });
+
+      const registerBody: unknown = registerResponse.body;
+      const registered = loginResponseSchema.parse(registerBody);
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { email },
+        include: { patient: true, authSessions: { orderBy: { createdAt: "desc" }, take: 1 } },
+      });
+
+      expect(user).toMatchObject({
+        displayName: "Nguyen Patient",
+        email,
+        phone,
+        role: UserRole.patient,
+        status: "active",
+      });
+      expect(user.passwordHash).not.toBe("careflow-demo-123");
+      expect(user.patient).toMatchObject({
+        fullName: "Nguyen Patient",
+        email,
+        phone,
+        status: "active",
+      });
+      expect(registered.data.linkedProfile).toEqual({ type: "patient", id: user.patient?.id });
+      expect(user.authSessions).toHaveLength(1);
+      expect(user.authSessions[0].tokenHash).not.toBe(registered.data.sessionToken);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+      await app.close();
+    }
+  });
+
+  it("rejects role injection during public patient registration", async () => {
+    const { app, server } = await createApp();
+    const email = "bad.role@example.test";
+    const phone = "+84919990002";
+
+    try {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+
+      await request(server)
+        .post("/api/v1/auth/register")
+        .send({
+          displayName: "Bad Role",
+          email,
+          phone,
+          password: "careflow-demo-123",
+          role: "admin",
+        })
+        .expect(400)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = errorResponseSchema.parse(body);
+          expect(parsed.error.code).toBe("VALIDATION_ERROR");
+        });
+
+      await expect(prisma.user.findUnique({ where: { email } })).resolves.toBeNull();
+      await expect(prisma.patient.findUnique({ where: { phone } })).resolves.toBeNull();
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+      await app.close();
+    }
+  });
+
   it("logs in and returns the current user", async () => {
     const { app, server } = await createApp();
 
