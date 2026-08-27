@@ -7,6 +7,7 @@ type OpenApiDocument = {
   paths?: Record<string, Record<string, OperationObject>>;
   components?: {
     securitySchemes?: Record<string, { type?: string; scheme?: string }>;
+    parameters?: Record<string, { schema?: Record<string, unknown> }>;
     requestBodies?: Record<string, { content?: { "application/json"?: { schema?: { $ref?: string } } } }>;
     responses?: Record<string, { content?: { "application/json"?: { schema?: { $ref?: string } } } }>;
     schemas?: Record<string, { required?: string[]; properties?: Record<string, unknown> }>;
@@ -139,6 +140,7 @@ describe("OpenAPI contract", () => {
       expect.arrayContaining(["#/components/parameters/Q", "#/components/parameters/UserRole", "#/components/parameters/AccountStatus", "#/components/parameters/Page", "#/components/parameters/PageSize"]),
     );
     expect(spec.paths?.["/api/v1/users"]?.get?.responses?.["400"]?.$ref).toBe("#/components/responses/Error");
+    expect(spec.components?.parameters?.Id?.schema).toMatchObject({ type: "string", minLength: 1, maxLength: 100, pattern: "^[A-Za-z0-9_-]+$" });
 
     expect(spec.paths?.["/api/v1/users"]?.get?.responses?.["200"]?.$ref).toBe("#/components/responses/UserList");
     expect(responseSchemaRef("/api/v1/users", "get", "200")).toBe("#/components/schemas/UserListEnvelope");

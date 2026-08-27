@@ -150,7 +150,9 @@ Trạng thái: đã triển khai list/detail, lock/unlock, deactivate và reset 
 
 User list dùng pagination chuẩn và các filter tùy chọn `q`, `role` (`patient`, `doctor`, `receptionist`, `nurse`, `admin`) và `status` (`active`, `inactive`, `locked`). User detail và status action trả object `data` gồm `id`, `displayName`, `email`, `phone`, `role`, `status`, `createdAt`, `updatedAt` và `linkedProfile`.
 
-Admin không thể tự khóa hoặc tự vô hiệu hóa tài khoản của mình. Lock/deactivate khiến session hiện tại của target không còn dùng được; unlock không tạo session mới. Reset password trả `data.temporaryPassword` duy nhất trong response, nên client quản trị phải chuyển cho người dùng bằng kênh phù hợp và không ghi giá trị này vào log/audit.
+Path parameter `id` của user endpoints được validate bằng Zod: không rỗng, tối đa 100 ký tự, chỉ gồm chữ, số, `_` hoặc `-`.
+
+Admin không thể tự khóa hoặc tự vô hiệu hóa tài khoản của mình. Status transition hợp lệ là `active -> locked`, `locked -> active` và `active|locked -> inactive`; không có reactivation từ `inactive` trong slice này. Lock/deactivate khiến session hiện tại của target không còn dùng được; unlock không tạo session mới. Reset password trả `data.temporaryPassword` duy nhất trong response, nên client quản trị phải chuyển cho người dùng bằng kênh phù hợp và không ghi giá trị này vào log/audit. Account lifecycle mutation và audit event được ghi trong cùng database transaction.
 
 ### Patients
 

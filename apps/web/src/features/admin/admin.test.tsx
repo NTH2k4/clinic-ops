@@ -137,6 +137,21 @@ describe("admin workspace", () => {
     expect(within(screen.getByText("Nguyen Minh Anh").closest("tr")!).getByText("locked")).toBeInTheDocument();
   });
 
+  it("reports account status action failures to the administrator", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      if (String(input).endsWith("/lock")) {
+        return new Response(JSON.stringify({ error: { code: "VALIDATION_ERROR", message: "Cannot lock this account." }, meta: { requestId: "req-lock-failed" } }), { status: 400 });
+      }
+      return apiListResponse(apiUsers, "req-users");
+    });
+    const user = userEvent.setup();
+    await renderApiAdminAccounts(fetcher);
+
+    await user.click(await screen.findByRole("button", { name: "Lock Nguyen Minh Anh" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Cannot lock this account.");
+  });
+
   it("shows a reset password only in the controlled result panel without browser or mutation cache persistence", async () => {
     const temporaryPassword = "temporary-password-123";
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {

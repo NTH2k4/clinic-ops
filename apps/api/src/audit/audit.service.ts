@@ -18,8 +18,8 @@ type AuditRecordInput = {
 export class AuditService {
   constructor(private readonly prisma: PrismaService) {}
 
-  record(input: AuditRecordInput) {
-    return this.prisma.auditEvent.create({
+  record(input: AuditRecordInput, prisma: Pick<PrismaService, "auditEvent"> = this.prisma) {
+    return prisma.auditEvent.create({
       data: {
         entityType: input.entityType,
         entityId: input.entityId,

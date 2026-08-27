@@ -29,6 +29,7 @@ export function AdminAccounts() {
       return adminAccountsService.deactivateUser(id);
     },
     onSuccess: (updatedAccount) => {
+      setResetError(null);
       queryClient.setQueriesData<ApiListResponse<AdminAccount>>({ queryKey: ["admin", "accounts"] }, (current) => current && {
         ...current,
         data: current.data.map((account) => account.id === updatedAccount.id ? updatedAccount : account),
@@ -65,6 +66,7 @@ export function AdminAccounts() {
         </div>
       </fieldset>
       {temporaryPassword ? <div aria-label="Temporary password result" className="mt-4 flex items-center justify-between gap-3 border border-warning bg-surface px-3 py-2 text-sm" role="status"><span>Temporary password: <code className="font-semibold text-text">{temporaryPassword}</code></span><button className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" onClick={() => setTemporaryPassword(null)} type="button">Dismiss</button></div> : null}
+      {statusAction.error ? <p className="mt-4 text-sm text-danger" role="alert">{statusAction.error instanceof Error ? statusAction.error.message : "Unable to update account status."}</p> : null}
       {resetError ? <p className="mt-4 text-sm text-danger" role="alert">{resetError}</p> : null}
       {error ? <p className="mt-4 text-sm text-danger" role="alert">{error instanceof Error ? error.message : "Unable to load accounts."}</p> : null}
       <div className="mt-4 overflow-x-auto border border-border bg-surface">

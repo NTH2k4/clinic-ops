@@ -10,7 +10,7 @@ export interface AdminAccount {
   id: string;
   displayName: string;
   email: string;
-  phone: string;
+  phone: string | null;
   role: UserRole;
   status: ApiAccountStatus;
   createdAt: string;

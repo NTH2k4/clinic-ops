@@ -45,22 +45,31 @@ export class UsersService {
 
   async lock(id: string, actorUserId: string) {
     this.assertNotSelf(id, actorUserId, "lock");
-    const user = await this.setStatus(id, AccountStatus.locked, true);
-    await this.audit.record({ actorUserId, entityType: "user", entityId: id, action: "admin_user_locked" });
-    return user;
+    return this.setStatus(id, AccountStatus.locked, [AccountStatus.active], true, {
+      actorUserId,
+      entityType: "user",
+      entityId: id,
+      action: "admin_user_locked",
+    });
   }
 
   async unlock(id: string, actorUserId: string) {
-    const user = await this.setStatus(id, AccountStatus.active, false);
-    await this.audit.record({ actorUserId, entityType: "user", entityId: id, action: "admin_user_unlocked" });
-    return user;
+    return this.setStatus(id, AccountStatus.active, [AccountStatus.locked], false, {
+      actorUserId,
+      entityType: "user",
+      entityId: id,
+      action: "admin_user_unlocked",
+    });
   }
 
   async deactivate(id: string, actorUserId: string) {
     this.assertNotSelf(id, actorUserId, "deactivate");
-    const user = await this.setStatus(id, AccountStatus.inactive, true);
-    await this.audit.record({ actorUserId, entityType: "user", entityId: id, action: "admin_user_deactivated" });
-    return user;
+    return this.setStatus(id, AccountStatus.inactive, [AccountStatus.active, AccountStatus.locked], true, {
+      actorUserId,
+      entityType: "user",
+      entityId: id,
+      action: "admin_user_deactivated",
+    });
   }
 
   async resetPassword(id: string, actorUserId: string) {
@@ -70,20 +79,30 @@ export class UsersService {
       await this.require(transaction.user.findUnique({ where: { id } }));
       await transaction.user.update({ where: { id }, data: { passwordHash } });
       await transaction.authSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } });
+      await this.audit.record({ actorUserId, entityType: "user", entityId: id, action: "admin_password_reset" }, transaction);
     });
-    await this.audit.record({ actorUserId, entityType: "user", entityId: id, action: "admin_password_reset" });
     return { temporaryPassword };
   }
 
   private readonly profiles = { patient: true, staff: true, doctor: true } satisfies Prisma.UserInclude;
 
-  private async setStatus(id: string, status: AccountStatus, revokeSessions: boolean) {
+  private async setStatus(
+    id: string,
+    status: AccountStatus,
+    allowedFrom: AccountStatus[],
+    revokeSessions: boolean,
+    audit: { actorUserId: string; entityType: string; entityId: string; action: string },
+  ) {
     return this.prisma.$transaction(async (transaction) => {
       const user = await this.require(transaction.user.findUnique({ where: { id }, include: this.profiles }));
+      if (!allowedFrom.includes(user.status)) {
+        throw new ApiError(400, "INVALID_STATUS_TRANSITION", "This account status transition is not allowed.");
+      }
       const updated = await transaction.user.update({ where: { id }, data: { status }, include: this.profiles });
       if (revokeSessions) {
         await transaction.authSession.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
       }
+      await this.audit.record(audit, transaction);
       return this.toResponse(updated);
     });
   }

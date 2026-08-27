@@ -4,7 +4,7 @@ import { type AuthenticatedRequest, SessionGuard } from "../auth/session.guard";
 import { listEnvelope, successEnvelope } from "../common/api-response";
 import { Roles, RolesGuard } from "../common/roles";
 import { parseSchema } from "../common/validation";
-import { userListQuerySchema } from "./users.dto";
+import { userIdParamSchema, userListQuerySchema } from "./users.dto";
 import { UsersService } from "./users.service";
 
 @Controller("users")
@@ -21,27 +21,32 @@ export class UsersController {
   }
 
   @Get(":id")
-  async detail(@Param("id") id: string) {
-    return successEnvelope(await this.users.detail(id));
+  async detail(@Param() rawParams: Record<string, unknown>) {
+    const params = parseSchema(userIdParamSchema, rawParams);
+    return successEnvelope(await this.users.detail(params.id));
   }
 
   @Post(":id/lock")
-  async lock(@Param("id") id: string, @Req() request: AuthenticatedRequest) {
-    return successEnvelope(await this.users.lock(id, request.currentUser.id));
+  async lock(@Param() rawParams: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
+    const params = parseSchema(userIdParamSchema, rawParams);
+    return successEnvelope(await this.users.lock(params.id, request.currentUser.id));
   }
 
   @Post(":id/unlock")
-  async unlock(@Param("id") id: string, @Req() request: AuthenticatedRequest) {
-    return successEnvelope(await this.users.unlock(id, request.currentUser.id));
+  async unlock(@Param() rawParams: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
+    const params = parseSchema(userIdParamSchema, rawParams);
+    return successEnvelope(await this.users.unlock(params.id, request.currentUser.id));
   }
 
   @Post(":id/deactivate")
-  async deactivate(@Param("id") id: string, @Req() request: AuthenticatedRequest) {
-    return successEnvelope(await this.users.deactivate(id, request.currentUser.id));
+  async deactivate(@Param() rawParams: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
+    const params = parseSchema(userIdParamSchema, rawParams);
+    return successEnvelope(await this.users.deactivate(params.id, request.currentUser.id));
   }
 
   @Post(":id/reset-password")
-  async resetPassword(@Param("id") id: string, @Req() request: AuthenticatedRequest) {
-    return successEnvelope(await this.users.resetPassword(id, request.currentUser.id));
+  async resetPassword(@Param() rawParams: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
+    const params = parseSchema(userIdParamSchema, rawParams);
+    return successEnvelope(await this.users.resetPassword(params.id, request.currentUser.id));
   }
 }

@@ -1,6 +1,6 @@
 import { Controller, Get, HttpException, UseGuards } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { PrismaClient, UserRole } from "@prisma/client";
+import { AccountStatus, PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import request from "supertest";
 import type { App } from "supertest/types";
@@ -8,6 +8,7 @@ import { z } from "zod";
 import { AppModule } from "../src/app.module";
 import { Roles, RolesGuard } from "../src/common/roles";
 import { SessionGuard } from "../src/auth/session.guard";
+import { PrismaService } from "../src/prisma/prisma.service";
 
 @Controller("admin-only")
 class AdminOnlyController {
@@ -73,6 +74,37 @@ describe("Auth and RBAC", () => {
       imports: [AppModule],
       controllers: [AdminOnlyController],
     }).compile();
+    const app = moduleRef.createNestApplication();
+    app.setGlobalPrefix("api/v1");
+    await app.init();
+    return { app, server: app.getHttpServer() as App };
+  }
+
+  function prismaWithUserLookupHook(afterUserLookup: (user: { id: string } | null) => Promise<void>) {
+    const controlledPrisma = {} as PrismaClient;
+    Object.setPrototypeOf(controlledPrisma, prisma);
+    const controlledUser = {} as typeof prisma.user;
+    Object.setPrototypeOf(controlledUser, prisma.user);
+    Object.defineProperty(controlledUser, "findUnique", {
+      value: async (args: Parameters<typeof prisma.user.findUnique>[0]) => {
+        const user = await prisma.user.findUnique(args);
+        await afterUserLookup(user);
+        return user;
+      },
+    });
+    Object.defineProperty(controlledPrisma, "user", { value: controlledUser });
+    Object.defineProperty(controlledPrisma, "$transaction", { value: prisma.$transaction.bind(prisma) });
+    return controlledPrisma;
+  }
+
+  async function createAppWithUserLookupHook(afterUserLookup: (user: { id: string } | null) => Promise<void>) {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+      controllers: [AdminOnlyController],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(prismaWithUserLookupHook(afterUserLookup))
+      .compile();
     const app = moduleRef.createNestApplication();
     app.setGlobalPrefix("api/v1");
     await app.init();
@@ -385,6 +417,86 @@ describe("Auth and RBAC", () => {
         .send({ email, password: newPassword })
         .expect(201)
         .expect((response) => expect(loginResponseSchema.parse(response.body).data.currentUser.email).toBe(email));
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("rejects password change when an administrative reset changes the hash after lookup", async () => {
+    const email = `password-reset-race-${Date.now()}@careflow.local`;
+    const resetPasswordHash = await bcrypt.hash("temporary-reset-password", 10);
+    let targetUserId = "";
+    let armReset = false;
+    const { app, server } = await createAppWithUserLookupHook(async (user) => {
+      if (!armReset || user?.id !== targetUserId) return;
+      armReset = false;
+      await prisma.user.update({ where: { id: user.id }, data: { passwordHash: resetPasswordHash } });
+    });
+
+    try {
+      const user = await prisma.user.create({
+        data: {
+          displayName: "Password Reset Race User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      targetUserId = user.id;
+      const loginResponse = await request(server).post("/api/v1/auth/login").send({ email, password: "custom-password" }).expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+      armReset = true;
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ currentPassword: "custom-password", newPassword: "custom-password-456" })
+        .expect(401);
+
+      const userAfterAttempt = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+      expect(userAfterAttempt.passwordHash).toBe(resetPasswordHash);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("rejects password change when the account is locked after password lookup", async () => {
+    const email = `password-lock-race-${Date.now()}@careflow.local`;
+    let targetUserId = "";
+    let armLock = false;
+    const { app, server } = await createAppWithUserLookupHook(async (user) => {
+      if (!armLock || user?.id !== targetUserId) return;
+      armLock = false;
+      await prisma.user.update({ where: { id: user.id }, data: { status: AccountStatus.locked } });
+    });
+
+    try {
+      const user = await prisma.user.create({
+        data: {
+          displayName: "Password Lock Race User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      targetUserId = user.id;
+      const loginResponse = await request(server).post("/api/v1/auth/login").send({ email, password: "custom-password" }).expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+      armLock = true;
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ currentPassword: "custom-password", newPassword: "custom-password-456" })
+        .expect(401);
+
+      const userAfterAttempt = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+      expect(userAfterAttempt.status).toBe("locked");
+      await expect(bcrypt.compare("custom-password-456", userAfterAttempt.passwordHash)).resolves.toBe(false);
     } finally {
       await prisma.user.deleteMany({ where: { email } });
       await app.close();

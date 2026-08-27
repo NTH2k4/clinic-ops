@@ -204,6 +204,90 @@ describe("User account administration", () => {
     }
   });
 
+  it("rejects malformed user ids before account lifecycle handlers run", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const admin = await loginAdmin(server);
+      const authorization = `Bearer ${admin.sessionToken}`;
+
+      const detailResponse = await request(server).get("/api/v1/users/bad%20id").set("Authorization", authorization).expect(400);
+      expect(errorResponseSchema.parse(detailResponse.body).error.code).toBe("VALIDATION_ERROR");
+
+      for (const path of [
+        "/api/v1/users/bad%20id/lock",
+        "/api/v1/users/bad%20id/unlock",
+        "/api/v1/users/bad%20id/deactivate",
+        "/api/v1/users/bad%20id/reset-password",
+      ]) {
+        const response = await request(server).post(path).set("Authorization", authorization).expect(400);
+        expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR");
+      }
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("does not unlock or lock an inactive user", async () => {
+    const { app, server } = await createApp();
+    const user = await createTestUser("inactive-transition");
+
+    try {
+      const admin = await loginAdmin(server);
+      const authorization = `Bearer ${admin.sessionToken}`;
+
+      await request(server).post(`/api/v1/users/${user.id}/deactivate`).set("Authorization", authorization).expect(201);
+
+      for (const action of ["unlock", "lock"]) {
+        const response = await request(server).post(`/api/v1/users/${user.id}/${action}`).set("Authorization", authorization).expect(400);
+        expect(errorResponseSchema.parse(response.body).error.code).toBe("INVALID_STATUS_TRANSITION");
+      }
+
+      await expect(prisma.user.findUniqueOrThrow({ where: { id: user.id } })).resolves.toMatchObject({ status: "inactive" });
+    } finally {
+      await deleteTestUser(user.id);
+      await app.close();
+    }
+  });
+
+  it("rolls back account status changes when the required audit insert fails", async () => {
+    const { app, server } = await createApp();
+    const user = await createTestUser("audit-rollback");
+
+    try {
+      const admin = await loginAdmin(server);
+      await prisma.$executeRawUnsafe(`
+        CREATE OR REPLACE FUNCTION careflow_test_reject_user_lock_audit()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          IF NEW."entityType" = 'user' AND NEW."entityId" = '${user.id}' AND NEW."action" = 'admin_user_locked' THEN
+            RAISE EXCEPTION 'rejecting test audit event';
+          END IF;
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql
+      `);
+      await prisma.$executeRawUnsafe(`
+        CREATE TRIGGER careflow_test_reject_user_lock_audit
+        BEFORE INSERT ON "AuditEvent"
+        FOR EACH ROW EXECUTE FUNCTION careflow_test_reject_user_lock_audit()
+      `);
+
+      await request(server)
+        .post(`/api/v1/users/${user.id}/lock`)
+        .set("Authorization", `Bearer ${admin.sessionToken}`)
+        .expect(500);
+
+      await expect(prisma.user.findUniqueOrThrow({ where: { id: user.id } })).resolves.toMatchObject({ status: "active" });
+      await expect(prisma.auditEvent.findMany({ where: { entityType: "user", entityId: user.id, action: "admin_user_locked" } })).resolves.toHaveLength(0);
+    } finally {
+      await prisma.$executeRawUnsafe('DROP TRIGGER IF EXISTS careflow_test_reject_user_lock_audit ON "AuditEvent"');
+      await prisma.$executeRawUnsafe('DROP FUNCTION IF EXISTS careflow_test_reject_user_lock_audit()');
+      await deleteTestUser(user.id);
+      await app.close();
+    }
+  });
+
   it("does not create a session after an admin locks the user between login lookup and session creation", async () => {
     const user = await createTestUser("lock-race");
     const serverRef: { current?: App } = {};

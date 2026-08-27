@@ -102,13 +102,19 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(input.newPassword, 10);
-    await this.prisma.$transaction([
-      this.prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
-      this.prisma.authSession.updateMany({
+    await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.user.updateMany({
+        where: { id: userId, passwordHash: user.passwordHash, status: AccountStatus.active },
+        data: { passwordHash },
+      });
+      if (updated.count !== 1) {
+        throw new ApiError(401, "UNAUTHENTICATED", "Current password is incorrect.");
+      }
+      await tx.authSession.updateMany({
         where: { userId, revokedAt: null },
         data: { revokedAt: new Date() },
-      }),
-    ]);
+      });
+    });
   }
 
   private async createAuthSession(user: UserWithProfiles, prisma: Pick<PrismaService, "authSession"> = this.prisma): Promise<AuthLoginResult> {
