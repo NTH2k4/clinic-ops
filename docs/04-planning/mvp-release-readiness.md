@@ -61,7 +61,7 @@ Trạng thái: **pass** đối với API gate sau merge, dùng PostgreSQL host l
 | `npm run typecheck` | Pass | `tsc --noEmit` exited 0. |
 | `npm run lint` | Pass | ESLint exited 0. |
 | `npm test -- --runInBand` | Pass | 6/6 test suites and 37/37 tests passed. |
-| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | Jest E2E command exited 0; output không hiển thị suite/test count. |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | 8/8 test suites and 71/71 tests passed. |
 | `npm run build` | Pass | `nest build` exited 0. |
 | `npm audit --audit-level=high` | Pass | `found 0 vulnerabilities`. |
 
@@ -99,9 +99,8 @@ Trạng thái verification sau merge:
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Chạy API verification gate sau merge.
-2. Chạy Web verification gate sau merge.
-3. Cập nhật acceptance checklist, changelog và release notes bằng kết quả thật.
-4. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
+1. Chạy Web verification gate sau merge.
+2. Cập nhật acceptance checklist, changelog và release notes bằng kết quả thật.
+3. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
 
 Khuyến nghị: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.
