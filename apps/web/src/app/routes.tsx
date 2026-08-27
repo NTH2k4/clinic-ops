@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { LoginPage } from "../features/auth/LoginPage";
+import { RegisterPage } from "../features/auth/RegisterPage";
+import { ChangePasswordPage } from "../features/auth/ChangePasswordPage";
 import { AdminDashboard } from "../features/admin/AdminDashboard";
 import { AdminDoctors } from "../features/admin/AdminDoctors";
 import { AdminServices } from "../features/admin/AdminServices";
@@ -26,9 +28,11 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<LoginPage />} path="/login" />
+      <Route element={<RegisterPage />} path="/register" />
       <Route element={<RequireAuth />}>
         <Route element={<RoleHomeRedirect />} path="/app" />
         <Route element={<AppShell />} path="/app">
+          <Route element={<ChangePasswordPage />} path="account/security" />
           <Route element={<PatientHome />} path="patient" />
           <Route element={<ServicesPage />} path="patient/services" />
           <Route element={<BookAppointmentPage />} path="patient/book" />

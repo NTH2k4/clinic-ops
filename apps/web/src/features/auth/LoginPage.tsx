@@ -1,7 +1,7 @@
 import { Stethoscope } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { isApiMode } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import { roleHomePath } from "../../routes/RoleHomeRedirect";
@@ -82,6 +82,12 @@ export function LoginPage() {
             >
               Đăng nhập
             </button>
+            <p className="text-sm text-text-muted">
+              Chưa có tài khoản?{" "}
+              <Link className="font-semibold text-primary hover:text-primary-hover hover:underline" to="/register">
+                Đăng ký tài khoản
+              </Link>
+            </p>
           </form>
         ) : (
           <>

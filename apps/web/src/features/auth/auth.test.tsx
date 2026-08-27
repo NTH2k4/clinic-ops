@@ -240,6 +240,129 @@ describe("authentication and role routing", () => {
 });
 
 describe("API authentication", () => {
+  it("links API-mode login to patient registration", async () => {
+    const user = userEvent.setup();
+
+    await renderApiApp();
+
+    await user.click(screen.getByRole("link", { name: "Đăng ký tài khoản" }));
+
+    expect(screen.getByRole("heading", { name: "Đăng ký tài khoản" })).toBeInTheDocument();
+  });
+
+  it("registers a patient through the API and opens the patient workspace", async () => {
+    const user = userEvent.setup();
+    const sessionToken = "registered-session-token";
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+
+      if (url.endsWith("/auth/register")) {
+        return successResponse({
+          sessionToken,
+          currentUser: {
+            id: "user-patient-new",
+            displayName: "New Patient",
+            email: "new.patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-new" },
+        });
+      }
+
+      if (url.includes("/services") || url.includes("/doctors") || url.includes("/specialties")) {
+        return new Response(JSON.stringify({ data: [], meta: { requestId: "req-list", page: 1, pageSize: 100, total: 0 } }), { status: 200 });
+      }
+
+      return successResponse({});
+    });
+    vi.stubGlobal("fetch", fetcher);
+
+    await renderApiApp();
+    await user.click(screen.getByRole("link", { name: "Đăng ký tài khoản" }));
+    await user.type(screen.getByLabelText("Họ và tên"), "New Patient");
+    await user.type(screen.getByLabelText("Email"), "new.patient@example.test");
+    await user.type(screen.getByLabelText("Số điện thoại"), "+84919990001");
+    await user.type(screen.getByLabelText("Mật khẩu"), "new-password");
+    await user.click(screen.getByRole("button", { name: "Tạo tài khoản" }));
+
+    expect(await screen.findByText("Trang chính patient")).toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/v1/auth/register",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          displayName: "New Patient",
+          email: "new.patient@example.test",
+          phone: "+84919990001",
+          password: "new-password",
+        }),
+      }),
+    );
+
+    const { getApiSessionToken } = await import("../../lib/api/session");
+    expect(getApiSessionToken()).toBe(sessionToken);
+  });
+
+  it("requires both passwords and clears the API session after changing a password", async () => {
+    const user = userEvent.setup();
+    const sessionToken = "password-session-token";
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+
+      if (url.endsWith("/auth/login")) {
+        return successResponse({
+          sessionToken,
+          currentUser: {
+            id: "user-patient-1",
+            displayName: "API Patient",
+            email: "patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-1" },
+        });
+      }
+
+      if (url.endsWith("/auth/change-password")) {
+        return successResponse({});
+      }
+
+      if (url.includes("/services") || url.includes("/doctors") || url.includes("/specialties")) {
+        return new Response(JSON.stringify({ data: [], meta: { requestId: "req-list", page: 1, pageSize: 100, total: 0 } }), { status: 200 });
+      }
+
+      return successResponse({});
+    });
+    vi.stubGlobal("fetch", fetcher);
+
+    await renderApiApp();
+    await user.type(screen.getByLabelText("Email"), "patient@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "current-password");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    await screen.findByText("Trang chính patient");
+
+    await user.click(screen.getByRole("button", { name: "Bảo mật tài khoản" }));
+
+    expect(screen.getByLabelText("Mật khẩu hiện tại")).toBeRequired();
+    expect(screen.getByLabelText("Mật khẩu mới")).toBeRequired();
+    await user.type(screen.getByLabelText("Mật khẩu hiện tại"), "current-password");
+    await user.type(screen.getByLabelText("Mật khẩu mới"), "new-password");
+    await user.click(screen.getByRole("button", { name: "Đổi mật khẩu" }));
+
+    expect(await screen.findByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/v1/auth/change-password",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ currentPassword: "current-password", newPassword: "new-password" }),
+      }),
+    );
+
+    const { getApiSessionToken } = await import("../../lib/api/session");
+    expect(getApiSessionToken()).toBeNull();
+  });
+
   it("returns to login when a catalog request reports an expired session", async () => {
     const user = userEvent.setup();
     let sessionExpired = false;

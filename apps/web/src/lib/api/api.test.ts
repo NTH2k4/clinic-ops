@@ -101,7 +101,7 @@ describe("API HTTP client", () => {
 });
 
 describe("auth API", () => {
-  it("uses the auth endpoints with their required methods and login payload", async () => {
+  it("uses the auth endpoints with their required methods and request payloads", async () => {
     const currentUser = {
       id: "user-1",
       displayName: "Patient Demo",
@@ -120,6 +120,8 @@ describe("auth API", () => {
     };
     const request = vi.fn()
       .mockResolvedValueOnce(loginResponse)
+      .mockResolvedValueOnce(loginResponse)
+      .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(session);
     const authApi = createAuthApi(request);
@@ -129,6 +131,13 @@ describe("auth API", () => {
       currentUser,
       linkedProfile: { type: "patient", id: "patient-1" },
     });
+    await expect(authApi.register({
+      displayName: "New Patient",
+      email: "new.patient@example.test",
+      phone: "+84919990001",
+      password: "new-password",
+    })).resolves.toMatchObject({ sessionToken: "session-1", currentUser });
+    await expect(authApi.changePassword({ currentPassword: "secret", newPassword: "new-password" })).resolves.toBeUndefined();
     await expect(authApi.logout()).resolves.toBeUndefined();
     await expect(authApi.me()).resolves.toEqual(session);
 
@@ -136,7 +145,20 @@ describe("auth API", () => {
       method: "POST",
       body: JSON.stringify({ email: "patient@example.test", password: "secret" }),
     });
-    expect(request).toHaveBeenNthCalledWith(2, "/auth/logout", { method: "POST" });
-    expect(request).toHaveBeenNthCalledWith(3, "/auth/me");
+    expect(request).toHaveBeenNthCalledWith(2, "/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        displayName: "New Patient",
+        email: "new.patient@example.test",
+        phone: "+84919990001",
+        password: "new-password",
+      }),
+    });
+    expect(request).toHaveBeenNthCalledWith(3, "/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ currentPassword: "secret", newPassword: "new-password" }),
+    });
+    expect(request).toHaveBeenNthCalledWith(4, "/auth/logout", { method: "POST" });
+    expect(request).toHaveBeenNthCalledWith(5, "/auth/me");
   });
 });

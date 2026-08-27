@@ -8,12 +8,16 @@ import { mockStore } from "../../mocks/mockStore";
 import type { User, UserRole } from "../../types/models";
 
 type SignInInput = string | { email: string; password: string };
+type RegisterInput = { displayName: string; email: string; phone: string; password: string };
+type ChangePasswordInput = { currentPassword: string; newPassword: string };
 
 type AuthContextValue = {
   user: CurrentUser | null;
   linkedProfile: LinkedProfileRef;
   authError: string | null;
   signIn: (input: SignInInput) => Promise<CurrentUser | null>;
+  register: (input: RegisterInput) => Promise<CurrentUser | null>;
+  changePassword: (input: ChangePasswordInput) => Promise<boolean>;
   signOut: () => Promise<void>;
   switchRole: (role: UserRole) => void;
 };
@@ -101,6 +105,40 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
         setUser(null);
         setLinkedProfile(null);
+      },
+      async register(input) {
+        setAuthError(null);
+
+        if (!isApiMode) {
+          return null;
+        }
+
+        try {
+          const session = await authApi.register(input);
+          setApiSessionToken(session.sessionToken);
+          setUser(session.currentUser);
+          setLinkedProfile(session.linkedProfile);
+          return session.currentUser;
+        } catch (error) {
+          setAuthError(error instanceof Error ? error.message : "Unable to create an account.");
+          return null;
+        }
+      },
+      async changePassword(input) {
+        setAuthError(null);
+
+        if (!isApiMode) {
+          return false;
+        }
+
+        try {
+          await authApi.changePassword(input);
+          clearApiSession();
+          return true;
+        } catch (error) {
+          setAuthError(error instanceof Error ? error.message : "Unable to change password.");
+          return false;
+        }
       },
       switchRole(role) {
         if (isApiMode) {
