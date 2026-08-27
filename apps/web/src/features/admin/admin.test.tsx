@@ -71,13 +71,14 @@ async function renderApiAdminAccounts(fetcher: typeof fetch) {
   vi.resetModules();
   vi.stubEnv("VITE_DATA_SOURCE", "api");
   vi.stubGlobal("fetch", fetcher);
-  const [{ AdminAccounts }, { renderWithProviders: renderApiWithProviders }, { setApiSessionToken }] = await Promise.all([
+  const [{ AdminAccounts }, { renderWithProviders: renderApiWithProviders }, { setApiSessionToken }, { queryClient }] = await Promise.all([
     import("./AdminAccounts"),
     import("../../test/render"),
     import("../../lib/api/session"),
+    import("../../lib/queryClient"),
   ]);
   setApiSessionToken("admin-session-token");
-  return renderApiWithProviders(<AdminAccounts />);
+  return { ...renderApiWithProviders(<AdminAccounts />), queryClient };
 }
 
 describe("admin workspace", () => {
@@ -117,7 +118,26 @@ describe("admin workspace", () => {
     ])));
   });
 
-  it("shows a reset password exactly in the controlled result panel without browser storage", async () => {
+  it("renders the returned account status before a list refetch completes", async () => {
+    let listRequests = 0;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      if (String(input).endsWith("/lock")) {
+        return new Response(JSON.stringify({ data: { ...apiUsers[0], status: "locked" }, meta: { requestId: "req-lock" } }), { status: 200 });
+      }
+      listRequests += 1;
+      if (listRequests === 1) return apiListResponse(apiUsers, "req-users");
+      return new Promise<Response>(() => {});
+    });
+    const user = userEvent.setup();
+    await renderApiAdminAccounts(fetcher);
+
+    await user.click(await screen.findByRole("button", { name: "Lock Nguyen Minh Anh" }));
+
+    expect(await screen.findByRole("button", { name: "Unlock Nguyen Minh Anh" })).toBeInTheDocument();
+    expect(within(screen.getByText("Nguyen Minh Anh").closest("tr")!).getByText("locked")).toBeInTheDocument();
+  });
+
+  it("shows a reset password only in the controlled result panel without browser or mutation cache persistence", async () => {
     const temporaryPassword = "temporary-password-123";
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
       if (String(input).endsWith("/reset-password")) {
@@ -126,7 +146,7 @@ describe("admin workspace", () => {
       return apiListResponse(apiUsers, "req-users");
     });
     const user = userEvent.setup();
-    await renderApiAdminAccounts(fetcher);
+    const { queryClient } = await renderApiAdminAccounts(fetcher);
 
     await user.click(await screen.findByRole("button", { name: "Reset password for Nguyen Minh Anh" }));
 
@@ -134,6 +154,12 @@ describe("admin workspace", () => {
     expect(result).toHaveTextContent(temporaryPassword);
     expect(window.localStorage.getItem("temporaryPassword")).toBeNull();
     expect(window.sessionStorage.getItem("temporaryPassword")).toBeNull();
+    expect(queryClient.getMutationCache().getAll()).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+
+    expect(screen.queryByRole("status", { name: "Temporary password result" })).not.toBeInTheDocument();
+    expect(queryClient.getMutationCache().getAll()).toHaveLength(0);
   });
 
   it("derives the active doctor metric from mock data", () => {

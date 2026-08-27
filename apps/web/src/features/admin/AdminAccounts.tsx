@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { ApiAccountStatus } from "../../lib/api/users";
+import type { ApiListResponse } from "../../lib/api/types";
 import type { UserRole } from "../../types/models";
 import { adminAccountsQueryOptions, adminAccountsService } from "./adminAccountsService";
+import type { AdminAccount } from "./adminAccountsService";
 
 const roles: UserRole[] = ["patient", "doctor", "receptionist", "nurse", "admin"];
 const statuses: ApiAccountStatus[] = ["active", "locked", "inactive"];
@@ -13,6 +15,7 @@ export function AdminAccounts() {
   const [role, setRole] = useState<"" | UserRole>("");
   const [status, setStatus] = useState<"" | ApiAccountStatus>("");
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const filters = { q: q || undefined, role: role || undefined, status: status || undefined, page: 1, pageSize: 100 };
   const { data: response, isLoading, error } = useQuery(adminAccountsQueryOptions.list(filters));
   const accounts = response?.data ?? [];
@@ -24,13 +27,25 @@ export function AdminAccounts() {
       if (action === "unlock") return adminAccountsService.unlockUser(id);
       return adminAccountsService.deactivateUser(id);
     },
-    onSuccess: refreshAccounts,
+    onSuccess: (updatedAccount) => {
+      queryClient.setQueriesData<ApiListResponse<AdminAccount>>({ queryKey: ["admin", "accounts"] }, (current) => current && {
+        ...current,
+        data: current.data.map((account) => account.id === updatedAccount.id ? updatedAccount : account),
+      });
+      refreshAccounts();
+    },
   });
-  const resetPassword = useMutation({
-    mutationFn: (id: string) => adminAccountsService.resetPassword(id),
-    onMutate: () => setTemporaryPassword(null),
-    onSuccess: (result) => setTemporaryPassword(result.temporaryPassword),
-  });
+
+  async function resetPassword(id: string) {
+    setTemporaryPassword(null);
+    setIsResettingPassword(true);
+    try {
+      const result = await adminAccountsService.resetPassword(id);
+      setTemporaryPassword(result.temporaryPassword);
+    } finally {
+      setIsResettingPassword(false);
+    }
+  }
 
   return (
     <section className="mx-auto max-w-7xl">
@@ -49,7 +64,7 @@ export function AdminAccounts() {
       <div className="mt-4 overflow-x-auto border border-border bg-surface">
         <table aria-label="Accounts" className="min-w-full text-left text-sm">
           <thead className="bg-surface-muted text-xs text-text-muted"><tr><th className="p-2 font-medium">Account</th><th className="p-2 font-medium">Email</th><th className="p-2 font-medium">Role</th><th className="p-2 font-medium">Status</th><th className="p-2 text-right font-medium">Actions</th></tr></thead>
-          <tbody>{accounts.map((account) => <tr className="border-t border-border" key={account.id}><td className="p-2 font-medium text-text">{account.displayName}</td><td className="p-2 text-text-muted">{account.email}</td><td className="p-2">{account.role}</td><td className="p-2">{account.status}</td><td className="p-2"><div className="flex justify-end gap-2">{account.status === "locked" ? <button aria-label={`Unlock ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "unlock" })} type="button">Unlock</button> : account.status === "active" ? <button aria-label={`Lock ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "lock" })} type="button">Lock</button> : null}<button aria-label={`Deactivate ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-danger hover:bg-surface-muted" disabled={account.status === "inactive" || statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "deactivate" })} type="button">Deactivate</button><button aria-label={`Reset password for ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={resetPassword.isPending} onClick={() => resetPassword.mutate(account.id)} type="button">Reset password</button></div></td></tr>)}</tbody>
+          <tbody>{accounts.map((account) => <tr className="border-t border-border" key={account.id}><td className="p-2 font-medium text-text">{account.displayName}</td><td className="p-2 text-text-muted">{account.email}</td><td className="p-2">{account.role}</td><td className="p-2">{account.status}</td><td className="p-2"><div className="flex justify-end gap-2">{account.status === "locked" ? <button aria-label={`Unlock ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "unlock" })} type="button">Unlock</button> : account.status === "active" ? <button aria-label={`Lock ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "lock" })} type="button">Lock</button> : null}<button aria-label={`Deactivate ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-danger hover:bg-surface-muted" disabled={account.status === "inactive" || statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "deactivate" })} type="button">Deactivate</button><button aria-label={`Reset password for ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={isResettingPassword} onClick={() => { void resetPassword(account.id); }} type="button">Reset password</button></div></td></tr>)}</tbody>
         </table>
       </div>
       {isLoading ? <p className="mt-3 text-sm text-text-muted">Loading accounts...</p> : null}
