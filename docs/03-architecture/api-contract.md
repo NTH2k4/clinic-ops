@@ -165,7 +165,7 @@ Common error codes:
 | Method | Path | Role | Mục đích |
 | --- | --- | --- | --- |
 | GET | `/doctor-schedules` | authenticated | List schedule với `doctorId`, `from`, `to`. |
-| POST | `/doctor-schedules` | admin | Tạo working block hoặc unavailable block. |
+| POST | `/doctor-schedules` | admin | Tạo working, blocked hoặc leave schedule. |
 | PATCH | `/doctor-schedules/{id}` | admin | Sửa effective range/time/status. |
 | POST | `/doctor-schedules/{id}/deactivate` | admin | Ngừng áp dụng schedule block. |
 

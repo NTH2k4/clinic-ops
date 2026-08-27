@@ -92,7 +92,7 @@ Acceptance criteria:
 
 ## Workstream 4: Backend Deployment Readiness
 
-Status: in progress through `render.yaml`, single-service static serving, and GitHub Deployment registration.
+Status: baseline implemented through `render.yaml`, single-service static serving, Neon database configuration guidance and GitHub Deployment registration.
 
 Goal: make the API deployable outside local development.
 
@@ -167,6 +167,8 @@ Acceptance criteria:
 
 ## Workstream 8: Documentation Language Migration
 
+Status: in progress; new backend/agent-facing docs are English-first and `security-notes.md` has been translated after material revision.
+
 Goal: align the documentation set with the English-first policy without creating a noisy bulk rewrite.
 
 Recommended actions:
@@ -209,8 +211,6 @@ Acceptance criteria:
 
 ## Open Decisions
 
-- API hosting provider.
-- PostgreSQL hosting provider.
 - Production password, account lockout and password reset strategy.
 - Whether OpenAPI should remain manually checked in or move to code generation after the API surface grows.
-- Whether schedule management belongs in the next product slice or a later operations slice.
+- Whether schedule management UI belongs in the next product slice or a later operations slice.
