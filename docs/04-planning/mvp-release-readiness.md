@@ -49,22 +49,23 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 
 ## API Verification Gate Sau Merge (Task 2)
 
-Trạng thái: **blocked một phần** tại bước khởi động PostgreSQL local. Các command không phụ thuộc database đã chạy; migrations, deterministic seed và E2E không thể chạy.
+Trạng thái: **pass** đối với API gate sau merge, dùng PostgreSQL host local tại configured target `postgresql://careflow:careflow@localhost:5432/careflow`. Docker Compose vẫn không khả dụng cho user hiện tại, nhưng database target đã reachable và database-dependent commands đã chạy thành công.
 
 | Command | Kết quả | Chi tiết |
 | --- | --- | --- |
-| `docker compose up -d postgres` | Fail | Docker daemon socket không cho phép user hiện tại kết nối: `permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock`. First actionable error: cần cấp quyền truy cập Docker daemon hoặc chạy trong môi trường có Docker daemon khả dụng. |
+| `docker compose up -d postgres` | Fail (setup limitation) | Docker daemon socket không cho phép user hiện tại kết nối: `permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock`. PostgreSQL host local tại configured target vẫn reachable, nên failure này không block database gate. |
+| `pg_isready -h localhost -p 5432 -U careflow -d careflow` | Pass | `localhost:5432 - accepting connections`. |
 | `cd apps/api && npm run prisma:generate` | Pass | Prisma Client v6.12.0 generated successfully. |
-| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npx prisma migrate deploy` | Không chạy | Phụ thuộc PostgreSQL. |
-| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run prisma:seed` | Không chạy | Phụ thuộc PostgreSQL và migrations. |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npx prisma migrate deploy` | Pass | 3 migrations found; `No pending migrations to apply.` |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run prisma:seed` | Pass | `tsx prisma/seed.ts` exited 0. |
 | `npm run typecheck` | Pass | `tsc --noEmit` exited 0. |
 | `npm run lint` | Pass | ESLint exited 0. |
 | `npm test -- --runInBand` | Pass | 6/6 test suites and 37/37 tests passed. |
-| `npm run test:e2e -- --runInBand` | Không chạy | Phụ thuộc PostgreSQL, migrations và seed; không có E2E test count mới. |
+| `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | Jest E2E command exited 0; output không hiển thị suite/test count. |
 | `npm run build` | Pass | `nest build` exited 0. |
 | `npm audit --audit-level=high` | Pass | `found 0 vulnerabilities`. |
 
-API verification sau merge chưa đạt đầy đủ. Cần khôi phục quyền truy cập Docker daemon, sau đó chạy các database-dependent commands theo thứ tự từ `docker compose up -d postgres`, rồi migrations, seed và E2E; không suy diễn kết quả từ verification trước merge.
+API verification sau merge đạt đầy đủ trên configured host PostgreSQL target. Docker Compose access là setup limitation còn lại, không phải release-gate blocker khi endpoint đã được kiểm tra và các commands database-dependent pass.
 
 ## Workstream Đang Chờ Quyết Định
 
@@ -93,7 +94,7 @@ Verification đã chạy trong plan triển khai:
 
 Trạng thái verification sau merge:
 
-- API gate: partially verified; Docker/PostgreSQL startup blocked migrations, seed và E2E; xem mục `API Verification Gate Sau Merge (Task 2)`.
+- API gate: pass trên configured host PostgreSQL; Docker Compose access vẫn là setup limitation, xem mục `API Verification Gate Sau Merge (Task 2)`.
 - Chưa chạy lại Web gate sau merge.
 
 ## Bước Tiếp Theo Được Khuyến Nghị
