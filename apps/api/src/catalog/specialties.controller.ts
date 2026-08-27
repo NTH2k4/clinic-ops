@@ -8,7 +8,7 @@ import { specialtyCreateSchema, specialtyListQuerySchema, specialtyUpdateSchema 
 import { CatalogService } from "./catalog.service";
 
 @Controller("specialties")
-@UseGuards(SessionGuard)
+@UseGuards(SessionGuard, RolesGuard)
 export class SpecialtiesController {
   constructor(private readonly catalog: CatalogService) {}
 
@@ -20,21 +20,18 @@ export class SpecialtiesController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.catalog.createSpecialty(parseSchema(specialtyCreateSchema, body), request.currentUser.id));
   }
 
   @Patch(":id")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async update(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.catalog.updateSpecialty(id, parseSchema(specialtyUpdateSchema, body), request.currentUser.id));
   }
 
   @Post(":id/deactivate")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.admin)
   async deactivate(@Param("id") id: string, @Req() request: AuthenticatedRequest) { return successEnvelope(await this.catalog.deactivateSpecialty(id, request.currentUser.id)); }
 }

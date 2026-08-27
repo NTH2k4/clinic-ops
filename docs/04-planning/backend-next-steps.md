@@ -73,7 +73,7 @@ Acceptance criteria:
 
 ## Workstream 3: Production Auth And Session Hardening
 
-Status: in progress; durable bearer sessions, expiry, logout revocation, bcrypt password verification and inactive/locked account login coverage are implemented.
+Status: in progress; durable bearer sessions, expiry, logout revocation, bcrypt password verification, inactive/locked account login coverage and authorization regression coverage are implemented.
 
 Goal: replace MVP demo auth with deployable auth behavior.
 
@@ -83,6 +83,7 @@ Recommended actions:
 2. Add account lockout and password reset requirements if production login is in scope.
 3. Add password rotation/change-password flows when real user administration is added.
 4. Add a cleanup job or operational task for expired/revoked sessions if session volume becomes meaningful.
+5. Keep route-level role gates covered by focused E2E authorization tests before adding new admin or patient-facing endpoints.
 
 Acceptance criteria:
 
@@ -147,6 +148,24 @@ Acceptance criteria:
 - Patient-facing APIs do not expose staff-only notes.
 - Sensitive patient data is not logged by default.
 
+## Workstream 6A: Authorization Matrix Hardening
+
+Status: baseline implemented for current API modules.
+
+Goal: keep role and ownership access rules explicit as the endpoint surface grows.
+
+Recommended actions:
+
+1. Keep `RolesGuard` wired at controller class level for controllers that use `@Roles(...)`, so method-level role metadata cannot be missed by future edits.
+2. Add E2E regression coverage when adding role-specific endpoints, especially patient-owner, doctor-owner and admin-only boundaries.
+3. Keep `/users` administration as a separate admin-management slice instead of expanding it inside auth/session hardening.
+
+Acceptance criteria:
+
+- Non-owner patient and doctor actions return `403 FORBIDDEN`.
+- Patient-facing availability remains limited to patient, receptionist, nurse and admin roles.
+- Planned but unimplemented admin surfaces are clearly marked in docs.
+
 ## Workstream 7: Appointment Scheduling Depth
 
 Status: baseline implemented; admin schedule create/update/deactivate endpoints, blocked schedule availability behavior and scheduling API contract coverage are implemented.
@@ -203,6 +222,7 @@ Acceptance criteria:
 | Frontend API integration | Web unit, typecheck, lint, build, mock Playwright and API-mode Playwright.                                        |
 | API spec                 | `npm test -- --runInBand src/openapi-contract.spec.ts` plus focused contract review against controllers and DTOs. |
 | Auth hardening           | Unit and E2E auth tests for login, restart persistence, logout revocation, expiry and locked/inactive users.       |
+| Authorization hardening  | Focused E2E tests for admin-only, patient-owner, doctor-owner and role-excluded endpoint boundaries.               |
 | Deployment               | Smoke test against deployed health and auth endpoints.                                                            |
 | Observability            | Manual log correlation using one failing and one successful request.                                              |
 | Audit/data governance    | E2E tests for audit writes and projection boundaries.                                                             |

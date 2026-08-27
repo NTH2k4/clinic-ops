@@ -8,7 +8,7 @@ import { appointmentListQuerySchema, appointmentTransitionSchema, appointmentUpd
 import { AppointmentsService } from "./appointments.service";
 
 @Controller("appointments")
-@UseGuards(SessionGuard)
+@UseGuards(SessionGuard, RolesGuard)
 export class AppointmentsController {
   constructor(private readonly appointments: AppointmentsService) {}
 
@@ -25,7 +25,6 @@ export class AppointmentsController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async create(@Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     const schema = request.currentUser.role === UserRole.patient ? patientAppointmentCreateSchema : staffAppointmentCreateSchema;
@@ -33,49 +32,42 @@ export class AppointmentsController {
   }
 
   @Patch(":id")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async reschedule(@Param("id") id: string, @Body() body: Record<string, unknown>, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.appointments.reschedule(id, parseSchema(appointmentUpdateSchema, body), request.currentUser));
   }
 
   @Post(":id/confirm")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async confirm(@Param("id") id: string, @Body() body: Record<string, unknown> = {}, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.appointments.transition(id, AppointmentStatus.confirmed, parseSchema(appointmentTransitionSchema, body), request.currentUser, request.linkedProfile));
   }
 
   @Post(":id/cancel")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.patient, UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async cancel(@Param("id") id: string, @Body() body: Record<string, unknown> = {}, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.appointments.transition(id, AppointmentStatus.cancelled, parseSchema(appointmentTransitionSchema, body), request.currentUser, request.linkedProfile));
   }
 
   @Post(":id/check-in")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async checkIn(@Param("id") id: string, @Body() body: Record<string, unknown> = {}, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.appointments.transition(id, AppointmentStatus.checked_in, parseSchema(appointmentTransitionSchema, body), request.currentUser, request.linkedProfile));
   }
 
   @Post(":id/start")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.doctor)
   async start(@Param("id") id: string, @Body() body: Record<string, unknown> = {}, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.appointments.transition(id, AppointmentStatus.in_progress, parseSchema(appointmentTransitionSchema, body), request.currentUser, request.linkedProfile));
   }
 
   @Post(":id/complete")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.doctor)
   async complete(@Param("id") id: string, @Body() body: Record<string, unknown> = {}, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.appointments.transition(id, AppointmentStatus.completed, parseSchema(appointmentTransitionSchema, body), request.currentUser, request.linkedProfile));
   }
 
   @Post(":id/no-show")
-  @UseGuards(RolesGuard)
   @Roles(UserRole.receptionist, UserRole.nurse, UserRole.admin)
   async noShow(@Param("id") id: string, @Body() body: Record<string, unknown> = {}, @Req() request: AuthenticatedRequest) {
     return successEnvelope(await this.appointments.transition(id, AppointmentStatus.no_show, parseSchema(appointmentTransitionSchema, body), request.currentUser, request.linkedProfile));

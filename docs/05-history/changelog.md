@@ -5,6 +5,8 @@
 - Thêm `careflow-v1-delivery-roadmap.md` và `careflow-v1-subagent-execution-plan.md` để định nghĩa đích CareFlow v1, thứ tự phase, subagent packages, verification gates và các hạng mục ngoài phạm vi v1.
 - Thêm `docs/04-planning/mvp-release-completion-plan.md` để người dùng duyệt một lượt trước khi triển khai subagent-driven: tích hợp authorization hardening, chạy full verification, đồng bộ docs/release notes và chuẩn bị deploy.
 - Cập nhật quy chuẩn documentation-first: mọi bước triển khai mã nguồn phải có plan/status trong `docs/04-planning/`, báo cáo tiến độ phải dẫn chứng docs/branch/commit/verification và thêm tài liệu `mvp-release-readiness.md` bằng tiếng Việt.
+- Hardened API authorization regression coverage for patient-owner, doctor-owner and role-excluded scheduling boundaries, and moved role guard wiring to controller class level for role-protected controllers.
+- Marked `/users` administration as planned rather than implemented and fixed backend architecture drift around the checked-in OpenAPI baseline.
 - Added persisted API bearer session hashes in PostgreSQL with 12-hour expiry, logout revocation, restart-persistence E2E coverage and auth/session documentation updates.
 - Added bcrypt `User.passwordHash` login verification, seeded demo password hashes and inactive/locked account auth coverage.
 - Added backend request ID propagation, structured request/error logging, appointment workflow action logs and a baseline backend operations runbook.
