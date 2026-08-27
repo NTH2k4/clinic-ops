@@ -31,6 +31,14 @@ Error logs include:
 
 Client errors are logged without stack traces. Server errors include stack traces in server logs only.
 
+Appointment workflow logs include:
+
+```json
+{"event":"appointment_workflow","requestId":"request-1","action":"appointment_created","appointmentId":"appointment-1","actorUserId":"user-patient-1","metadata":{"status":"requested"}}
+```
+
+Use these logs with audit events when diagnosing booking, reschedule or status transition issues. Audit events are the durable business record; logs are the operational correlation trail.
+
 ## Database Down
 
 Symptom:

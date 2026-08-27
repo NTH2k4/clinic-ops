@@ -87,6 +87,8 @@ The implementation deliberately keeps the envelope helper small in `apps/api/src
 
 `ApiExceptionFilter` logs structured error metadata with the same `requestId`. Client errors use warning logs without stack traces. Server errors use error logs with stack traces. API clients still receive the stable public error envelope and do not receive stack traces or internal exception details.
 
+`AppointmentsService` logs key appointment workflow actions after successful create, update, reschedule and status transition transactions. These logs include `event=appointment_workflow`, `requestId`, `action`, `appointmentId`, `actorUserId` and metadata.
+
 Operational troubleshooting steps live in `docs/03-architecture/backend-runbook.md`.
 
 ## Authentication And Authorization

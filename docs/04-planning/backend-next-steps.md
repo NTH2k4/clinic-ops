@@ -114,15 +114,14 @@ Acceptance criteria:
 
 ## Workstream 5: Observability And Operations
 
-Status: in progress; request ID propagation, request completion logs, structured exception logs and baseline backend runbook are implemented.
+Status: baseline implemented; request ID propagation, request completion logs, structured exception logs, appointment workflow logs and baseline backend runbook are implemented.
 
 Goal: make backend failures diagnosable after deployment.
 
 Recommended actions:
 
-1. Track key appointment workflow actions.
-2. Expand runbooks once Render deployment has real incident examples.
-3. Decide whether logs should remain plain JSON through Nest `Logger` or move to a dedicated structured logger.
+1. Expand runbooks once Render deployment has real incident examples.
+2. Decide whether logs should remain plain JSON payloads through Nest `Logger` or move to a dedicated structured logger.
 
 Acceptance criteria:
 

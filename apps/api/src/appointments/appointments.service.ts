@@ -1,7 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { AccountStatus, AppointmentStatus, Prisma, UserRole } from "@prisma/client";
 import type { AuthSession } from "../auth/auth.service";
 import { ApiError } from "../common/api-error";
+import { currentRequestId } from "../common/request-context";
 import { paginationArgs } from "../common/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { AppointmentConflictsService } from "./appointment-conflicts.service";
@@ -31,6 +32,8 @@ const transactionAttempts = 3;
 
 @Injectable()
 export class AppointmentsService {
+  private readonly logger = new Logger(AppointmentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly conflicts: AppointmentConflictsService,
@@ -87,7 +90,7 @@ export class AppointmentsService {
     const startAt = new Date(input.startAt);
     const status = actor.role === UserRole.patient ? AppointmentStatus.requested : AppointmentStatus.confirmed;
 
-    return this.serializableTransaction(async (transaction) => {
+    const created = await this.serializableTransaction(async (transaction) => {
       const patient = await this.require(transaction.patient.findUnique({ where: { id: patientId } }), "patient");
       if (patient.status !== AccountStatus.active) throw new ApiError(409, "PATIENT_INACTIVE", "patient is not active.");
       const slot = await this.conflicts.assertSlotAvailable({ doctorId: input.doctorId, serviceId: input.serviceId, startAt, transaction });
@@ -109,10 +112,12 @@ export class AppointmentsService {
       await this.audit(transaction, actor.id, appointment.id, "appointment_created", { status, ...(input.source ? { source: input.source } : {}) });
       return this.detail(transaction, appointment.id, actor.role);
     });
+    this.logAppointmentWorkflow("appointment_created", created.id, actor.id, { status: created.status });
+    return created;
   }
 
   async transition(id: string, target: AppointmentStatus, input: AppointmentTransitionInput, actor: Actor, linkedProfile: AuthSession["linkedProfile"]) {
-    return this.serializableTransaction(async (transaction) => {
+    const transitioned = await this.serializableTransaction(async (transaction) => {
       const appointment = await this.require(transaction.appointment.findUnique({ where: { id } }), "appointment");
       this.assertTransition(appointment.status, target, actor.role);
       this.assertAppointmentActor(appointment, actor, linkedProfile, target);
@@ -140,11 +145,13 @@ export class AppointmentsService {
       await this.audit(transaction, actor.id, id, this.transitionAuditAction(target), { fromStatus: appointment.status, toStatus: target });
       return this.detail(transaction, id, actor.role);
     });
+    this.logAppointmentWorkflow(this.transitionAuditAction(target), id, actor.id, { status: transitioned.status });
+    return transitioned;
   }
 
   async reschedule(id: string, input: AppointmentUpdateInput, actor: Actor) {
     const startAt = input.startAt === undefined ? undefined : new Date(input.startAt);
-    return this.serializableTransaction(async (transaction) => {
+    const rescheduled = await this.serializableTransaction(async (transaction) => {
       const appointment = await this.require(transaction.appointment.findUnique({ where: { id } }), "appointment");
       if (([AppointmentStatus.completed, AppointmentStatus.cancelled, AppointmentStatus.no_show] as AppointmentStatus[]).includes(appointment.status)) {
         throw new ApiError(409, "INVALID_STATUS_TRANSITION", "Terminal appointments cannot be rescheduled.");
@@ -181,6 +188,13 @@ export class AppointmentsService {
       });
       return this.detail(transaction, id, actor.role);
     });
+    this.logAppointmentWorkflow(
+      startAt !== undefined || input.doctorId !== undefined || input.serviceId !== undefined ? "appointment_rescheduled" : "appointment_updated",
+      id,
+      actor.id,
+      { status: rescheduled.status },
+    );
+    return rescheduled;
   }
 
   private assertTransition(from: AppointmentStatus, to: AppointmentStatus, role: UserRole) {
@@ -235,6 +249,17 @@ export class AppointmentsService {
 
   private audit(transaction: Prisma.TransactionClient, actorUserId: string, appointmentId: string, action: string, metadata: Prisma.InputJsonValue) {
     return transaction.auditEvent.create({ data: { actorUserId, appointmentId, entityType: "appointment", entityId: appointmentId, action, metadata } });
+  }
+
+  private logAppointmentWorkflow(action: string, appointmentId: string, actorUserId: string, metadata: Record<string, unknown>) {
+    this.logger.log(JSON.stringify({
+      event: "appointment_workflow",
+      requestId: currentRequestId(),
+      action,
+      appointmentId,
+      actorUserId,
+      metadata,
+    }));
   }
 
   private async serializableTransaction<T>(work: (transaction: Prisma.TransactionClient) => Promise<T>) {
