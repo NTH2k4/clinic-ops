@@ -115,12 +115,14 @@ describe("Auth and RBAC", () => {
     try {
       await request(server)
         .get("/api/v1/auth/me")
+        .set("x-request-id", "request-auth-error-1")
         .expect(401)
+        .expect("x-request-id", "request-auth-error-1")
         .expect((response) => {
           const body: unknown = response.body;
           const parsed = errorResponseSchema.parse(body);
           expect(parsed.error.code).toBe("UNAUTHENTICATED");
-          expect(parsed.meta.requestId).toEqual(expect.any(String));
+          expect(parsed.meta.requestId).toBe("request-auth-error-1");
         });
     } finally {
       await app.close();

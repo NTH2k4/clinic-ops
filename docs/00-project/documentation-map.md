@@ -33,6 +33,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | Frontend DESIGN | Design tokens, layout, accessibility, responsive rules | `docs/03-architecture/frontend-design-system.md` | Có bản baseline |
 | Frontend README | Setup, scripts, mock API boundary, auth/session và verification | `apps/web/README.md` | Hoàn thành cho frontend MVP |
 | Backend README | Setup, scripts, local database, seed accounts và verification | `apps/api/README.md` | Hoàn thành cho backend MVP |
+| Backend RUNBOOK | Operational checks for request IDs, database, migrations, seed guard and auth failures | `docs/03-architecture/backend-runbook.md` | Baseline |
 
 ## Đánh Giá Hiện Tại
 
@@ -54,6 +55,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có backend architecture reference mô tả module boundaries, request lifecycle, auth/RBAC, validation, appointment workflow, conflict engine, audit/notification boundary và testing gates.
 - Có database schema reference cho Prisma/PostgreSQL tables, enums, indexes, seed dataset và schema change rules.
 - Có backend README cho setup local, seed accounts, scripts, verification gate và CI.
+- Có backend runbook baseline cho request correlation, database, migration, seed guard và auth failure checks.
 - Có backend next steps plan bằng tiếng Anh để agent/subagent tiếp tục frontend API integration, OpenAPI, auth hardening, deployment, observability, audit/data governance và scheduling depth.
 
 ### Còn Thiếu So Với Mẫu

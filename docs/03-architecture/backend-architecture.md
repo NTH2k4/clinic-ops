@@ -40,13 +40,14 @@ This document describes the implemented backend architecture for CareFlow. It is
 ## Request Lifecycle
 
 1. Nest receives the request under `/api/v1`.
-2. Controllers parse route params, query strings and bodies.
-3. Protected controllers run `SessionGuard` to extract `Authorization: Bearer <token>` and load the persisted session from `AuthService`.
-4. Role-restricted handlers run `RolesGuard` with metadata from the `@Roles(...)` decorator.
-5. Controllers call `parseSchema(...)` with a Zod schema. Invalid payloads raise `VALIDATION_ERROR`.
-6. Domain services execute Prisma reads/writes and throw `ApiError` for expected failures.
-7. `ApiExceptionFilter` maps known errors into the shared error envelope.
-8. Controllers wrap successful responses with `successEnvelope(...)` or `listEnvelope(...)`.
+2. `RequestLoggingMiddleware` accepts a valid inbound `x-request-id` or creates one, sets the response `x-request-id` header and stores the value in request context.
+3. Controllers parse route params, query strings and bodies.
+4. Protected controllers run `SessionGuard` to extract `Authorization: Bearer <token>` and load the persisted session from `AuthService`.
+5. Role-restricted handlers run `RolesGuard` with metadata from the `@Roles(...)` decorator.
+6. Controllers call `parseSchema(...)` with a Zod schema. Invalid payloads raise `VALIDATION_ERROR`.
+7. Domain services execute Prisma reads/writes and throw `ApiError` for expected failures.
+8. `ApiExceptionFilter` maps known errors into the shared error envelope and logs structured error metadata.
+9. Controllers wrap successful responses with `successEnvelope(...)` or `listEnvelope(...)`, reusing the request context ID.
 
 ## API Envelope
 
@@ -78,7 +79,15 @@ Errors use:
 }
 ```
 
-The implementation deliberately keeps the envelope helper small in `apps/api/src/common/api-response.ts` and the mapping logic centralized in `apps/api/src/common/api-exception.filter.ts`.
+The implementation deliberately keeps the envelope helper small in `apps/api/src/common/api-response.ts`, request ID context in `apps/api/src/common/request-context.ts` and error mapping centralized in `apps/api/src/common/api-exception.filter.ts`.
+
+## Observability
+
+`RequestLoggingMiddleware` logs a JSON payload through Nest `Logger` when each request finishes. The log includes `requestId`, HTTP method, query-free path, status code and duration in milliseconds.
+
+`ApiExceptionFilter` logs structured error metadata with the same `requestId`. Client errors use warning logs without stack traces. Server errors use error logs with stack traces. API clients still receive the stable public error envelope and do not receive stack traces or internal exception details.
+
+Operational troubleshooting steps live in `docs/03-architecture/backend-runbook.md`.
 
 ## Authentication And Authorization
 
