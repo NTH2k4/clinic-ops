@@ -131,15 +131,15 @@ Acceptance criteria:
 
 ## Workstream 6: Data Governance And Audit Expansion
 
+Status: baseline implemented; patient create/update audit events, patient owner projection for staff-only notes, sensitive log rules and audit/data governance policy are implemented.
+
 Goal: make audit and data handling safer for real clinic operations.
 
 Recommended actions:
 
-1. Define which entities require audit on create/update/deactivate.
-2. Add audit coverage for important catalog and patient changes if not already covered at the desired depth.
-3. Define retention expectations for audit events and notifications.
-4. Define which patient fields are sensitive in logs and exports.
-5. Add tests for patient projection rules and staff-only fields.
+1. Define jurisdiction-specific audit and notification retention before real clinic use.
+2. Decide whether authentication events should be written to `AuditEvent` once lockout and password reset flows exist.
+3. Add export/deletion policy only after the product decides its target jurisdiction and compliance model.
 
 Acceptance criteria:
 

@@ -21,20 +21,33 @@ export class PatientsService {
     return { items, total };
   }
 
-  async patient(id: string) { return this.require(this.prisma.patient.findUnique({ where: { id } })); }
+  async patient(id: string, includeOperationalNotes = true) {
+    return this.require(this.prisma.patient.findUnique({
+      where: { id },
+      ...(includeOperationalNotes ? {} : { omit: { notes: true } }),
+    }));
+  }
 
-  create(input: PatientCreateInput, userId?: string) {
-    return this.prisma.patient.create({
-      data: {
-        ...this.createData(input),
-        ...(userId ? { userId } : {}),
-      },
+  create(input: PatientCreateInput, actorUserId: string, userId?: string) {
+    return this.prisma.$transaction(async (transaction) => {
+      const patient = await transaction.patient.create({
+        data: {
+          ...this.createData(input),
+          ...(userId ? { userId } : {}),
+        },
+      });
+      await this.audit(transaction, actorUserId, patient.id, "patient_created");
+      return patient;
     });
   }
 
-  async update(id: string, input: PatientUpdateInput) {
-    await this.patient(id);
-    return this.prisma.patient.update({ where: { id }, data: this.updateData(input) });
+  async update(id: string, input: PatientUpdateInput, actorUserId: string) {
+    return this.prisma.$transaction(async (transaction) => {
+      await this.require(transaction.patient.findUnique({ where: { id } }));
+      const patient = await transaction.patient.update({ where: { id }, data: this.updateData(input) });
+      await this.audit(transaction, actorUserId, patient.id, "patient_updated");
+      return patient;
+    });
   }
 
   async deactivate(id: string, actorUserId: string) {
@@ -44,6 +57,10 @@ export class PatientsService {
       await transaction.auditEvent.create({ data: { actorUserId, entityType: "patient", entityId: patient.id, action: "admin_resource_deactivated" } });
       return deactivated;
     });
+  }
+
+  private audit(transaction: Prisma.TransactionClient, actorUserId: string, patientId: string, action: string) {
+    return transaction.auditEvent.create({ data: { actorUserId, entityType: "patient", entityId: patientId, action } });
   }
 
   private createData(input: PatientCreateInput): Prisma.PatientUncheckedCreateInput {

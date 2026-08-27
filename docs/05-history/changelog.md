@@ -5,6 +5,7 @@
 - Added persisted API bearer session hashes in PostgreSQL with 12-hour expiry, logout revocation, restart-persistence E2E coverage and auth/session documentation updates.
 - Added bcrypt `User.passwordHash` login verification, seeded demo password hashes and inactive/locked account auth coverage.
 - Added backend request ID propagation, structured request/error logging, appointment workflow action logs and a baseline backend operations runbook.
+- Added patient create/update audit events, patient-owner projection protection for staff-only notes and a backend audit/data governance baseline.
 - Moved Render Free database migration from `preDeployCommand` into `buildCommand` because Render Free Web Services do not support pre-deploy commands.
 - Added single-service Render deployment config for the React frontend plus NestJS API, GitHub Deployment registration for the Render URL, static web serving in the API, and Render/Neon deployment docs.
 - Added a checked-in OpenAPI baseline at `docs/03-architecture/openapi.json` and API unit coverage to validate the documented v1 endpoint surface, bearer auth and shared response envelopes.

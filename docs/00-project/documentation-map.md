@@ -25,7 +25,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | BRD | Mục tiêu nghiệp vụ, stakeholder, scope, business rules | `docs/00-project/vision.md`, `docs/00-project/scope.md`, `docs/01-requirements/mvp-requirements.md` | Có bản nhẹ |
 | PRD | Product requirements, persona, user stories, acceptance criteria | `docs/01-requirements/mvp-requirements.md`, `docs/01-requirements/user-stories.md`, `docs/02-product/workflows.md`, `docs/02-product/frontend-mvp-spec.md` | Có frontend MVP spec |
 | SRS | Software requirements chi tiết | Chưa có | Để sau khi frontend workflow rõ |
-| ARCHITECTURE | Kiến trúc tổng thể | `docs/03-architecture/frontend-architecture.md`, `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/data-model.md`, `docs/03-architecture/security-notes.md` | Có frontend và backend baseline |
+| ARCHITECTURE | Kiến trúc tổng thể | `docs/03-architecture/frontend-architecture.md`, `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/data-model.md`, `docs/03-architecture/security-notes.md`, `docs/03-architecture/audit-data-governance.md` | Có frontend và backend baseline |
 | TECHNICAL-DESIGN | Thiết kế kỹ thuật chi tiết | `docs/04-planning/frontend-implementation-plan.md` | Có frontend implementation plan |
 | UC-API-SPEC | Use case và API specification | `docs/03-architecture/api-contract.md` | Có draft rất nhẹ |
 | SEQUENCE | Sequence cho flow chính | `docs/02-product/workflows.md`, `docs/02-product/appointment-states.md` | Có flow text, chưa có sequence chi tiết |
@@ -34,6 +34,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | Frontend README | Setup, scripts, mock API boundary, auth/session và verification | `apps/web/README.md` | Hoàn thành cho frontend MVP |
 | Backend README | Setup, scripts, local database, seed accounts và verification | `apps/api/README.md` | Hoàn thành cho backend MVP |
 | Backend RUNBOOK | Operational checks for request IDs, database, migrations, seed guard and auth failures | `docs/03-architecture/backend-runbook.md` | Baseline |
+| Backend AUDIT/DATA GOVERNANCE | Audit coverage, patient projection and sensitive log rules | `docs/03-architecture/audit-data-governance.md` | Baseline |
 
 ## Đánh Giá Hiện Tại
 
@@ -56,6 +57,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có database schema reference cho Prisma/PostgreSQL tables, enums, indexes, seed dataset và schema change rules.
 - Có backend README cho setup local, seed accounts, scripts, verification gate và CI.
 - Có backend runbook baseline cho request correlation, database, migration, seed guard và auth failure checks.
+- Có audit/data governance baseline cho audit coverage, patient projection và sensitive log rules.
 - Có backend next steps plan bằng tiếng Anh để agent/subagent tiếp tục frontend API integration, OpenAPI, auth hardening, deployment, observability, audit/data governance và scheduling depth.
 
 ### Còn Thiếu So Với Mẫu

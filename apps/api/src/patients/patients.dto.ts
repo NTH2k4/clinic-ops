@@ -14,6 +14,8 @@ export const patientCreateSchema = z.object({
   notes: optionalText,
 }).strict();
 
+export const patientOwnerCreateSchema = patientCreateSchema.omit({ notes: true });
+
 export const patientUpdateSchema = patientCreateSchema.partial().refine((input) => Object.keys(input).length > 0, {
   message: "At least one patient field is required.",
 });

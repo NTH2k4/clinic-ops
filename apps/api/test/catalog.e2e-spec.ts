@@ -32,7 +32,15 @@ const serviceSchema = z.object({
 });
 
 const patientSchema = z.object({
-  data: z.object({ userId: z.string() }),
+  data: z.object({ id: z.string(), userId: z.string().nullable().optional() }).passthrough(),
+});
+
+const patientDetailSchema = z.object({
+  data: z.object({
+    id: z.string(),
+    fullName: z.string(),
+    phone: z.string(),
+  }).passthrough(),
 });
 
 const demoPasswordHash = "$2a$10$Gfgzco0n8DMTE/AqMyfb.ekoNCRoI6QlhM88/1a.dgKwKEkX.Xmwi";
@@ -224,6 +232,37 @@ describe("Catalog resources", () => {
     }
   });
 
+  it("writes audit events when staff create and update patients", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const token = await login(server, "reception@careflow.local");
+      const createResponse = await request(server)
+        .post("/api/v1/patients")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ fullName: "Audit Patient", phone: `+84928${Date.now().toString().slice(-6)}` })
+        .expect(201);
+      const created = patientSchema.parse(createResponse.body).data;
+
+      await request(server)
+        .patch(`/api/v1/patients/${created.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ address: "Updated audit address" })
+        .expect(200);
+
+      const auditEvents = await prisma.auditEvent.findMany({
+        where: { actorUserId: "user-receptionist-1", entityType: "patient", entityId: created.id },
+        select: { action: true },
+      });
+      expect(auditEvents.map((event) => event.action)).toEqual(expect.arrayContaining([
+        "patient_created",
+        "patient_updated",
+      ]));
+    } finally {
+      await app.close();
+    }
+  });
+
   it("returns RESOURCE_IN_USE when deactivation would affect active dependencies", async () => {
     const { app, server } = await createApp();
 
@@ -292,6 +331,35 @@ describe("Catalog resources", () => {
 
       await expect(prisma.patient.findUniqueOrThrow({ where: { id: "patient-1" }, select: { notes: true } }))
         .resolves.toEqual({ notes: "Staff-only context" });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("omits staff-only patient notes from patient owner reads", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server, "patient@careflow.local");
+      const staffToken = await login(server, "reception@careflow.local");
+      await prisma.patient.update({ where: { id: "patient-1" }, data: { notes: "Staff-only patient note" } });
+
+      await request(server)
+        .get("/api/v1/patients/patient-1")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200)
+        .expect((response) => {
+          const parsed = patientDetailSchema.parse(response.body);
+          expect(parsed.data).not.toHaveProperty("notes");
+        });
+
+      await request(server)
+        .get("/api/v1/patients/patient-1")
+        .set("Authorization", `Bearer ${staffToken}`)
+        .expect(200)
+        .expect((response) => {
+          const parsed = patientDetailSchema.parse(response.body);
+          expect(parsed.data.notes).toBe("Staff-only patient note");
+        });
     } finally {
       await app.close();
     }

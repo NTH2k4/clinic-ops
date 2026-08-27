@@ -73,6 +73,7 @@ Important rules:
 - `phone` is unique.
 - `dateOfBirth` is a database `Date`, not a timestamp.
 - Patient-scoped API reads must filter by the linked patient profile.
+- `notes` is a staff-only operational field and is omitted from patient owner projections.
 
 ### `Staff`
 
@@ -190,6 +191,7 @@ Important rules:
 - `entityType`, `entityId` and `action` identify what changed.
 - `metadata` is JSON for structured context.
 - Indexed by `[entityType, entityId, timestamp]` and `[actorUserId, timestamp]`.
+- Patient audit events should not include demographics, contact details or notes in `metadata`.
 
 ### `Notification`
 
