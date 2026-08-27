@@ -59,7 +59,7 @@ export class AuthService {
       const lockedUserCount = await tx.$executeRaw`
         UPDATE "User"
         SET "passwordHash" = "passwordHash"
-        WHERE "id" = ${user.id} AND "passwordHash" = ${user.passwordHash}
+        WHERE "id" = ${user.id} AND "passwordHash" = ${user.passwordHash} AND "status" = ${AccountStatus.active}::"AccountStatus"
       `;
       if (lockedUserCount !== 1) throw this.unauthenticated();
 

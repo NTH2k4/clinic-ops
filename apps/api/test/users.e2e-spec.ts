@@ -1,10 +1,12 @@
 import { Test } from "@nestjs/testing";
 import { AccountStatus, PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { createHash } from "node:crypto";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { z } from "zod";
 import { AppModule } from "../src/app.module";
+import { PrismaService } from "../src/prisma/prisma.service";
 
 const loginResponseSchema = z.object({
   data: z.object({
@@ -44,13 +46,42 @@ const passwordHash = "$2a$10$c1VsAHp3ekzMRZ.TnR0uSu89qTaTlpJmq1tVRFQirbbDBHvIyxr
 
 describe("User account administration", () => {
   const prisma = new PrismaClient();
+  const sessionTokens = new Set<string>();
 
   afterAll(async () => {
     await prisma.$disconnect();
   });
 
-  async function createApp() {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  afterEach(async () => {
+    await prisma.authSession.deleteMany({
+      where: { tokenHash: { in: [...sessionTokens].map((token) => createHash("sha256").update(token).digest("hex")) } },
+    });
+    sessionTokens.clear();
+  });
+
+  function prismaWithUserLookupHook(afterUserLookup: (user: { id: string } | null) => Promise<void>) {
+    const controlledPrisma = {} as PrismaService;
+    Object.setPrototypeOf(controlledPrisma, prisma);
+    const controlledUser = {} as typeof prisma.user;
+    Object.setPrototypeOf(controlledUser, prisma.user);
+    Object.defineProperty(controlledUser, "findUnique", {
+      value: async (args: Parameters<typeof prisma.user.findUnique>[0]) => {
+        const user = await prisma.user.findUnique(args);
+        await afterUserLookup(user);
+        return user;
+      },
+    });
+    Object.defineProperty(controlledPrisma, "user", { value: controlledUser });
+    Object.defineProperty(controlledPrisma, "$transaction", { value: prisma.$transaction.bind(prisma) });
+    return controlledPrisma;
+  }
+
+  async function createApp(afterUserLookup?: (user: { id: string } | null) => Promise<void>) {
+    const moduleBuilder = Test.createTestingModule({ imports: [AppModule] });
+    if (afterUserLookup) {
+      moduleBuilder.overrideProvider(PrismaService).useValue(prismaWithUserLookupHook(afterUserLookup));
+    }
+    const moduleRef = await moduleBuilder.compile();
     const app = moduleRef.createNestApplication();
     app.setGlobalPrefix("api/v1");
     await app.init();
@@ -59,7 +90,9 @@ describe("User account administration", () => {
 
   async function login(server: App, email: string, password: string) {
     const response = await request(server).post("/api/v1/auth/login").send({ email, password }).expect(201);
-    return loginResponseSchema.parse(response.body).data;
+    const result = loginResponseSchema.parse(response.body).data;
+    sessionTokens.add(result.sessionToken);
+    return result;
   }
 
   async function loginAdmin(server: App) {
@@ -88,7 +121,14 @@ describe("User account administration", () => {
   }
 
   async function deleteTestUser(id: string) {
-    await prisma.user.delete({ where: { id } });
+    await prisma.$transaction(async (transaction) => {
+      await transaction.authSession.deleteMany({ where: { userId: id } });
+      await transaction.auditEvent.deleteMany({ where: { OR: [{ actorUserId: id }, { entityType: "user", entityId: id }] } });
+      await transaction.patient.deleteMany({ where: { userId: id } });
+      await transaction.staff.deleteMany({ where: { userId: id } });
+      await transaction.doctor.deleteMany({ where: { userId: id } });
+      await transaction.user.delete({ where: { id } });
+    });
   }
 
   it("lists and retrieves users with admin-only filters and no password hash", async () => {
@@ -158,6 +198,33 @@ describe("User account administration", () => {
 
       await request(server).post(`/api/v1/users/${user.id}/unlock`).set("Authorization", authorization).expect(201);
       await request(server).post("/api/v1/auth/login").send({ email: user.email, password: user.password }).expect(201);
+    } finally {
+      await deleteTestUser(user.id);
+      await app.close();
+    }
+  });
+
+  it("does not create a session after an admin locks the user between login lookup and session creation", async () => {
+    const user = await createTestUser("lock-race");
+    const serverRef: { current?: App } = {};
+    let adminAuthorization = "";
+    let lockTriggered = false;
+    const { app, server: createdServer } = await createApp(async (lookedUpUser) => {
+      if (lockTriggered || lookedUpUser?.id !== user.id) return;
+      if (!serverRef.current) throw new Error("Test server was not initialized.");
+      lockTriggered = true;
+      await request(serverRef.current).post(`/api/v1/users/${user.id}/lock`).set("Authorization", adminAuthorization).expect(201);
+    });
+    serverRef.current = createdServer;
+
+    try {
+      const admin = await loginAdmin(createdServer);
+      adminAuthorization = `Bearer ${admin.sessionToken}`;
+
+      await request(createdServer).post("/api/v1/auth/login").send({ email: user.email, password: user.password }).expect(401);
+
+      expect(lockTriggered).toBe(true);
+      await expect(prisma.authSession.findMany({ where: { userId: user.id } })).resolves.toHaveLength(0);
     } finally {
       await deleteTestUser(user.id);
       await app.close();
