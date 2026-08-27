@@ -8,6 +8,7 @@ type OpenApiDocument = {
   components?: {
     securitySchemes?: Record<string, { type?: string; scheme?: string }>;
     requestBodies?: Record<string, { content?: { "application/json"?: { schema?: { $ref?: string } } } }>;
+    responses?: Record<string, { content?: { "application/json"?: { schema?: { $ref?: string } } } }>;
     schemas?: Record<string, { required?: string[]; properties?: Record<string, unknown> }>;
   };
 };
@@ -15,7 +16,7 @@ type OpenApiDocument = {
 type OperationObject = {
   parameters?: Array<{ $ref?: string; name?: string }>;
   requestBody?: { $ref?: string };
-  responses?: Record<string, unknown>;
+  responses?: Record<string, { $ref?: string }>;
 };
 
 const specPath = resolve(__dirname, "../../../docs/03-architecture/openapi.json");
@@ -107,9 +108,18 @@ describe("OpenAPI contract", () => {
 
   it("matches account lifecycle request and response schemas", () => {
     expect(spec.paths?.["/api/v1/auth/register"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/PatientRegistration");
-    expect(spec.paths?.["/api/v1/auth/register"]?.post?.responses).toHaveProperty("201");
     expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/ChangePassword");
-    expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.responses).toHaveProperty("201");
+
+    const responseSchemaRef = (path: string, method: string, status: string) => {
+      const responseRef = spec.paths?.[path]?.[method]?.responses?.[status]?.$ref;
+      const responseName = responseRef?.replace("#/components/responses/", "");
+      return responseName ? spec.components?.responses?.[responseName]?.content?.["application/json"]?.schema?.$ref : undefined;
+    };
+
+    expect(spec.paths?.["/api/v1/auth/register"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/AuthSession");
+    expect(responseSchemaRef("/api/v1/auth/register", "post", "201")).toBe("#/components/schemas/AuthSessionEnvelope");
+    expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/Success");
+    expect(responseSchemaRef("/api/v1/auth/change-password", "post", "201")).toBe("#/components/schemas/SuccessEnvelope");
 
     const registration = spec.components?.schemas?.PatientRegistrationRequest;
     expect(registration?.required).toEqual(["displayName", "email", "phone", "password"]);
@@ -128,7 +138,20 @@ describe("OpenAPI contract", () => {
     expect(spec.paths?.["/api/v1/users"]?.get?.parameters?.map((parameter) => parameter.$ref ?? parameter.name)).toEqual(
       expect.arrayContaining(["#/components/parameters/Q", "#/components/parameters/UserRole", "#/components/parameters/AccountStatus", "#/components/parameters/Page", "#/components/parameters/PageSize"]),
     );
-    expect(spec.paths?.["/api/v1/users/{id}/reset-password"]?.post?.responses).toHaveProperty("201");
+    expect(spec.paths?.["/api/v1/users"]?.get?.responses?.["400"]?.$ref).toBe("#/components/responses/Error");
+
+    expect(spec.paths?.["/api/v1/users"]?.get?.responses?.["200"]?.$ref).toBe("#/components/responses/UserList");
+    expect(responseSchemaRef("/api/v1/users", "get", "200")).toBe("#/components/schemas/UserListEnvelope");
+
+    for (const path of ["/api/v1/users/{id}", "/api/v1/users/{id}/lock", "/api/v1/users/{id}/unlock", "/api/v1/users/{id}/deactivate"]) {
+      const method = path === "/api/v1/users/{id}" ? "get" : "post";
+      const status = path === "/api/v1/users/{id}" ? "200" : "201";
+      expect(spec.paths?.[path]?.[method]?.responses?.[status]?.$ref).toBe("#/components/responses/User");
+      expect(responseSchemaRef(path, method, status)).toBe("#/components/schemas/UserEnvelope");
+    }
+
+    expect(spec.paths?.["/api/v1/users/{id}/reset-password"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/PasswordReset");
+    expect(responseSchemaRef("/api/v1/users/{id}/reset-password", "post", "201")).toBe("#/components/schemas/PasswordResetEnvelope");
     expect(spec.components?.schemas?.PasswordResetResponse?.required).toEqual(["temporaryPassword"]);
   });
 

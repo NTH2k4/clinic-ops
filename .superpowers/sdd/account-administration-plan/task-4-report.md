@@ -32,3 +32,20 @@ git diff --check: exit 0
 ## Concerns
 
 None.
+
+## Fix Round 1
+
+- Added the strict-query validation `400` error response to `GET /api/v1/users`.
+- Strengthened the OpenAPI contract test to assert each new operation's response component and resolved envelope schema reference.
+- Corrected the user-list summary to clarify that admins list all user accounts, not only administrator accounts.
+- Marked the older authorization-hardening plan's `/users` wording as historical and superseded by Account Administration Task 3.
+
+### Verification
+
+```text
+RED: 1 suite failed, 1 assertion failed because GET /api/v1/users lacked response 400.
+GREEN: npm test -- --runInBand src/openapi-contract.spec.ts: 1 suite passed, 9 tests passed
+npm run typecheck: exit 0
+jq empty docs/03-architecture/openapi.json: exit 0
+git diff --check: exit 0
+```
