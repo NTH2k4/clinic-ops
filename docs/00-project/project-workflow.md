@@ -8,6 +8,21 @@ Docs là contract chung cho cả human contributors và agent contributors. Vì 
 
 Quy chuẩn viết docs nằm tại `docs/00-project/documentation-standards.md`.
 
+## Ghi Nhận Tiến Độ Trong Docs
+
+Mọi bước triển khai trong mã nguồn phải được ghi lại rõ trong `docs` trước khi chuyển sang bước tiếp theo. Mục tiêu là để người dùng luôn có cái nhìn tổng quan về dự án mà không cần truy ngược lịch sử chat.
+
+Quy tắc áp dụng:
+
+1. Trước khi sửa mã nguồn, tạo hoặc cập nhật plan trong `docs/04-planning/`.
+2. Plan phải có scope, task checklist, file dự kiến sửa, verification commands và trạng thái hiện tại.
+3. Khi hoàn thành một task, cập nhật checklist/status trong tài liệu liên quan.
+4. Khi có commit hoặc branch triển khai, ghi lại branch/commit trong tài liệu tiến độ nếu work chưa được merge.
+5. Khi báo cáo tiến độ cho người dùng, phải dẫn chứng bằng đường dẫn tài liệu, trạng thái checklist, commit/branch và verification đã chạy.
+6. Nếu có plan phụ trong `docs/superpowers/plans/`, vẫn phải duy trì bản tổng quan hoặc status bằng tiếng Việt trong `docs/04-planning/`.
+
+Tài liệu tổng quan tiến độ hiện tại nằm tại `docs/04-planning/current-progress-and-next-steps.md`.
+
 ## Ngôn Ngữ Tài Liệu
 
 CareFlow hướng đến người dùng Việt Nam, nên tài liệu hướng dự án sẽ dùng tiếng Việt theo mặc định. Technical terms, framework names, API names và thuật ngữ chuyên ngành phổ biến có thể giữ bằng tiếng Anh khi dịch sang tiếng Việt làm giảm độ rõ nghĩa.
@@ -22,6 +37,8 @@ Ví dụ các thuật ngữ có thể giữ bằng tiếng Anh:
 - dashboard
 - audit log
 - role-based access control
+
+Tài liệu dành riêng cho agent/subagent có thể dùng tiếng Anh khi tooling yêu cầu, nhưng các quyết định, tiến độ và kế hoạch tổng quan cho người dùng phải có bản tiếng Việt trong `docs`.
 
 ## Thứ Tự Làm Việc
 

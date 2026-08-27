@@ -35,6 +35,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | Backend README | Setup, scripts, local database, seed accounts và verification | `apps/api/README.md` | Hoàn thành cho backend MVP |
 | Backend RUNBOOK | Operational checks for request IDs, database, migrations, seed guard and auth failures | `docs/03-architecture/backend-runbook.md` | Baseline |
 | Backend AUDIT/DATA GOVERNANCE | Audit coverage, patient projection and sensitive log rules | `docs/03-architecture/audit-data-governance.md` | Baseline |
+| Current Progress | Tổng quan tiến độ, branch/commit đang chờ tích hợp và bước tiếp theo | `docs/04-planning/current-progress-and-next-steps.md` | Active |
 
 ## Đánh Giá Hiện Tại
 
@@ -59,6 +60,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có backend runbook baseline cho request correlation, database, migration, seed guard và auth failure checks.
 - Có audit/data governance baseline cho audit coverage, patient projection và sensitive log rules.
 - Có backend next steps plan bằng tiếng Anh để agent/subagent tiếp tục auth hardening, deployment, observability, audit/data governance và scheduling depth follow-up.
+- Có tài liệu tổng quan tiến độ hiện tại bằng tiếng Việt tại `docs/04-planning/current-progress-and-next-steps.md`, dùng để trả lời trạng thái triển khai bằng dẫn chứng docs/branch/commit/verification.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -76,6 +78,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 Thứ tự nên làm tiếp:
 
 1. Use `docs/04-planning/backend-next-steps.md` as the backend-facing planning source.
-2. Keep the single-service Render plus Neon deployment path documented and verified.
-3. Maintain the checked-in OpenAPI spec when endpoint behavior changes.
-4. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.
+2. Keep `docs/04-planning/current-progress-and-next-steps.md` updated before and after every implementation step.
+3. Keep the single-service Render plus Neon deployment path documented and verified.
+4. Maintain the checked-in OpenAPI spec when endpoint behavior changes.
+5. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.
