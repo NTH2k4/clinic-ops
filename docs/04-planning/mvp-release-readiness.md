@@ -39,7 +39,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 
 ## Trạng Thái Branch Hiện Tại
 
-- Root worktree `clinic-ops` đang ở `main`, ahead `origin/main` do merge local release candidate chưa push.
+- Root worktree `clinic-ops` đang ở `main`, sạch và ahead `origin/main` do local release candidate chưa push.
 - Worktree triển khai authorization hardening nằm tại `.worktrees/authorization-hardening`.
 - Branch triển khai: `authorization-hardening`.
 - Commit triển khai authorization hardening: `e6ed2c18 fix(api): harden authorization boundaries`.
@@ -83,6 +83,19 @@ Trạng thái: **pass** cho toàn bộ Web gate sau merge. API-mode Playwright d
 | `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` | Pass | API-mode Playwright: 5/5 browser tests passed. |
 
 Không có failure command hoặc actionable error trong Web gate. Các warning `NO_COLOR` của Node trong Playwright và chunk-size warning của Vite không làm command thất bại.
+
+## Push Và Deployment Gate (Task 5)
+
+Trạng thái: **chưa chạy push/deploy**. Local release candidate đã verified, nhưng push `main`, GitHub Actions inspection và Render health/login smoke là external side effects nên vẫn cần approval riêng.
+
+| Check | Kết quả | Chi tiết |
+| --- | --- | --- |
+| `git status --short --branch` | Pass | `main` sạch và ahead `origin/main` với local release candidate commits. |
+| `git log --oneline --decorate -12` | Pass | HEAD hiện tại là local release candidate; chưa push lên `origin/main`. |
+| `RENDER_EXTERNAL_URL` | Missing | Environment hiện tại không có Render URL để chạy deployed health/login smoke. |
+| `gh auth status` | Not available | `gh` CLI không khả dụng trong môi trường hiện tại, nên chưa inspect được GitHub Actions từ CLI. |
+
+Điều kiện để chạy tiếp: người dùng xác nhận rõ việc push/deploy, `origin main` cho phép push, và có `RENDER_EXTERNAL_URL` sau khi Render service sẵn sàng.
 
 ## Workstream Đang Chờ Quyết Định
 

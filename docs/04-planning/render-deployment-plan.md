@@ -80,14 +80,13 @@ Then open the Render root URL and verify the app logs in with demo accounts.
 ## Known Free-Tier Constraints
 
 - Render Free Web Services can cold start after idle time.
-- In-memory sessions are lost when the Render process restarts.
+- Bearer sessions are persisted in PostgreSQL with expiry/revocation, so normal Render restarts do not invalidate unexpired active sessions. Sessions still depend on the configured Neon database being available.
 - Neon Free has storage and compute limits.
 - Do not use real patient data on this demo deployment.
 - Render Free Web Services do not support pre-deploy commands, so database migrations run in `buildCommand`.
 
 ## Next Hardening Work
 
-- Replace in-memory demo sessions with durable auth.
-- Add request logging and error logging.
+- Add account administration flows for password change/reset and account state management.
 - Add deployed Playwright smoke checks against the Render URL.
 - Decide whether to keep GitHub Pages as a mock-only demo or retire it after Render is stable.
