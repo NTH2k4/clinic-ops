@@ -162,6 +162,41 @@ describe("admin workspace", () => {
     expect(queryClient.getMutationCache().getAll()).toHaveLength(0);
   });
 
+  it("reports reset failures without unhandled rejections and clears stale reset state on retry", async () => {
+    let resetAttempts = 0;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      if (String(input).endsWith("/reset-password")) {
+        resetAttempts += 1;
+        if (resetAttempts === 2) {
+          return new Response(JSON.stringify({ error: { code: "VALIDATION_ERROR", message: "Password reset failed." }, meta: { requestId: "req-reset-failed" } }), { status: 400 });
+        }
+        return new Response(JSON.stringify({ data: { temporaryPassword: `temporary-password-${resetAttempts}` }, meta: { requestId: `req-reset-${resetAttempts}` } }), { status: 200 });
+      }
+      return apiListResponse(apiUsers, "req-users");
+    });
+    const unhandledRejection = vi.fn();
+    window.addEventListener("unhandledrejection", unhandledRejection);
+    const user = userEvent.setup();
+    await renderApiAdminAccounts(fetcher);
+
+    try {
+      const resetButton = await screen.findByRole("button", { name: "Reset password for Nguyen Minh Anh" });
+      await user.click(resetButton);
+      expect(await screen.findByRole("status", { name: "Temporary password result" })).toHaveTextContent("temporary-password-1");
+
+      await user.click(resetButton);
+      expect(await screen.findByRole("alert")).toHaveTextContent("Password reset failed.");
+      expect(screen.queryByRole("status", { name: "Temporary password result" })).not.toBeInTheDocument();
+
+      await user.click(resetButton);
+      expect(await screen.findByRole("status", { name: "Temporary password result" })).toHaveTextContent("temporary-password-3");
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(unhandledRejection).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener("unhandledrejection", unhandledRejection);
+    }
+  });
+
   it("derives the active doctor metric from mock data", () => {
     renderWithProviders(<AdminDashboard />);
 

@@ -16,6 +16,7 @@ export function AdminAccounts() {
   const [status, setStatus] = useState<"" | ApiAccountStatus>("");
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
   const filters = { q: q || undefined, role: role || undefined, status: status || undefined, page: 1, pageSize: 100 };
   const { data: response, isLoading, error } = useQuery(adminAccountsQueryOptions.list(filters));
   const accounts = response?.data ?? [];
@@ -38,10 +39,14 @@ export function AdminAccounts() {
 
   async function resetPassword(id: string) {
     setTemporaryPassword(null);
+    setResetError(null);
     setIsResettingPassword(true);
     try {
       const result = await adminAccountsService.resetPassword(id);
+      setResetError(null);
       setTemporaryPassword(result.temporaryPassword);
+    } catch (caughtError) {
+      setResetError(caughtError instanceof Error ? caughtError.message : "Unable to reset password.");
     } finally {
       setIsResettingPassword(false);
     }
@@ -60,6 +65,7 @@ export function AdminAccounts() {
         </div>
       </fieldset>
       {temporaryPassword ? <div aria-label="Temporary password result" className="mt-4 flex items-center justify-between gap-3 border border-warning bg-surface px-3 py-2 text-sm" role="status"><span>Temporary password: <code className="font-semibold text-text">{temporaryPassword}</code></span><button className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" onClick={() => setTemporaryPassword(null)} type="button">Dismiss</button></div> : null}
+      {resetError ? <p className="mt-4 text-sm text-danger" role="alert">{resetError}</p> : null}
       {error ? <p className="mt-4 text-sm text-danger" role="alert">{error instanceof Error ? error.message : "Unable to load accounts."}</p> : null}
       <div className="mt-4 overflow-x-auto border border-border bg-surface">
         <table aria-label="Accounts" className="min-w-full text-left text-sm">
