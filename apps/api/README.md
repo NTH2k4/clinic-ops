@@ -168,9 +168,10 @@ Do not use wildcard browser origins for production because the API uses bearer s
 Detailed behavior is documented in:
 
 - `docs/03-architecture/api-contract.md`
+- `docs/03-architecture/openapi.json`
 - `docs/03-architecture/backend-architecture.md`
 - `docs/03-architecture/database-schema.md`
 
 ## CI
 
-`.github/workflows/api-ci.yml` runs on changes to `apps/api/**` and the API CI workflow. It uses PostgreSQL 16 and runs Prisma generate, migration deploy, seed, typecheck, lint, unit tests, E2E tests, build and high-severity dependency audit.
+`.github/workflows/api-ci.yml` runs on changes to `apps/api/**`, `docs/03-architecture/openapi.json` and the API CI workflow. It uses PostgreSQL 16 and runs Prisma generate, migration deploy, seed, typecheck, lint, unit tests, E2E tests, build and high-severity dependency audit. Unit tests include `src/openapi-contract.spec.ts`, which validates that the checked-in OpenAPI contract still documents the implemented v1 endpoint surface.

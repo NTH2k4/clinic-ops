@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-27
+
+- Added a checked-in OpenAPI baseline at `docs/03-architecture/openapi.json` and API unit coverage to validate the documented v1 endpoint surface, bearer auth and shared response envelopes.
+
 ## 2026-08-26
 
 - Fixed GitHub Pages SPA routing by deriving `BrowserRouter` basename from the Vite base URL so navigation stays under `/clinic-ops`.

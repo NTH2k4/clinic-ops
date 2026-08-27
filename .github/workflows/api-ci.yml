@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - "apps/api/**"
+      - "docs/03-architecture/openapi.json"
       - ".github/workflows/api-ci.yml"
   pull_request:
     branches: [main]
     paths:
       - "apps/api/**"
+      - "docs/03-architecture/openapi.json"
       - ".github/workflows/api-ci.yml"
 
 permissions:

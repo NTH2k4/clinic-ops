@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Proposed baseline |
+| Status | Active baseline |
 | Primary audience | AI agents, subagents and senior engineers planning backend work |
-| Last updated | 2026-08-26 |
-| Inputs | Implemented backend on `main`, frontend API integration branch handoff, backend architecture docs |
+| Last updated | 2026-08-27 |
+| Inputs | Implemented backend on `main`, merged frontend API integration, backend architecture docs, checked-in OpenAPI baseline |
 
 ## Purpose
 
@@ -24,10 +24,14 @@ The backend on `main` has:
 - Catalog, patients, scheduling, appointments, audit and notifications modules.
 - Appointment conflict checks and status transition enforcement.
 - API CI with typecheck, lint, unit tests, E2E tests, build and dependency audit.
+- Frontend API integration merged into `main` with mock mode remaining the default runtime data source.
+- Checked-in OpenAPI baseline at `docs/03-architecture/openapi.json`, validated by `apps/api/src/openapi-contract.spec.ts` in API CI.
 
-The frontend API integration branch from the prior handoff is implemented and verified, but it has not been merged into `main` in the current checkout.
+The next backend-facing work should start from deployment/auth/observability decisions instead of redoing the completed backend MVP or frontend integration work.
 
 ## Workstream 1: Integrate Frontend API Branch
+
+Status: completed on `main`.
 
 Goal: move the verified frontend API integration into the main development line.
 
@@ -48,15 +52,17 @@ Acceptance criteria:
 
 ## Workstream 2: Publish A Machine-Readable API Spec
 
+Status: baseline implemented with a checked-in OpenAPI JSON document.
+
 Goal: reduce drift between backend, frontend and agent tasks.
 
 Recommended actions:
 
-1. Add OpenAPI generation or maintain a checked-in `openapi.yaml`.
-2. Cover auth, catalog, patients, scheduling, appointments, audit and notifications.
-3. Include success/error envelopes and pagination metadata.
-4. Add a CI check that validates the OpenAPI file if it is generated or hand-maintained.
-5. Update `docs/03-architecture/api-contract.md` to point to the machine-readable spec.
+1. Maintain `docs/03-architecture/openapi.json` as the checked-in OpenAPI contract.
+2. Keep auth, catalog, patients, scheduling, appointments, audit and notifications covered.
+3. Keep success/error envelopes and pagination metadata in shared schemas.
+4. Keep `apps/api/src/openapi-contract.spec.ts` in API CI as the baseline drift check; `.github/workflows/api-ci.yml` must continue to trigger on `docs/03-architecture/openapi.json`.
+5. Update `docs/03-architecture/api-contract.md` when the machine-readable contract moves or changes ownership.
 
 Acceptance criteria:
 
@@ -177,21 +183,19 @@ Acceptance criteria:
 
 ## Recommended Execution Order
 
-1. Integrate and stabilize the frontend API branch.
-2. Add OpenAPI or an equivalent machine-readable API spec.
-3. Decide the deployment target and CORS model.
-4. Harden auth/session behavior for the chosen deployment model.
-5. Add observability and operational runbooks.
-6. Expand audit/data governance.
-7. Deepen scheduling management only after the integrated product flow is stable.
-8. Translate existing high-value docs opportunistically when they are materially revised.
+1. Decide the deployment target and CORS model.
+2. Harden auth/session behavior for the chosen deployment model.
+3. Add observability and operational runbooks.
+4. Expand audit/data governance.
+5. Deepen scheduling management only after the integrated product flow is stable.
+6. Translate existing high-value docs opportunistically when they are materially revised.
 
 ## Verification Matrix
 
 | Workstream | Minimum verification |
 | --- | --- |
 | Frontend API integration | Web unit, typecheck, lint, build, mock Playwright and API-mode Playwright. |
-| API spec | Spec validation plus focused contract review against controllers and DTOs. |
+| API spec | `npm test -- --runInBand src/openapi-contract.spec.ts` plus focused contract review against controllers and DTOs. |
 | Auth hardening | Unit and E2E auth tests for login, logout, expiry/revocation and locked/inactive users. |
 | Deployment | Smoke test against deployed health and auth endpoints. |
 | Observability | Manual log correlation using one failing and one successful request. |
@@ -204,5 +208,5 @@ Acceptance criteria:
 - API hosting provider.
 - PostgreSQL hosting provider.
 - Production auth strategy.
-- Whether OpenAPI should be generated from code or maintained as a checked-in contract.
+- Whether OpenAPI should remain manually checked in or move to code generation after the API surface grows.
 - Whether schedule management belongs in the next product slice or a later operations slice.

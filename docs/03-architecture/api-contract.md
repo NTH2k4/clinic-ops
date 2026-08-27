@@ -4,6 +4,8 @@
 
 Tài liệu này định nghĩa API contract v1 cho CareFlow sau khi frontend-first prototype đã kiểm chứng các workflow chính. Contract dùng để triển khai backend thật và thay `mockStore`/mock services trong `apps/web` bằng API client mà không đổi lớn UI.
 
+Machine-readable contract: `docs/03-architecture/openapi.json`. The checked-in OpenAPI document is the API consumer reference for endpoint paths, methods, auth, shared envelopes, pagination metadata and request schemas. API CI validates this file through `apps/api/src/openapi-contract.spec.ts`.
+
 ## Contract Principles
 
 - Base path: `/api/v1`.

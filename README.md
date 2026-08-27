@@ -17,14 +17,14 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 - `docs/00-project/`: tầm nhìn dự án, scope, glossary, workflow làm việc, documentation standards và documentation map.
 - `docs/01-requirements/`: yêu cầu MVP, vai trò người dùng, user stories và change requests.
 - `docs/02-product/`: workflow sản phẩm, danh sách màn hình và mô hình trạng thái appointment.
-- `docs/03-architecture/`: frontend architecture, backend architecture, API contract, data model, database schema and security notes.
+- `docs/03-architecture/`: frontend architecture, backend architecture, API contract, OpenAPI spec, data model, database schema and security notes.
 - `docs/04-planning/`: roadmap, implementation plans, backend next steps and subagent work packages.
 - `docs/05-history/`: changelog, decision log và release notes.
 - `docs/06-testing/`: test strategy và acceptance checklist.
 
 ## Frontend Và CI/CD
 
-Frontend hiện nằm trong `apps/web` và dùng React + Vite + TypeScript. GitHub Actions kiểm tra Pull Request bằng workflow `Web CI` và deploy bản merge vào `main` lên GitHub Pages bằng workflow `Web Pages`. Mock data vẫn là default cho đến Phase 4 API integration.
+Frontend hiện nằm trong `apps/web` và dùng React + Vite + TypeScript. GitHub Actions kiểm tra Pull Request bằng workflow `Web CI` và deploy bản merge vào `main` lên GitHub Pages bằng workflow `Web Pages`. Mock data vẫn là default runtime source, nhưng API-mode regression gate đã kiểm tra luồng tích hợp với backend thật.
 
 Sau khi bật Pages source là **GitHub Actions** trong repository settings, app có thể xem tại:
 
@@ -36,9 +36,9 @@ https://nth2k4.github.io/clinic-ops/
 
 Backend nằm ở `apps/api` và dùng Node.js + NestJS + Prisma + PostgreSQL. API v1 dùng base path `/api/v1` và đã có auth bearer session, catalog, appointment conflict/status workflow, audit events và notifications. PostgreSQL local được khai báo trong `docker-compose.yml`.
 
-API CI chạy Prisma generate, migrate deploy, deterministic seed, typecheck, lint, unit/E2E tests, build và high-severity dependency audit cho thay đổi `apps/api`.
+API CI chạy Prisma generate, migrate deploy, deterministic seed, typecheck, lint, unit/E2E tests, build và high-severity dependency audit cho thay đổi `apps/api` hoặc OpenAPI spec.
 
-Backend setup and operating notes are documented in `apps/api/README.md`. As-built architecture references are in `docs/03-architecture/backend-architecture.md` and `docs/03-architecture/database-schema.md`. The next backend-facing work plan is `docs/04-planning/backend-next-steps.md`.
+Backend setup and operating notes are documented in `apps/api/README.md`. As-built architecture references are in `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/database-schema.md` and `docs/03-architecture/openapi.json`. The next backend-facing work plan is `docs/04-planning/backend-next-steps.md`.
 
 Các lệnh kiểm tra backend:
 
