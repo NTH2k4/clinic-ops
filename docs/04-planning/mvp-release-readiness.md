@@ -33,7 +33,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã merge local vào `main`, chờ full verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194` |
-| MVP Release Completion | Đang triển khai bằng subagent-driven development | `docs/04-planning/mvp-release-completion-plan.md` |
+| MVP Release Completion | Task 1-3 đã hoàn thành local; chờ Task 4 documentation/release notes sync | `docs/04-planning/mvp-release-completion-plan.md`, API và Web verification gates sau merge |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 
@@ -67,6 +67,23 @@ Trạng thái: **pass** đối với API gate sau merge, dùng PostgreSQL host l
 
 API verification sau merge đạt đầy đủ trên configured host PostgreSQL target. Docker Compose access là setup limitation còn lại, không phải release-gate blocker khi endpoint đã được kiểm tra và các commands database-dependent pass.
 
+## Web Verification Gate Sau Merge (Task 3)
+
+Trạng thái: **pass** cho toàn bộ Web gate sau merge. API-mode Playwright dùng đúng configured host PostgreSQL target `postgresql://careflow:careflow@localhost:5432/careflow`.
+
+| Command | Kết quả | Chi tiết |
+| --- | --- | --- |
+| `cd apps/web && npm ci` | Pass | Cài 360 packages; audit báo `found 0 vulnerabilities`. |
+| `cd apps/web && npm ci --prefix ../api` | Pass | Cài 674 packages cho API-mode runner; audit báo `found 0 vulnerabilities`. |
+| `cd apps/web && npm test -- --run` | Pass | Vitest: 16/16 test files và 130/130 tests passed. |
+| `cd apps/web && npm run typecheck` | Pass | `tsc -b --pretty false` exited 0. |
+| `cd apps/web && npm run lint` | Pass | `eslint .` exited 0. |
+| `cd apps/web && npm run build` | Pass | TypeScript và Vite production build exited 0; Vite chỉ cảnh báo non-blocking về chunk JS 627.25 kB lớn hơn 500 kB. |
+| `cd apps/web && npm run e2e` | Pass | Mock-mode Playwright: 9/9 browser tests passed. |
+| `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` | Pass | API-mode Playwright: 5/5 browser tests passed. |
+
+Không có failure command hoặc actionable error trong Web gate. Các warning `NO_COLOR` của Node trong Playwright và chunk-size warning của Vite không làm command thất bại.
+
 ## Workstream Đang Chờ Quyết Định
 
 ### Workstream 6A: Authorization Matrix Hardening
@@ -95,12 +112,11 @@ Verification đã chạy trong plan triển khai:
 Trạng thái verification sau merge:
 
 - API gate: pass trên configured host PostgreSQL; Docker Compose access vẫn là setup limitation, xem mục `API Verification Gate Sau Merge (Task 2)`.
-- Chưa chạy lại Web gate sau merge.
+- Web gate: pass; unit 130/130, mock-mode Playwright 9/9 và API-mode Playwright 5/5, xem mục `Web Verification Gate Sau Merge (Task 3)`.
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Chạy Web verification gate sau merge.
-2. Cập nhật acceptance checklist, changelog và release notes bằng kết quả thật.
-3. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
+1. Cập nhật changelog và release notes bằng kết quả verification thật.
+2. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
 
 Khuyến nghị: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.

@@ -37,3 +37,12 @@
 - [x] API typecheck và lint. Cả hai pass.
 - [x] API unit và E2E tests. Unit pass: 6/6 suites, 37/37 tests. E2E pass: 8/8 suites, 71/71 tests.
 - [x] API build và `npm audit --audit-level=high`. Build pass; audit báo `found 0 vulnerabilities`.
+
+## Task 3 Web Verification (2026-08-27)
+
+- [x] Web và API runner dependencies. `cd apps/web && npm ci` pass (360 packages, `found 0 vulnerabilities`); `cd apps/web && npm ci --prefix ../api` pass (674 packages, `found 0 vulnerabilities`).
+- [x] Web unit và static gates. `npm test -- --run` pass: 16/16 test files, 130/130 tests; `npm run typecheck` và `npm run lint` đều pass.
+- [x] Web production build. `npm run build` pass; Vite chỉ báo non-blocking chunk-size warning cho bundle JS 627.25 kB vượt 500 kB.
+- [x] Mock-mode Playwright. `npm run e2e` pass: 9/9 browser tests.
+- [x] API-mode Playwright. `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` pass: 5/5 browser tests.
+- [x] Không có failed command hoặc actionable error trong Web gate. Warning `NO_COLOR` của Node trong Playwright không làm test suite thất bại.
