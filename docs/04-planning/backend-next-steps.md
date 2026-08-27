@@ -20,7 +20,7 @@ The backend on `main` has:
 - NestJS API under `apps/api`.
 - Prisma/PostgreSQL schema and initial migration.
 - Deterministic local/test seed data.
-- Bearer demo auth sessions.
+- Persisted bearer demo auth sessions with expiry and logout revocation.
 - Catalog, patients, scheduling, appointments, audit and notifications modules.
 - Appointment conflict checks and status transition enforcement.
 - API CI with typecheck, lint, unit tests, E2E tests, build and dependency audit.
@@ -73,22 +73,23 @@ Acceptance criteria:
 
 ## Workstream 3: Production Auth And Session Hardening
 
+Status: in progress; durable bearer sessions, expiry and logout revocation are implemented.
+
 Goal: replace MVP demo auth with deployable auth behavior.
 
 Recommended actions:
 
-1. Define whether production auth will use server-side sessions or signed tokens.
-2. Add persistent session storage or token revocation.
-3. Add expiry semantics.
-4. Replace demo password logic with hashed credential verification.
-5. Add account lockout and password reset requirements if production login is in scope.
-6. Add security tests for expired, revoked, inactive and locked accounts.
+1. Keep server-side persisted bearer sessions unless a later product/security decision chooses signed tokens.
+2. Replace demo password logic with hashed credential verification.
+3. Add account lockout and password reset requirements if production login is in scope.
+4. Add security tests for inactive and locked accounts.
+5. Add a cleanup job or operational task for expired/revoked sessions if session volume becomes meaningful.
 
 Acceptance criteria:
 
-- Restarting the API does not silently invalidate all expected production sessions unless the design intentionally requires it.
-- Tokens/sessions can expire and be revoked.
-- Demo auth remains available only for local/test fixtures or is removed from production builds.
+- Restarting the API does not silently invalidate unexpired, unrevoked sessions.
+- Tokens/sessions expire and can be revoked.
+- Demo password logic remains only as the next known auth gap and should be replaced before real users.
 
 ## Workstream 4: Backend Deployment Readiness
 
@@ -201,7 +202,7 @@ Acceptance criteria:
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | Frontend API integration | Web unit, typecheck, lint, build, mock Playwright and API-mode Playwright.                                        |
 | API spec                 | `npm test -- --runInBand src/openapi-contract.spec.ts` plus focused contract review against controllers and DTOs. |
-| Auth hardening           | Unit and E2E auth tests for login, logout, expiry/revocation and locked/inactive users.                           |
+| Auth hardening           | Unit and E2E auth tests for login, restart persistence, logout revocation, expiry and locked/inactive users.       |
 | Deployment               | Smoke test against deployed health and auth endpoints.                                                            |
 | Observability            | Manual log correlation using one failing and one successful request.                                              |
 | Audit/data governance    | E2E tests for audit writes and projection boundaries.                                                             |
@@ -212,6 +213,6 @@ Acceptance criteria:
 
 - API hosting provider.
 - PostgreSQL hosting provider.
-- Production auth strategy.
+- Production password, account lockout and password reset strategy.
 - Whether OpenAPI should remain manually checked in or move to code generation after the API surface grows.
 - Whether schedule management belongs in the next product slice or a later operations slice.

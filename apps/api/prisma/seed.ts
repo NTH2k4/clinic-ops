@@ -60,6 +60,7 @@ function assertSafeSeedTarget(databaseUrl = process.env.DATABASE_URL) {
 }
 
 async function resetDatabase(db: SeedClient) {
+  await db.authSession.deleteMany();
   await db.auditEvent.deleteMany();
   await db.appointmentStatusHistory.deleteMany();
   await db.notification.deleteMany();

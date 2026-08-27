@@ -28,7 +28,7 @@ This document describes the implemented backend architecture for CareFlow. It is
 | --- | --- | --- |
 | `AppModule` | `apps/api/src/app.module.ts` | Wires shared modules, domain modules and the global exception filter. |
 | `PrismaModule` | `apps/api/src/prisma` | Provides one `PrismaService` for database access and lifecycle hooks. |
-| `AuthModule` | `apps/api/src/auth` | Demo login, bearer session lookup, logout and `/auth/me`. |
+| `AuthModule` | `apps/api/src/auth` | Demo login, persisted bearer session lookup, logout revocation and `/auth/me`. |
 | `CatalogModule` | `apps/api/src/catalog` | Doctors, specialties and services, including admin create/update/deactivate flows. |
 | `PatientsModule` | `apps/api/src/patients` | Patient search, detail, create, update and deactivate flows. |
 | `SchedulingModule` | `apps/api/src/scheduling` | Doctor schedule reads and availability slot calculation. |
@@ -41,7 +41,7 @@ This document describes the implemented backend architecture for CareFlow. It is
 
 1. Nest receives the request under `/api/v1`.
 2. Controllers parse route params, query strings and bodies.
-3. Protected controllers run `SessionGuard` to extract `Authorization: Bearer <token>` and load the in-memory session from `AuthService`.
+3. Protected controllers run `SessionGuard` to extract `Authorization: Bearer <token>` and load the persisted session from `AuthService`.
 4. Role-restricted handlers run `RolesGuard` with metadata from the `@Roles(...)` decorator.
 5. Controllers call `parseSchema(...)` with a Zod schema. Invalid payloads raise `VALIDATION_ERROR`.
 6. Domain services execute Prisma reads/writes and throw `ApiError` for expected failures.
@@ -82,15 +82,16 @@ The implementation deliberately keeps the envelope helper small in `apps/api/src
 
 ## Authentication And Authorization
 
-The MVP uses a demo bearer-session model:
+The API uses a demo-credential bearer-session model:
 
 - `POST /auth/login` accepts seeded user email plus password `careflow-demo`.
-- `AuthService` creates a random UUID session token and stores session state in memory.
+- `AuthService` creates a random UUID session token and stores only its SHA-256 hash in PostgreSQL in `AuthSession`.
+- Sessions expire after 12 hours and can be revoked.
 - `SessionGuard` attaches `currentUser` and `linkedProfile` to the request.
-- `POST /auth/logout` deletes the in-memory token.
+- `POST /auth/logout` revokes the token by setting `revokedAt`.
 - `GET /auth/me` returns the current user and linked profile.
 
-This is sufficient for MVP integration and E2E verification, but it is not a production auth system. Production hardening should replace in-memory sessions with durable session storage or a token strategy with revocation, expiry and secure password verification.
+This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. Production hardening should replace the shared demo password with hashed credential verification and define account lockout/password reset behavior.
 
 Authorization uses two layers:
 
@@ -199,10 +200,10 @@ For database-backed E2E tests, PostgreSQL must be running and `DATABASE_URL` mus
 
 ## Known MVP Limits
 
-- Auth sessions are in memory and disappear on process restart.
+- Auth uses persisted bearer sessions, but the password is still the shared seeded demo password.
 - The demo password is hardcoded for seeded users.
 - There is no OpenAPI machine-readable specification yet.
-- CORS is configured through `CORS_ALLOWED_ORIGINS`, but TLS, hosting and production session storage are not configured yet.
+- CORS is configured through `CORS_ALLOWED_ORIGINS`; TLS is owned by the hosting provider.
 - Notifications are in-app records only.
 - Audit coverage is focused on MVP workflows, not every read/write.
 - Database migrations exist, but the project does not yet define a production migration review policy.

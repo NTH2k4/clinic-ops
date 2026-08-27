@@ -13,10 +13,10 @@ export function extractBearerToken(authorization: string | undefined) {
 export class SessionGuard implements CanActivate {
   constructor(private readonly authService: AuthService) {}
 
-  canActivate(context: ExecutionContext) {
+  async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const sessionToken = extractBearerToken(request.headers.authorization);
-    const session = sessionToken ? this.authService.getSession(sessionToken) : undefined;
+    const session = sessionToken ? await this.authService.getSession(sessionToken) : undefined;
 
     if (!session) {
       throw new ApiError(401, "UNAUTHENTICATED", "Authentication is required.");

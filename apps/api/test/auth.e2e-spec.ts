@@ -1,5 +1,6 @@
 import { Controller, Get, HttpException, UseGuards } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
+import { PrismaClient } from "@prisma/client";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { z } from "zod";
@@ -53,6 +54,12 @@ const errorResponseSchema = z.object({
 });
 
 describe("Auth and RBAC", () => {
+  const prisma = new PrismaClient();
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
   async function createApp() {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
@@ -64,11 +71,20 @@ describe("Auth and RBAC", () => {
     return { app, server: app.getHttpServer() as App };
   }
 
+  async function findLatestAdminSession(sessionToken: string) {
+    const session = await prisma.authSession.findFirstOrThrow({
+      where: { user: { email: "admin@careflow.local" } },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(session.tokenHash).not.toBe(sessionToken);
+    return session;
+  }
+
   it("logs in and returns the current user", async () => {
     const { app, server } = await createApp();
 
     try {
-      await request(server)
+      const loginResponse = await request(server)
         .post("/api/v1/auth/login")
         .send({ email: "admin@careflow.local", password: "careflow-demo" })
         .expect(201)
@@ -83,6 +99,9 @@ describe("Auth and RBAC", () => {
           expect(parsed.data.sessionToken).toEqual(expect.any(String));
           expect(parsed.meta.requestId).toEqual(expect.any(String));
         });
+      const loginBody: unknown = loginResponse.body;
+      const login = loginResponseSchema.parse(loginBody);
+      await findLatestAdminSession(login.data.sessionToken);
     } finally {
       await app.close();
     }
@@ -180,6 +199,77 @@ describe("Auth and RBAC", () => {
       const authorization = `Bearer ${login.data.sessionToken}`;
 
       await request(server).post("/api/v1/auth/logout").set("Authorization", authorization).expect(201);
+
+      await request(server)
+        .get("/api/v1/auth/me")
+        .set("Authorization", authorization)
+        .expect(401)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = errorResponseSchema.parse(body);
+          expect(parsed.error.code).toBe("UNAUTHENTICATED");
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("keeps a session token valid after the API process restarts", async () => {
+    const firstInstance = await createApp();
+    let sessionToken: string;
+
+    try {
+      const loginResponse = await request(firstInstance.server)
+        .post("/api/v1/auth/login")
+        .send({ email: "admin@careflow.local", password: "careflow-demo" })
+        .expect(201);
+      const loginBody: unknown = loginResponse.body;
+      const login = loginResponseSchema.parse(loginBody);
+      sessionToken = login.data.sessionToken;
+    } finally {
+      await firstInstance.app.close();
+    }
+
+    const restartedInstance = await createApp();
+
+    try {
+      await request(restartedInstance.server)
+        .get("/api/v1/auth/me")
+        .set("Authorization", `Bearer ${sessionToken}`)
+        .expect(200)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = loginResponseSchema.omit({ data: true }).extend({
+            data: loginResponseSchema.shape.data.omit({ sessionToken: true }),
+          }).parse(body);
+          expect(parsed.data.currentUser).toMatchObject({
+            email: "admin@careflow.local",
+            role: "admin",
+            status: "active",
+          });
+        });
+    } finally {
+      await restartedInstance.app.close();
+    }
+  });
+
+  it("rejects expired session tokens", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email: "admin@careflow.local", password: "careflow-demo" })
+        .expect(201);
+      const loginBody: unknown = loginResponse.body;
+      const login = loginResponseSchema.parse(loginBody);
+      const authorization = `Bearer ${login.data.sessionToken}`;
+
+      const storedSession = await findLatestAdminSession(login.data.sessionToken);
+      await prisma.authSession.update({
+        where: { id: storedSession.id },
+        data: { expiresAt: new Date(Date.now() - 1000) },
+      });
 
       await request(server)
         .get("/api/v1/auth/me")
