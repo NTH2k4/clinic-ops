@@ -4,6 +4,8 @@
 
 **Goal:** Chia CareFlow v1 thành các workstream đủ rõ để triển khai bằng subagent-driven development, review từng package và cập nhật docs sau mỗi bước.
 
+**Status:** Approved execution map for v1 phase order. Each post-MVP phase still requires its own implementation plan in `docs/04-planning/` before code changes; push/deploy remains gated by explicit approval.
+
 **Architecture:** Điều phối viên giữ roadmap, docs status và integration decisions. Mỗi subagent nhận một task package có scope hẹp, file boundaries rõ, verification commands cụ thể và báo cáo kết quả bằng commit hoặc failure note. Runtime implementation chỉ bắt đầu sau khi người dùng duyệt roadmap và plan của phase tương ứng.
 
 **Tech Stack:** React, Vite, TypeScript, Playwright, NestJS, Prisma, PostgreSQL, GitHub Actions, Render Free Web Service, Neon Free Postgres.

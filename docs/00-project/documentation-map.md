@@ -37,8 +37,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | Backend AUDIT/DATA GOVERNANCE | Audit coverage, patient projection and sensitive log rules | `docs/03-architecture/audit-data-governance.md` | Baseline |
 | MVP Release Readiness | Tổng quan release candidate, branch/commit, verification và deployment gate | `docs/04-planning/mvp-release-readiness.md` | Local release candidate đã verified; chưa push/deploy |
 | MVP Release Completion | Kế hoạch subagent-driven để tích hợp authorization hardening, chạy full verification, cập nhật docs và chuẩn bị deploy | `docs/04-planning/mvp-release-completion-plan.md` | Tasks 1-4 hoàn thành local; push/deploy chờ approval riêng |
-| CareFlow V1 Delivery Roadmap | Roadmap từ MVP release candidate tới CareFlow v1 hoàn chỉnh trong phạm vi đã chốt | `docs/04-planning/careflow-v1-delivery-roadmap.md` | Chờ người dùng duyệt |
-| CareFlow V1 Subagent Execution | Kế hoạch điều phối workstream v1 bằng subagent-driven development | `docs/04-planning/careflow-v1-subagent-execution-plan.md` | Chờ người dùng duyệt |
+| CareFlow V1 Delivery Roadmap | Roadmap từ MVP release candidate tới CareFlow v1 hoàn chỉnh trong phạm vi đã chốt | `docs/04-planning/careflow-v1-delivery-roadmap.md` | Đã duyệt hướng tổng thể; mỗi phase sau vẫn cần plan riêng |
+| CareFlow V1 Subagent Execution | Kế hoạch điều phối workstream v1 bằng subagent-driven development | `docs/04-planning/careflow-v1-subagent-execution-plan.md` | Đã duyệt execution map; push/deploy vẫn cần gate riêng |
 
 ## Đánh Giá Hiện Tại
 
@@ -87,6 +87,6 @@ Thứ tự nên làm tiếp:
 2. Keep `docs/04-planning/mvp-release-readiness.md` updated before and after every implementation step.
 3. Request explicit approval before pushing or deploying the verified local release candidate.
 4. After an approved deployment, record Render health/login smoke evidence in the readiness and acceptance docs.
-5. Review and approve `docs/04-planning/careflow-v1-delivery-roadmap.md` and `docs/04-planning/careflow-v1-subagent-execution-plan.md` before opening post-MVP workstreams.
+5. Create the next phase implementation plan in `docs/04-planning/` before opening post-MVP workstreams from the approved v1 roadmap.
 6. Maintain the checked-in OpenAPI spec when endpoint behavior changes.
 7. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.

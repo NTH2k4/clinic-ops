@@ -4,7 +4,7 @@
 
 | Trường | Giá trị |
 | --- | --- |
-| Trạng thái | `draft-for-review` |
+| Trạng thái | `approved-direction` |
 | Đối tượng đọc chính | Người dùng, senior engineer, agent điều phối và subagent |
 | Cập nhật lần cuối | 2026-08-27 |
 | Nguồn | `docs/00-project/scope.md`, `docs/01-requirements/mvp-requirements.md`, `docs/04-planning/mvp-release-readiness.md`, `docs/04-planning/backend-next-steps.md` |
@@ -12,6 +12,8 @@
 ## Mục Đích
 
 Tài liệu này định nghĩa đường đi từ trạng thái frontend/backend baseline tới CareFlow v1. Đây là roadmap cấp dự án, dùng để duyệt hướng triển khai trước khi viết hoặc chạy các implementation plan chi tiết cho từng workstream.
+
+Trạng thái duyệt: người dùng đã duyệt hướng tổng thể và yêu cầu triển khai theo kế hoạch. Approval này chốt thứ tự phase và phạm vi v1; push/deploy vẫn cần gate riêng khi đến bước external side effect.
 
 ## Định Nghĩa Kết Quả Cuối Cùng Cho V1
 
@@ -51,7 +53,7 @@ Các hạng mục sau không nằm trong CareFlow v1 vì kéo theo compliance, d
 
 ## Phase 1: MVP Release Candidate
 
-Trạng thái: đã có plan, chờ duyệt và execute.
+Trạng thái: local release candidate đã verified; push/deploy còn chờ approval và `RENDER_EXTERNAL_URL`.
 
 Plan chính: `docs/04-planning/mvp-release-completion-plan.md`.
 
