@@ -10,7 +10,7 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 - Dùng frontend prototype để kiểm chứng workflow sản phẩm trước khi triển khai backend.
 - Giữ dữ liệu y tế ở mức nhẹ trong MVP; không triển khai electronic health record đầy đủ, đơn thuốc, bảo hiểm, telemedicine hoặc tích hợp thanh toán thật.
 - Ghi lại thay đổi scope và quyết định kỹ thuật trong docs trước khi implementation.
-- Write new documentation in English by default, especially documents used by AI agents and subagents such as implementation plans, work packages and architecture references.
+- Viết tài liệu dự án bằng tiếng Việt theo mặc định; technical terms, command, API names và tài liệu agent-only có thể giữ tiếng Anh khi giúp triển khai chính xác hơn.
 
 ## Tài Liệu
 

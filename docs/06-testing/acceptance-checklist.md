@@ -20,3 +20,12 @@
 - Backend enforce role-based access.
 - Backend ghi audit events cho các thay đổi appointment.
 - Frontend có thể thay mock services bằng API calls thật.
+
+## MVP Release Candidate
+
+- Authorization hardening được tích hợp vào `main`.
+- API verification gate chạy lại sau merge: Prisma generate, migrations, seed, typecheck, lint, unit tests, E2E tests, build và high-severity audit.
+- Web verification gate chạy lại sau merge: unit tests, typecheck, lint, build, mock Playwright và API-mode Playwright.
+- Docs trong `docs/04-planning/` phản ánh đúng branch, commit, verification và deployment status.
+- Release notes ghi rõ scope MVP, known constraints và demo safety note.
+- Render health/login smoke được kiểm tra nếu `RENDER_EXTERNAL_URL` khả dụng và push/deploy đã được người dùng duyệt.

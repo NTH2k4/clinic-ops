@@ -63,3 +63,11 @@ Date: 2026-08-26
 Decision: New documentation should use English by default. Documentation intended for AI agents or subagents, especially implementation plans, work packages, review handoffs, verification instructions and architecture references, must use English.
 
 Reason: Agent and subagent execution is more reliable when task instructions, technical terms, file paths, commands and acceptance criteria are written in English. Existing Vietnamese documents can remain until they are materially updated, but new backend and planning references should not extend the mixed-language surface.
+
+## DEC-009: Hoàn Tất MVP Release Trước Khi Mở Feature Mới
+
+Ngày: 2026-08-27
+
+Quyết định: Sau khi frontend và backend đều có baseline, bước tiếp theo là hoàn tất MVP release candidate thay vì mở thêm feature mới. Phạm vi release completion gồm tích hợp authorization hardening, chạy full local verification, cập nhật docs/status/release notes và chuẩn bị push/deploy nếu người dùng duyệt.
+
+Lý do: Dự án hiện đã có frontend, backend, API integration, Render deployment path và authorization hardening trên branch riêng. Việc có giá trị nhất là đưa baseline này về trạng thái sạch, traceable và có thể deploy, rồi mới tiếp tục các slice lớn hơn như user administration, password reset hoặc schedule management UI.

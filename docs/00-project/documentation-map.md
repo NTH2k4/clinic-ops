@@ -36,6 +36,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | Backend RUNBOOK | Operational checks for request IDs, database, migrations, seed guard and auth failures | `docs/03-architecture/backend-runbook.md` | Baseline |
 | Backend AUDIT/DATA GOVERNANCE | Audit coverage, patient projection and sensitive log rules | `docs/03-architecture/audit-data-governance.md` | Baseline |
 | Current Progress | Tổng quan tiến độ, branch/commit đang chờ tích hợp và bước tiếp theo | `docs/04-planning/current-progress-and-next-steps.md` | Active |
+| MVP Release Completion | Kế hoạch subagent-driven để tích hợp authorization hardening, chạy full verification, cập nhật docs và chuẩn bị deploy | `docs/04-planning/mvp-release-completion-plan.md` | Chờ người dùng duyệt |
 
 ## Đánh Giá Hiện Tại
 
@@ -61,6 +62,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có audit/data governance baseline cho audit coverage, patient projection và sensitive log rules.
 - Có backend next steps plan bằng tiếng Anh để agent/subagent tiếp tục auth hardening, deployment, observability, audit/data governance và scheduling depth follow-up.
 - Có tài liệu tổng quan tiến độ hiện tại bằng tiếng Việt tại `docs/04-planning/current-progress-and-next-steps.md`, dùng để trả lời trạng thái triển khai bằng dẫn chứng docs/branch/commit/verification.
+- Có kế hoạch hoàn tất MVP release bằng subagent-driven tại `docs/04-planning/mvp-release-completion-plan.md`, đang chờ người dùng duyệt trước khi triển khai.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -79,6 +81,7 @@ Thứ tự nên làm tiếp:
 
 1. Use `docs/04-planning/backend-next-steps.md` as the backend-facing planning source.
 2. Keep `docs/04-planning/current-progress-and-next-steps.md` updated before and after every implementation step.
-3. Keep the single-service Render plus Neon deployment path documented and verified.
-4. Maintain the checked-in OpenAPI spec when endpoint behavior changes.
-5. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.
+3. Review and approve `docs/04-planning/mvp-release-completion-plan.md`, then execute it with subagent-driven development.
+4. Keep the single-service Render plus Neon deployment path documented and verified.
+5. Maintain the checked-in OpenAPI spec when endpoint behavior changes.
+6. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.
