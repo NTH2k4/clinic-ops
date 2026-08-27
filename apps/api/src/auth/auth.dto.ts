@@ -8,3 +8,10 @@ export const patientRegistrationSchema = z.object({
 }).strict();
 
 export type PatientRegistrationInput = z.infer<typeof patientRegistrationSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(200),
+  newPassword: z.string().min(8).max(200),
+}).strict();
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

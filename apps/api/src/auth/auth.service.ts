@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { createHash, randomUUID } from "node:crypto";
 import { ApiError } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
-import type { PatientRegistrationInput } from "./auth.dto";
+import type { ChangePasswordInput, PatientRegistrationInput } from "./auth.dto";
 
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 
@@ -55,7 +55,16 @@ export class AuthService {
       throw this.unauthenticated();
     }
 
-    return this.createAuthSession(user);
+    return this.prisma.$transaction(async (tx) => {
+      const lockedUserCount = await tx.$executeRaw`
+        UPDATE "User"
+        SET "passwordHash" = "passwordHash"
+        WHERE "id" = ${user.id} AND "passwordHash" = ${user.passwordHash}
+      `;
+      if (lockedUserCount !== 1) throw this.unauthenticated();
+
+      return this.createAuthSession(user, tx);
+    });
   }
 
   async registerPatient(input: PatientRegistrationInput): Promise<AuthLoginResult> {
@@ -84,6 +93,22 @@ export class AuthService {
 
       return this.createAuthSession(user, tx);
     });
+  }
+
+  async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !(await bcrypt.compare(input.currentPassword, user.passwordHash))) {
+      throw new ApiError(401, "UNAUTHENTICATED", "Current password is incorrect.");
+    }
+
+    const passwordHash = await bcrypt.hash(input.newPassword, 10);
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+      this.prisma.authSession.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
   }
 
   private async createAuthSession(user: UserWithProfiles, prisma: Pick<PrismaService, "authSession"> = this.prisma): Promise<AuthLoginResult> {

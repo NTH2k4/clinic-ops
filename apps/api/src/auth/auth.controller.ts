@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { successEnvelope } from "../common/api-response";
 import { parseSchema } from "../common/validation";
-import { patientRegistrationSchema } from "./auth.dto";
+import { changePasswordSchema, patientRegistrationSchema } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { type AuthenticatedRequest, extractBearerToken, SessionGuard } from "./session.guard";
 
@@ -26,6 +26,13 @@ export class AuthController {
   @Post("register")
   async register(@Body() body: unknown) {
     return successEnvelope(await this.authService.registerPatient(parseSchema(patientRegistrationSchema, body)));
+  }
+
+  @Post("change-password")
+  @UseGuards(SessionGuard)
+  async changePassword(@Req() request: AuthenticatedRequest, @Body() body: unknown) {
+    await this.authService.changePassword(request.currentUser.id, parseSchema(changePasswordSchema, body));
+    return successEnvelope({});
   }
 
   @Post("logout")
