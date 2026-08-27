@@ -2,12 +2,12 @@
 
 ## Document Control
 
-| Field | Value |
-| --- | --- |
-| Status | Active baseline |
-| Primary audience | AI agents, subagents and senior engineers planning backend work |
-| Last updated | 2026-08-27 |
-| Inputs | Implemented backend on `main`, merged frontend API integration, backend architecture docs, checked-in OpenAPI baseline |
+| Field            | Value                                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Status           | Active baseline                                                                                                        |
+| Primary audience | AI agents, subagents and senior engineers planning backend work                                                        |
+| Last updated     | 2026-08-27                                                                                                             |
+| Inputs           | Implemented backend on `main`, merged frontend API integration, backend architecture docs, checked-in OpenAPI baseline |
 
 ## Purpose
 
@@ -102,7 +102,7 @@ Recommended actions:
 2. Use Neon Free Postgres for `DATABASE_URL`.
 3. Keep browser API calls same-origin with `VITE_API_BASE_URL=/api/v1`, so CORS is not required for the Render app.
 4. Use `/api/v1/health` for Render health checks and GitHub Deployment verification.
-5. Run Prisma migrations through Render `preDeployCommand`.
+5. Run Prisma migrations through the Render `buildCommand` because Free Web Services do not support pre-deploy commands.
 6. Seed demo data once through Render `initialDeployHook`.
 
 Acceptance criteria:
@@ -197,16 +197,16 @@ Acceptance criteria:
 
 ## Verification Matrix
 
-| Workstream | Minimum verification |
-| --- | --- |
-| Frontend API integration | Web unit, typecheck, lint, build, mock Playwright and API-mode Playwright. |
-| API spec | `npm test -- --runInBand src/openapi-contract.spec.ts` plus focused contract review against controllers and DTOs. |
-| Auth hardening | Unit and E2E auth tests for login, logout, expiry/revocation and locked/inactive users. |
-| Deployment | Smoke test against deployed health and auth endpoints. |
-| Observability | Manual log correlation using one failing and one successful request. |
-| Audit/data governance | E2E tests for audit writes and projection boundaries. |
-| Scheduling depth | E2E tests for conflict, blocked, leave, cross-day and concurrent booking cases. |
-| Documentation migration | Link check, placeholder scan and reviewer pass for translated documents. |
+| Workstream               | Minimum verification                                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Frontend API integration | Web unit, typecheck, lint, build, mock Playwright and API-mode Playwright.                                        |
+| API spec                 | `npm test -- --runInBand src/openapi-contract.spec.ts` plus focused contract review against controllers and DTOs. |
+| Auth hardening           | Unit and E2E auth tests for login, logout, expiry/revocation and locked/inactive users.                           |
+| Deployment               | Smoke test against deployed health and auth endpoints.                                                            |
+| Observability            | Manual log correlation using one failing and one successful request.                                              |
+| Audit/data governance    | E2E tests for audit writes and projection boundaries.                                                             |
+| Scheduling depth         | E2E tests for conflict, blocked, leave, cross-day and concurrent booking cases.                                   |
+| Documentation migration  | Link check, placeholder scan and reviewer pass for translated documents.                                          |
 
 ## Open Decisions
 
