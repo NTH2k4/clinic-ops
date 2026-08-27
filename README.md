@@ -24,7 +24,7 @@ Repository này đi theo hướng documentation-first. Giai đoạn đầu của
 
 ## Frontend Và CI/CD
 
-Frontend hiện nằm trong `apps/web` và dùng React + Vite + TypeScript. GitHub Actions kiểm tra Pull Request bằng workflow `Web CI` và deploy bản merge vào `main` lên GitHub Pages bằng workflow `Web Pages`. Mock data vẫn là default runtime source, nhưng API-mode regression gate đã kiểm tra luồng tích hợp với backend thật.
+Frontend hiện nằm trong `apps/web` và dùng React + Vite + TypeScript. GitHub Actions kiểm tra Pull Request bằng workflow `Web CI` và deploy bản merge vào `main` lên GitHub Pages bằng workflow `Web Pages`. Mock data vẫn là default local runtime source, nhưng Render production build dùng API mode same-origin để chạy frontend và backend trong cùng Web Service.
 
 Sau khi bật Pages source là **GitHub Actions** trong repository settings, app có thể xem tại:
 
@@ -38,7 +38,7 @@ Backend nằm ở `apps/api` và dùng Node.js + NestJS + Prisma + PostgreSQL. A
 
 API CI chạy Prisma generate, migrate deploy, deterministic seed, typecheck, lint, unit/E2E tests, build và high-severity dependency audit cho thay đổi `apps/api` hoặc OpenAPI spec.
 
-Backend setup and operating notes are documented in `apps/api/README.md`. As-built architecture references are in `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/database-schema.md` and `docs/03-architecture/openapi.json`. The next backend-facing work plan is `docs/04-planning/backend-next-steps.md`.
+Backend setup and operating notes are documented in `apps/api/README.md`. As-built architecture references are in `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/database-schema.md` and `docs/03-architecture/openapi.json`. Render deployment steps are in `docs/04-planning/render-deployment-plan.md`.
 
 Các lệnh kiểm tra backend:
 

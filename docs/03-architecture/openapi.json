@@ -45,8 +45,11 @@
                       "properties": {
                         "data": {
                           "type": "object",
-                          "required": ["status"],
-                          "properties": { "status": { "const": "ok" } }
+                          "required": ["status", "commit"],
+                          "properties": {
+                            "status": { "const": "ok" },
+                            "commit": { "type": "string" }
+                          }
                         }
                       }
                     }
@@ -377,7 +380,9 @@
       "post": {
         "tags": ["Appointments"],
         "summary": "Create an appointment",
-        "requestBody": { "$ref": "#/components/requestBodies/AppointmentCreate" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/AppointmentCreate"
+        },
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "409": { "$ref": "#/components/responses/Error" }
@@ -398,7 +403,9 @@
         "tags": ["Appointments"],
         "summary": "Reschedule or edit a non-terminal appointment",
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "requestBody": { "$ref": "#/components/requestBodies/AppointmentUpdate" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/AppointmentUpdate"
+        },
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "400": { "$ref": "#/components/responses/Error" },
@@ -411,7 +418,9 @@
         "tags": ["Appointments"],
         "summary": "Confirm a requested appointment",
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "requestBody": { "$ref": "#/components/requestBodies/AppointmentTransition" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/AppointmentTransition"
+        },
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "400": { "$ref": "#/components/responses/Error" },
@@ -424,7 +433,9 @@
         "tags": ["Appointments"],
         "summary": "Cancel an appointment",
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "requestBody": { "$ref": "#/components/requestBodies/AppointmentTransition" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/AppointmentTransition"
+        },
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "400": { "$ref": "#/components/responses/Error" },
@@ -437,7 +448,9 @@
         "tags": ["Appointments"],
         "summary": "Check in a confirmed appointment",
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "requestBody": { "$ref": "#/components/requestBodies/AppointmentTransition" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/AppointmentTransition"
+        },
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "400": { "$ref": "#/components/responses/Error" },
@@ -450,7 +463,9 @@
         "tags": ["Appointments"],
         "summary": "Start a checked-in appointment",
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "requestBody": { "$ref": "#/components/requestBodies/AppointmentTransition" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/AppointmentTransition"
+        },
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "400": { "$ref": "#/components/responses/Error" },
@@ -463,7 +478,9 @@
         "tags": ["Appointments"],
         "summary": "Complete an in-progress appointment",
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "requestBody": { "$ref": "#/components/requestBodies/AppointmentTransition" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/AppointmentTransition"
+        },
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "400": { "$ref": "#/components/responses/Error" },
@@ -476,7 +493,9 @@
         "tags": ["Appointments"],
         "summary": "Mark an appointment as no-show",
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "requestBody": { "$ref": "#/components/requestBodies/AppointmentTransition" },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/AppointmentTransition"
+        },
         "responses": {
           "200": { "$ref": "#/components/responses/Success" },
           "400": { "$ref": "#/components/responses/Error" },
@@ -559,93 +578,268 @@
       }
     },
     "parameters": {
-      "Id": { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } },
-      "Q": { "name": "q", "in": "query", "required": false, "schema": { "type": "string", "minLength": 1, "maxLength": 200 } },
-      "Status": { "name": "status", "in": "query", "required": false, "schema": { "type": "string" } },
-      "Page": { "name": "page", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "default": 1 } },
-      "PageSize": { "name": "pageSize", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 } },
-      "PatientId": { "name": "patientId", "in": "query", "required": false, "schema": { "type": "string", "minLength": 1 } },
-      "DoctorId": { "name": "doctorId", "in": "query", "required": false, "schema": { "type": "string", "minLength": 1 } },
-      "ServiceId": { "name": "serviceId", "in": "query", "required": false, "schema": { "type": "string", "minLength": 1 } },
-      "ServiceIdRequired": { "name": "serviceId", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1 } },
-      "SpecialtyId": { "name": "specialtyId", "in": "query", "required": false, "schema": { "type": "string", "minLength": 1 } },
-      "Date": { "name": "date", "in": "query", "required": true, "schema": { "type": "string", "format": "date" } },
-      "FromDate": { "name": "from", "in": "query", "required": false, "schema": { "type": "string", "format": "date" } },
-      "ToDate": { "name": "to", "in": "query", "required": false, "schema": { "type": "string", "format": "date" } },
-      "FromDateTime": { "name": "from", "in": "query", "required": false, "schema": { "type": "string", "format": "date-time" } },
-      "ToDateTime": { "name": "to", "in": "query", "required": false, "schema": { "type": "string", "format": "date-time" } },
-      "AppointmentStatus": { "name": "status", "in": "query", "required": false, "schema": { "$ref": "#/components/schemas/AppointmentStatus" } },
-      "EntityType": { "name": "entityType", "in": "query", "required": false, "schema": { "type": "string" } },
-      "EntityId": { "name": "entityId", "in": "query", "required": false, "schema": { "type": "string" } },
-      "Action": { "name": "action", "in": "query", "required": false, "schema": { "type": "string" } },
-      "ActorUserId": { "name": "actorUserId", "in": "query", "required": false, "schema": { "type": "string" } }
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "Q": {
+        "name": "q",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "minLength": 1, "maxLength": 200 }
+      },
+      "Status": {
+        "name": "status",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string" }
+      },
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "integer", "minimum": 1, "default": 1 }
+      },
+      "PageSize": {
+        "name": "pageSize",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "PatientId": {
+        "name": "patientId",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "DoctorId": {
+        "name": "doctorId",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "ServiceId": {
+        "name": "serviceId",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "ServiceIdRequired": {
+        "name": "serviceId",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "SpecialtyId": {
+        "name": "specialtyId",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "Date": {
+        "name": "date",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string", "format": "date" }
+      },
+      "FromDate": {
+        "name": "from",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "format": "date" }
+      },
+      "ToDate": {
+        "name": "to",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "format": "date" }
+      },
+      "FromDateTime": {
+        "name": "from",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "format": "date-time" }
+      },
+      "ToDateTime": {
+        "name": "to",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "format": "date-time" }
+      },
+      "AppointmentStatus": {
+        "name": "status",
+        "in": "query",
+        "required": false,
+        "schema": { "$ref": "#/components/schemas/AppointmentStatus" }
+      },
+      "EntityType": {
+        "name": "entityType",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string" }
+      },
+      "EntityId": {
+        "name": "entityId",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string" }
+      },
+      "Action": {
+        "name": "action",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string" }
+      },
+      "ActorUserId": {
+        "name": "actorUserId",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string" }
+      }
     },
     "requestBodies": {
       "AppointmentCreate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AppointmentCreateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppointmentCreateRequest"
+            }
+          }
+        }
       },
       "AppointmentUpdate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AppointmentUpdateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppointmentUpdateRequest"
+            }
+          }
+        }
       },
       "AppointmentTransition": {
         "required": false,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AppointmentTransitionRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AppointmentTransitionRequest"
+            }
+          }
+        }
       },
       "DoctorCreate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DoctorCreateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/DoctorCreateRequest" }
+          }
+        }
       },
       "DoctorUpdate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DoctorUpdateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/DoctorUpdateRequest" }
+          }
+        }
       },
       "PatientCreate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PatientCreateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PatientCreateRequest" }
+          }
+        }
       },
       "PatientUpdate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PatientUpdateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PatientUpdateRequest" }
+          }
+        }
       },
       "ServiceCreate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ServiceCreateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ServiceCreateRequest" }
+          }
+        }
       },
       "ServiceUpdate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ServiceUpdateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ServiceUpdateRequest" }
+          }
+        }
       },
       "SpecialtyCreate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SpecialtyCreateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/SpecialtyCreateRequest" }
+          }
+        }
       },
       "SpecialtyUpdate": {
         "required": true,
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SpecialtyUpdateRequest" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/SpecialtyUpdateRequest" }
+          }
+        }
       }
     },
     "responses": {
       "Success": {
         "description": "Success envelope",
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessEnvelope" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+          }
+        }
       },
       "List": {
         "description": "Paginated list envelope",
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ListEnvelope" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ListEnvelope" }
+          }
+        }
       },
       "Error": {
         "description": "Error envelope",
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+          }
+        }
       },
       "AuthSession": {
         "description": "Authenticated user and bearer session",
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthSessionEnvelope" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/AuthSessionEnvelope" }
+          }
+        }
       },
       "CurrentUser": {
         "description": "Current authenticated user",
-        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CurrentUserEnvelope" } } }
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/CurrentUserEnvelope" }
+          }
+        }
       }
     },
     "schemas": {
@@ -661,7 +855,10 @@
         "type": "object",
         "required": ["data", "meta"],
         "properties": {
-          "data": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "data": {
+            "type": "array",
+            "items": { "type": "object", "additionalProperties": true }
+          },
           "meta": { "$ref": "#/components/schemas/PaginationMeta" }
         }
       },
@@ -675,7 +872,10 @@
             "properties": {
               "code": { "$ref": "#/components/schemas/ErrorCode" },
               "message": { "type": "string" },
-              "fields": { "type": "object", "additionalProperties": { "type": "string" } }
+              "fields": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              }
             }
           },
           "meta": { "$ref": "#/components/schemas/ResponseMeta" }
@@ -721,7 +921,9 @@
                 "properties": {
                   "sessionToken": { "type": "string" },
                   "currentUser": { "$ref": "#/components/schemas/User" },
-                  "linkedProfile": { "$ref": "#/components/schemas/LinkedProfile" }
+                  "linkedProfile": {
+                    "$ref": "#/components/schemas/LinkedProfile"
+                  }
                 }
               }
             }
@@ -739,7 +941,9 @@
                 "required": ["currentUser", "linkedProfile"],
                 "properties": {
                   "currentUser": { "$ref": "#/components/schemas/User" },
-                  "linkedProfile": { "$ref": "#/components/schemas/LinkedProfile" }
+                  "linkedProfile": {
+                    "$ref": "#/components/schemas/LinkedProfile"
+                  }
                 }
               }
             }
@@ -781,7 +985,9 @@
           "doctorId": { "type": "string" },
           "startAt": { "type": "string", "format": "date-time" },
           "reason": { "type": "string", "maxLength": 1000 },
-          "source": { "enum": ["patient_portal", "staff_portal", "operations"] },
+          "source": {
+            "enum": ["patient_portal", "staff_portal", "operations"]
+          },
           "internalNote": { "type": "string", "maxLength": 1000 }
         }
       },
@@ -914,7 +1120,15 @@
         "enum": ["patient", "doctor", "receptionist", "nurse", "admin"]
       },
       "AppointmentStatus": {
-        "enum": ["requested", "confirmed", "checked_in", "in_progress", "completed", "cancelled", "no_show"]
+        "enum": [
+          "requested",
+          "confirmed",
+          "checked_in",
+          "in_progress",
+          "completed",
+          "cancelled",
+          "no_show"
+        ]
       },
       "ErrorCode": {
         "enum": [

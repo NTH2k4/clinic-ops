@@ -5,6 +5,6 @@ import { successEnvelope } from "../common/api-response";
 export class HealthController {
   @Get()
   health() {
-    return successEnvelope({ status: "ok" });
+    return successEnvelope({ status: "ok", commit: process.env.RENDER_GIT_COMMIT ?? process.env.GIT_COMMIT ?? "local" });
   }
 }

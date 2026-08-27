@@ -6,13 +6,17 @@ on:
     paths:
       - "apps/api/**"
       - "docs/03-architecture/openapi.json"
+      - "render.yaml"
       - ".github/workflows/api-ci.yml"
+      - ".github/workflows/render-deployment.yml"
   pull_request:
     branches: [main]
     paths:
       - "apps/api/**"
       - "docs/03-architecture/openapi.json"
+      - "render.yaml"
       - ".github/workflows/api-ci.yml"
+      - ".github/workflows/render-deployment.yml"
 
 permissions:
   contents: read

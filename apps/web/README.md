@@ -45,7 +45,7 @@ Mock mode dùng mock auth để demo theo role. API mode dùng `POST /api/v1/aut
 | `npm run e2e` | Chạy Playwright mock smoke tests và tự khởi động Vite server. |
 | `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` | Migrate/seed API local rồi chạy Playwright API regression tests. |
 
-`npm run e2e` giữ mock mode là mặc định và không cần backend. `e2e:api` cần PostgreSQL local, dependencies đã cài trong `apps/api`, và `DATABASE_URL`; runner sẽ generate Prisma client, apply migrations, seed dữ liệu demo, khởi động API ở port 3000, rồi chạy Vite API mode ở port 4174. Vite proxy `/api/v1` tới API local để browser test dùng cùng origin. Production vẫn dùng mock mode cho đến khi API hosting và CORS production được cấu hình.
+`npm run e2e` giữ mock mode là mặc định và không cần backend. `e2e:api` cần PostgreSQL local, dependencies đã cài trong `apps/api`, và `DATABASE_URL`; runner sẽ generate Prisma client, apply migrations, seed dữ liệu demo, khởi động API ở port 3000, rồi chạy Vite API mode ở port 4174. Vite proxy `/api/v1` tới API local để browser test dùng cùng origin. Render production build dùng API mode same-origin qua `VITE_DATA_SOURCE=api` và `VITE_API_BASE_URL=/api/v1`.
 
 ## Responsive QA Và Verification
 
@@ -84,6 +84,7 @@ GitHub Actions dùng hai workflow:
 
 - `Web CI`: chạy khi có Pull Request vào `main` hoặc push lên `main`, kiểm tra test, typecheck, lint, build, mock e2e, API-mode e2e với PostgreSQL service, và upload artifact `careflow-web-dist`.
 - `Web Pages`: chạy khi `main` thay đổi hoặc chạy thủ công bằng `workflow_dispatch`, build với `mode github-pages` rồi deploy `apps/web/dist` lên GitHub Pages.
+- `Render Deployment`: ghi deployment URL của single-service Render app vào GitHub Deployments khi repo variable `RENDER_EXTERNAL_URL` đã được set.
 
 GitHub Pages cần bật source **GitHub Actions** trong repository settings. Khi deploy thành công, app có URL dạng:
 

@@ -7,16 +7,20 @@ on:
     paths:
       - "apps/web/**"
       - "apps/api/**"
+      - "render.yaml"
       - ".github/workflows/web-ci.yml"
       - ".github/workflows/web-pages.yml"
+      - ".github/workflows/render-deployment.yml"
   push:
     branches:
       - main
     paths:
       - "apps/web/**"
       - "apps/api/**"
+      - "render.yaml"
       - ".github/workflows/web-ci.yml"
       - ".github/workflows/web-pages.yml"
+      - ".github/workflows/render-deployment.yml"
 
 permissions:
   contents: read

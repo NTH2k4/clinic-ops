@@ -7,6 +7,7 @@ import { AppModule } from "../src/app.module";
 const healthResponseSchema = z.object({
   data: z.object({
     status: z.literal("ok"),
+    commit: z.string().min(1),
   }),
   meta: z.object({
     requestId: z.string().min(1),
@@ -28,7 +29,7 @@ describe("HealthController", () => {
       .expect((response) => {
         const body: unknown = response.body;
         const parsed = healthResponseSchema.parse(body);
-        expect(parsed.data).toEqual({ status: "ok" });
+        expect(parsed.data).toEqual({ status: "ok", commit: "local" });
         expect(parsed.meta.requestId).toEqual(expect.any(String));
       });
 

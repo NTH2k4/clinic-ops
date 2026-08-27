@@ -24,8 +24,9 @@ The backend on `main` has:
 - Catalog, patients, scheduling, appointments, audit and notifications modules.
 - Appointment conflict checks and status transition enforcement.
 - API CI with typecheck, lint, unit tests, E2E tests, build and dependency audit.
-- Frontend API integration merged into `main` with mock mode remaining the default runtime data source.
+- Frontend API integration merged into `main` with mock mode remaining the default local runtime data source.
 - Checked-in OpenAPI baseline at `docs/03-architecture/openapi.json`, validated by `apps/api/src/openapi-contract.spec.ts` in API CI.
+- Free deployment target selected: one Render Free Web Service serving both React and NestJS, with Neon Free Postgres as the external database.
 
 The next backend-facing work should start from deployment/auth/observability decisions instead of redoing the completed backend MVP or frontend integration work.
 
@@ -91,16 +92,18 @@ Acceptance criteria:
 
 ## Workstream 4: Backend Deployment Readiness
 
+Status: in progress through `render.yaml`, single-service static serving, and GitHub Deployment registration.
+
 Goal: make the API deployable outside local development.
 
 Recommended actions:
 
-1. Choose hosting for the API and PostgreSQL.
-2. Define required environment variables.
-3. Set `CORS_ALLOWED_ORIGINS` to the deployed frontend origin after the frontend/API hosting topology is chosen.
-4. Add a health endpoint check to deployment monitoring.
-5. Define migration rollout steps for production.
-6. Document rollback behavior.
+1. Use Render Free Web Service for the combined frontend/backend app.
+2. Use Neon Free Postgres for `DATABASE_URL`.
+3. Keep browser API calls same-origin with `VITE_API_BASE_URL=/api/v1`, so CORS is not required for the Render app.
+4. Use `/api/v1/health` for Render health checks and GitHub Deployment verification.
+5. Run Prisma migrations through Render `preDeployCommand`.
+6. Seed demo data once through Render `initialDeployHook`.
 
 Acceptance criteria:
 
@@ -183,12 +186,14 @@ Acceptance criteria:
 
 ## Recommended Execution Order
 
-1. Decide the deployment target and CORS model.
-2. Harden auth/session behavior for the chosen deployment model.
-3. Add observability and operational runbooks.
-4. Expand audit/data governance.
-5. Deepen scheduling management only after the integrated product flow is stable.
-6. Translate existing high-value docs opportunistically when they are materially revised.
+1. Create the Render Blueprint service and set the Neon `DATABASE_URL`.
+2. Set GitHub repository variable `RENDER_EXTERNAL_URL` after Render assigns the service URL.
+3. Verify deployed health, login and booking smoke paths.
+4. Harden auth/session behavior for the chosen deployment model.
+5. Add observability and operational runbooks.
+6. Expand audit/data governance.
+7. Deepen scheduling management only after the integrated product flow is stable.
+8. Translate existing high-value docs opportunistically when they are materially revised.
 
 ## Verification Matrix
 

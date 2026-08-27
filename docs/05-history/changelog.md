@@ -2,6 +2,7 @@
 
 ## 2026-08-27
 
+- Added single-service Render deployment config for the React frontend plus NestJS API, GitHub Deployment registration for the Render URL, static web serving in the API, and Render/Neon deployment docs.
 - Added a checked-in OpenAPI baseline at `docs/03-architecture/openapi.json` and API unit coverage to validate the documented v1 endpoint surface, bearer auth and shared response envelopes.
 
 ## 2026-08-26

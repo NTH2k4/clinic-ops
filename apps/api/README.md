@@ -69,6 +69,8 @@ PORT=3001 npm run dev
 | `PORT` | No | `3000` | API listen port. Invalid values fail startup before binding the server. |
 | `CORS_ALLOWED_ORIGINS` | No | CORS disabled | Comma-separated `http://` or `https://` origins allowed to call the API from browsers. Use the deployed frontend origin in staging/production. |
 | `ALLOW_DATABASE_SEED` | No | unset | Set to `true` only when intentionally seeding a non-local database. |
+| `SERVE_WEB_APP` | No | `false` | Set to `true` when one Render Web Service should serve both the React build and API. |
+| `WEB_DIST_DIR` | No | Auto-detected | Optional path to the built `apps/web/dist` directory. |
 
 Copy `apps/api/.env.example` when preparing a local or hosted environment and replace values for the target deployment.
 
@@ -105,7 +107,7 @@ curl http://localhost:3000/api/v1/auth/me \
 | --- | --- |
 | `npm run dev` | Start Nest in watch mode. |
 | `npm run build` | Build the API. |
-| `npm run start` | Run the built API from `dist/main.js`. |
+| `npm run start` | Run the built API from `dist/src/main.js`. |
 | `npm run lint` | Run ESLint for API source and tests. |
 | `npm run typecheck` | Run TypeScript without emitting files. |
 | `npm test -- --runInBand` | Run unit tests. |
@@ -153,6 +155,20 @@ CORS_ALLOWED_ORIGINS=https://nth2k4.github.io
 ```
 
 Do not use wildcard browser origins for production because the API uses bearer sessions.
+
+## Single-Service Render Deployment
+
+The free Render deployment uses one Node Web Service for both the API and the React frontend. Render builds `apps/web`, starts `apps/api`, and the Nest process serves the built frontend when `SERVE_WEB_APP=true`.
+
+Key behavior:
+
+- API routes stay under `/api/v1`.
+- Non-API browser routes fall back to the React `index.html`.
+- Frontend production build uses `VITE_DATA_SOURCE=api` and `VITE_API_BASE_URL=/api/v1`, so browser calls stay same-origin.
+- `preDeployCommand` runs Prisma migrations before the service starts.
+- `initialDeployHook` seeds demo data once with `ALLOW_DATABASE_SEED=true`.
+
+Render configuration lives in the repository root `render.yaml`. Deployment runbook details are in `docs/04-planning/render-deployment-plan.md`.
 
 ## Main Resources
 

@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: clinic-ops
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    autoDeployTrigger: commit
+    buildCommand: >
+      npm ci --prefix apps/api &&
+      npm ci --prefix apps/web &&
+      VITE_DATA_SOURCE=api VITE_API_BASE_URL=/api/v1 npm run build --prefix apps/web &&
+      npm run prisma:generate --prefix apps/api &&
+      npm run build --prefix apps/api
+    preDeployCommand: cd apps/api && npx prisma migrate deploy
+    initialDeployHook: cd apps/api && ALLOW_DATABASE_SEED=true npm run prisma:seed
+    startCommand: npm run start --prefix apps/api
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: SERVE_WEB_APP
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
