@@ -28,7 +28,7 @@
 - [x] Web mock-mode gate sau merge: unit tests (16/16 files, 130/130 tests), typecheck, lint, build và mock Playwright (9/9) đều pass.
 - [x] Web API-mode gate sau merge: API-mode Playwright (5/5) pass trên configured host PostgreSQL target.
 - [x] Docs trong `docs/04-planning/` và release notes phản ánh branch, commit, verification, known constraints và demo safety.
-- [ ] Render health/login smoke chưa chạy: chỉ thực hiện sau khi có approval push/deploy và `RENDER_EXTERNAL_URL` khả dụng.
+- [ ] Render health/login smoke. Health pass trên `https://clinic-ops.onrender.com` cho commit `4b1ff302`; login smoke lần đầu trả `401 UNAUTHENTICATED`, nên đang triển khai demo auth repair idempotent trong Render build rồi sẽ chạy lại. Local bugfix verification pass: targeted demo auth seed E2E 1/1, full API E2E 9/9 suites và 72/72 tests.
 
 ## Task 2 API Verification (2026-08-27)
 

@@ -13,6 +13,7 @@ services:
       npm run prisma:generate --prefix apps/api &&
       cd apps/api &&
       npx prisma migrate deploy &&
+      npm run prisma:seed:demo-auth &&
       cd ../.. &&
       npm run build --prefix apps/api
     initialDeployHook: cd apps/api && ALLOW_DATABASE_SEED=true npm run prisma:seed

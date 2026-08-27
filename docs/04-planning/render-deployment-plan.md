@@ -21,8 +21,8 @@ Render Free Web Services can sleep after idle time. Serving the frontend from th
 
 The root `render.yaml` defines:
 
-- `buildCommand`: installs API and web dependencies, builds the React API-mode bundle, generates Prisma Client, runs `npx prisma migrate deploy`, and builds NestJS.
-- `initialDeployHook`: seeds demo data once with `ALLOW_DATABASE_SEED=true`.
+- `buildCommand`: installs API and web dependencies, builds the React API-mode bundle, generates Prisma Client, runs `npx prisma migrate deploy`, repairs demo auth users with `npm run prisma:seed:demo-auth`, and builds NestJS.
+- `initialDeployHook`: seeds the full demo dataset once with `ALLOW_DATABASE_SEED=true`.
 - `startCommand`: runs `npm run start --prefix apps/api`.
 - `healthCheckPath`: `/api/v1/health`.
 
@@ -57,7 +57,7 @@ The `Render Deployment` workflow uses this variable to create a GitHub Deploymen
 2. Copy the Neon connection string.
 3. In Render, create a Blueprint from this repository and `render.yaml`.
 4. Fill `DATABASE_URL` when Render prompts for the unsynced variable.
-5. Wait for the first deploy; Render runs migrations during build and seeds demo data once after the first successful deploy.
+5. Wait for the first deploy; Render runs migrations and demo auth repair during build, then seeds the full demo dataset once after the first successful deploy.
 6. Copy the Render service URL.
 7. In GitHub, set repository variable `RENDER_EXTERNAL_URL` to the Render service URL.
 8. Run the `Render Deployment` workflow manually once if needed to register the URL in GitHub Deployments.

@@ -33,19 +33,19 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã tích hợp vào `main` và đã qua regression verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194`, API E2E 71/71 |
-| MVP Release Completion | MVP release candidate local đã hoàn tất; chờ approval riêng để push/deploy | `docs/04-planning/mvp-release-completion-plan.md`, API và Web verification gates sau merge |
+| MVP Release Completion | Đã push release candidate lên `origin/main`; CI pass; Render login smoke đang được sửa bằng demo auth repair | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 
 ## Trạng Thái Branch Hiện Tại
 
-- Root worktree `clinic-ops` đang ở `main`, sạch và ahead `origin/main` do local release candidate chưa push.
+- Root worktree `clinic-ops` đang ở `main`; release candidate `4b1ff302` đã push lên `origin/main`.
 - Worktree triển khai authorization hardening nằm tại `.worktrees/authorization-hardening`.
 - Branch triển khai: `authorization-hardening`.
 - Commit triển khai authorization hardening: `e6ed2c18 fix(api): harden authorization boundaries`.
 - Commit docs/workflow mới nhất trên branch: `8c41ecb9 docs: document progress tracking workflow`.
 - Merge commit local trên `main`: `7d5a5194 merge: authorization hardening`.
-- Trạng thái tích hợp: đã merge local vào `main`; API và Web full verification sau merge đều pass; chưa push và chưa deploy.
+- Trạng thái tích hợp: đã merge vào `main`; API và Web full verification sau merge đều pass; push `origin/main` đã thực hiện.
 
 ## API Verification Gate Sau Merge (Task 2)
 
@@ -86,16 +86,27 @@ Không có failure command hoặc actionable error trong Web gate. Các warning 
 
 ## Push Và Deployment Gate (Task 5)
 
-Trạng thái: **chưa chạy push/deploy**. Local release candidate đã verified, nhưng push `main`, GitHub Actions inspection và Render health/login smoke là external side effects nên vẫn cần approval riêng.
+Trạng thái: **đang xử lý deployed login smoke**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng; GitHub Actions và Render Deployment workflow cho commit `4b1ff302` đều success. Render health pass đúng commit, nhưng login smoke lần đầu trả `401 UNAUTHENTICATED`, nên đang bổ sung demo auth repair idempotent vào Render build.
 
 | Check | Kết quả | Chi tiết |
 | --- | --- | --- |
-| `git status --short --branch` | Pass | `main` sạch và ahead `origin/main` với local release candidate commits. |
-| `git log --oneline --decorate -12` | Pass | HEAD hiện tại là local release candidate; chưa push lên `origin/main`. |
-| `RENDER_EXTERNAL_URL` | Missing | Environment hiện tại không có Render URL để chạy deployed health/login smoke. |
-| `gh auth status` | Not available | `gh` CLI không khả dụng trong môi trường hiện tại, nên chưa inspect được GitHub Actions từ CLI. |
+| `git push origin main` | Pass | Pushed `origin/main` từ `f996c809` lên `4b1ff302`. |
+| `git ls-remote origin refs/heads/main` | Pass | Remote `main` trỏ tới `4b1ff30211c024f16fc0cc36af15c9aeb2b19225`. |
+| GitHub Actions API | Pass | API CI, Web CI và Render Deployment đều `completed/success` cho `4b1ff302`. |
+| GitHub Deployment API | Pass | Deployment `render-free` success, URL `https://clinic-ops.onrender.com`. |
+| Render health smoke | Pass | `/api/v1/health` trả commit `4b1ff30211c024f16fc0cc36af15c9aeb2b19225`. |
+| Render login smoke | Fail | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả `401 UNAUTHENTICATED`; root cause là deployed demo credentials không được repair bởi `initialDeployHook` sau auth-related migrations. |
 
-Điều kiện để chạy tiếp: người dùng xác nhận rõ việc push/deploy, `origin main` cho phép push, và có `RENDER_EXTERNAL_URL` sau khi Render service sẵn sàng.
+Fix đang triển khai: `render.yaml` sẽ chạy `npm run prisma:seed:demo-auth` sau `npx prisma migrate deploy` trong `buildCommand`. Script này chỉ upsert demo login users/password hashes và không reset database.
+
+Local verification cho fix:
+
+- RED: `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand demo-auth-seed.e2e-spec.ts` fail trước implementation vì thiếu `../prisma/demo-auth-seed`.
+- GREEN targeted: cùng command pass `1/1` suite, `1/1` test sau khi thêm script.
+- `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run prisma:seed:demo-auth`: pass.
+- API typecheck/lint/build/audit: pass; audit `found 0 vulnerabilities`.
+- API unit: `6/6` suites, `37/37` tests pass.
+- API E2E full sau test mới: `9/9` suites, `72/72` tests pass.
 
 ## Workstream Đang Chờ Quyết Định
 
@@ -129,7 +140,8 @@ Trạng thái verification sau merge:
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
-2. Sau khi deploy, chạy Render health/login smoke với `RENDER_EXTERNAL_URL` và ghi kết quả vào checklist/readiness.
+1. Push bugfix demo auth repair lên `main`.
+2. Đợi GitHub Actions/Render Deployment success cho commit mới.
+3. Chạy lại Render health/login smoke và ghi kết quả cuối vào checklist/readiness.
 
 Khuyến nghị: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.

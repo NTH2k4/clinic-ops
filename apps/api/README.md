@@ -115,6 +115,7 @@ curl http://localhost:3000/api/v1/auth/me \
 | `npm run prisma:generate` | Generate Prisma client. |
 | `npm run prisma:migrate` | Create/apply a local Prisma development migration. |
 | `npm run prisma:seed` | Reset and seed the local CareFlow database. |
+| `npm run prisma:seed:demo-auth` | Idempotently repair demo login users and `careflow-demo` password hashes without resetting data. |
 
 ## Verification Gate
 
@@ -168,8 +169,8 @@ Key behavior:
 - API routes stay under `/api/v1`.
 - Non-API browser routes fall back to the React `index.html`.
 - Frontend production build uses `VITE_DATA_SOURCE=api` and `VITE_API_BASE_URL=/api/v1`, so browser calls stay same-origin.
-- `preDeployCommand` runs Prisma migrations before the service starts.
-- `initialDeployHook` seeds demo data once with `ALLOW_DATABASE_SEED=true`.
+- Render `buildCommand` runs Prisma migrations, then `npm run prisma:seed:demo-auth` to keep demo login credentials available after auth-related migrations.
+- `initialDeployHook` seeds the full demo dataset once with `ALLOW_DATABASE_SEED=true`.
 
 Render configuration lives in the repository root `render.yaml`. Deployment runbook details are in `docs/04-planning/render-deployment-plan.md`.
 
