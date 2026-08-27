@@ -1,4 +1,4 @@
-# Tiến Độ Hiện Tại Và Kế Hoạch Tiếp Theo
+# Mức Độ Sẵn Sàng MVP Release
 
 ## Document Control
 
@@ -7,21 +7,21 @@
 | Trạng thái | `active` |
 | Đối tượng đọc chính | Người dùng, senior engineer và agent tiếp tục triển khai |
 | Cập nhật lần cuối | 2026-08-27 |
-| Nguồn | `docs/04-planning/backend-next-steps.md`, `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, trạng thái git hiện tại |
+| Nguồn | `docs/04-planning/backend-next-steps.md`, `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, trạng thái git của release candidate |
 
 ## Mục Đích
 
-Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi dự án đang ở đâu, workstream nào đã hoàn thành, workstream nào đang chờ tích hợp và bước nào nên làm tiếp. Khi triển khai thêm mã nguồn, agent phải cập nhật tài liệu này hoặc plan liên quan trong `docs/04-planning/` trước khi báo cáo tiến độ.
+Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi mức độ sẵn sàng của MVP release, workstream nào đã hoàn thành, workstream nào đang chờ tích hợp và bước nào nên làm tiếp sau khi kế hoạch được duyệt. Khi triển khai thêm mã nguồn, agent phải cập nhật tài liệu này hoặc plan liên quan trong `docs/04-planning/` trước khi báo cáo tiến độ.
 
-## Quy Tắc Theo Dõi Từ Thời Điểm Này
+## Quy Tắc Theo Dõi Release
 
 - Mọi bước triển khai mã nguồn phải có plan hoặc status trong `docs/04-planning/`.
 - Nếu agent dùng plan hỗ trợ trong `docs/superpowers/plans/`, phải có bản tổng quan tiến độ bằng tiếng Việt trong `docs/04-planning/`.
 - Báo cáo tiến độ phải dẫn chứng bằng tài liệu, branch/commit và verification đã chạy.
 - Khi task hoàn thành, checklist/status trong docs phải được cập nhật cùng change.
-- Không bắt đầu workstream tiếp theo nếu docs hiện tại chưa phản ánh đúng trạng thái mới nhất.
+- Không bắt đầu workstream tiếp theo nếu docs chưa phản ánh đúng trạng thái release mới nhất.
 
-## Tiến Độ Hiện Tại
+## Trạng Thái Release
 
 | Hạng mục | Trạng thái | Dẫn chứng |
 | --- | --- | --- |
@@ -40,9 +40,9 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi d�
 - Root worktree `clinic-ops` đang ở `main`, sạch và khớp `origin/main`.
 - Worktree triển khai authorization hardening nằm tại `.worktrees/authorization-hardening`.
 - Branch triển khai: `authorization-hardening`.
-- Commit triển khai hiện tại: `e6ed2c18 fix(api): harden authorization boundaries`.
+- Commit triển khai authorization hardening: `e6ed2c18 fix(api): harden authorization boundaries`.
 - Commit docs/workflow mới nhất trên branch: `8c41ecb9 docs: document progress tracking workflow`.
-- Trạng thái tích hợp: chưa merge vào `main`, chưa push từ phiên hiện tại.
+- Trạng thái tích hợp: chưa merge code authorization hardening vào `main`.
 
 ## Workstream Đang Chờ Quyết Định
 
@@ -73,13 +73,13 @@ Các lựa chọn tích hợp:
 
 1. Merge local branch `authorization-hardening` vào `main`.
 2. Push branch và tạo Pull Request.
-3. Giữ branch như hiện tại để người dùng xử lý sau.
+3. Giữ branch như hiện trạng để người dùng xử lý sau.
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
 1. Người dùng review và duyệt `docs/04-planning/mvp-release-completion-plan.md`.
-2. Sau khi được duyệt, execute plan bằng subagent-driven development trong phiên hiện tại.
+2. Sau khi được duyệt, execute plan bằng subagent-driven development trong execution cycle này.
 3. Tích hợp `authorization-hardening`, chạy API/Web verification và cập nhật docs theo kết quả thật.
 4. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
 
-Khuyến nghị hiện tại: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.
+Khuyến nghị: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.

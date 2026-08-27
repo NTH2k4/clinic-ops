@@ -21,7 +21,7 @@ Quy tắc áp dụng:
 5. Khi báo cáo tiến độ cho người dùng, phải dẫn chứng bằng đường dẫn tài liệu, trạng thái checklist, commit/branch và verification đã chạy.
 6. Nếu có plan phụ trong `docs/superpowers/plans/`, vẫn phải duy trì bản tổng quan hoặc status bằng tiếng Việt trong `docs/04-planning/`.
 
-Tài liệu tổng quan tiến độ hiện tại nằm tại `docs/04-planning/current-progress-and-next-steps.md`.
+Tài liệu tổng quan mức độ sẵn sàng release nằm tại `docs/04-planning/mvp-release-readiness.md`.
 
 ## Ngôn Ngữ Tài Liệu
 

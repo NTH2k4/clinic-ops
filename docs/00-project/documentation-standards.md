@@ -85,7 +85,7 @@ Tài liệu phải bao phủ:
 - Transaction boundaries.
 - Deployment và environment design.
 - Agent-readable next-step plans.
-- User-readable current progress và next-step summary trong `docs/04-planning/`.
+- User-readable release readiness và next-step summary trong `docs/04-planning/`.
 
 ## Definition Of Ready For Implementation
 

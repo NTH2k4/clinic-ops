@@ -8,7 +8,7 @@
 
 **Tech Stack:** React, Vite, TypeScript, Playwright, NestJS, Prisma, PostgreSQL, GitHub Actions, Render Free Web Service, Neon Free Postgres.
 
-**Spec:** `docs/04-planning/current-progress-and-next-steps.md`, `docs/04-planning/backend-next-steps.md`, `docs/04-planning/render-deployment-plan.md`, `docs/06-testing/acceptance-checklist.md`.
+**Spec:** `docs/04-planning/mvp-release-readiness.md`, `docs/04-planning/backend-next-steps.md`, `docs/04-planning/render-deployment-plan.md`, `docs/06-testing/acceptance-checklist.md`.
 
 ## Global Constraints
 
@@ -22,9 +22,9 @@
 
 ---
 
-## Phạm Vi Chốt Cho Phiên Này
+## Phạm Vi Sau Khi Duyệt
 
-Trong phiên làm việc hiện tại, sau khi người dùng duyệt tài liệu, agent sẽ triển khai theo thứ tự:
+Sau khi người dùng duyệt tài liệu, agent sẽ triển khai theo thứ tự:
 
 1. Tích hợp branch `authorization-hardening` vào `main` theo hướng local merge trước.
 2. Chạy full local verification cho API và Web.
@@ -41,7 +41,7 @@ Ngoài phạm vi:
 
 ## File Structure
 
-- Modify: `docs/04-planning/current-progress-and-next-steps.md` để cập nhật trạng thái từng task khi chạy.
+- Modify: `docs/04-planning/mvp-release-readiness.md` để cập nhật trạng thái từng task khi chạy.
 - Modify: `docs/04-planning/backend-next-steps.md` nếu trạng thái Workstream 6A hoặc release readiness thay đổi.
 - Modify: `docs/06-testing/acceptance-checklist.md` để thêm release candidate checklist.
 - Modify: `docs/05-history/changelog.md` để ghi nhận integration/verification/docs.
@@ -52,7 +52,7 @@ Ngoài phạm vi:
 ## Task 1: Integration Baseline
 
 **Files:**
-- Modify: `docs/04-planning/current-progress-and-next-steps.md`
+- Modify: `docs/04-planning/mvp-release-readiness.md`
 - Modify: `docs/05-history/decision-log.md`
 
 **Interfaces:**
@@ -90,11 +90,11 @@ Run:
 git merge --no-ff authorization-hardening -m "merge: authorization hardening"
 ```
 
-Expected: merge succeeds without conflict. If conflict occurs, stop implementation and record the exact conflicting files in `docs/04-planning/current-progress-and-next-steps.md`.
+Expected: merge succeeds without conflict. If conflict occurs, stop implementation and record the exact conflicting files in `docs/04-planning/mvp-release-readiness.md`.
 
-- [ ] **Step 4: Update progress docs**
+- [ ] **Step 4: Update release readiness docs**
 
-Update `docs/04-planning/current-progress-and-next-steps.md`:
+Update `docs/04-planning/mvp-release-readiness.md`:
 
 - Change Authorization matrix hardening from "chờ quyết định tích hợp" to "đã merge local vào main".
 - Record the merge commit hash.
@@ -106,7 +106,7 @@ Run:
 
 ```bash
 git status --short
-git add docs/04-planning/current-progress-and-next-steps.md docs/05-history/decision-log.md
+git add docs/04-planning/mvp-release-readiness.md docs/05-history/decision-log.md
 git commit -m "docs: record authorization merge decision"
 ```
 
@@ -115,7 +115,7 @@ Expected: create a docs commit only if there are documentation changes after mer
 ## Task 2: API Verification Gate
 
 **Files:**
-- Modify: `docs/04-planning/current-progress-and-next-steps.md`
+- Modify: `docs/04-planning/mvp-release-readiness.md`
 - Modify: `docs/06-testing/acceptance-checklist.md`
 
 **Interfaces:**
@@ -198,7 +198,7 @@ Expected: build exits `0`; audit reports no high-severity vulnerability.
 
 - [ ] **Step 8: Record API verification result**
 
-Update `docs/04-planning/current-progress-and-next-steps.md` and `docs/06-testing/acceptance-checklist.md` with:
+Update `docs/04-planning/mvp-release-readiness.md` and `docs/06-testing/acceptance-checklist.md` with:
 
 - Commands executed.
 - Pass/fail result.
@@ -208,7 +208,7 @@ Update `docs/04-planning/current-progress-and-next-steps.md` and `docs/06-testin
 ## Task 3: Web Verification Gate
 
 **Files:**
-- Modify: `docs/04-planning/current-progress-and-next-steps.md`
+- Modify: `docs/04-planning/mvp-release-readiness.md`
 - Modify: `docs/06-testing/acceptance-checklist.md`
 
 **Interfaces:**
@@ -280,7 +280,7 @@ Expected: Playwright API-mode regression suite exits `0`.
 
 - [ ] **Step 7: Record web verification result**
 
-Update `docs/04-planning/current-progress-and-next-steps.md` and `docs/06-testing/acceptance-checklist.md` with:
+Update `docs/04-planning/mvp-release-readiness.md` and `docs/06-testing/acceptance-checklist.md` with:
 
 - Commands executed.
 - Pass/fail result.
@@ -291,7 +291,7 @@ Update `docs/04-planning/current-progress-and-next-steps.md` and `docs/06-testin
 
 **Files:**
 - Modify: `docs/00-project/documentation-map.md`
-- Modify: `docs/04-planning/current-progress-and-next-steps.md`
+- Modify: `docs/04-planning/mvp-release-readiness.md`
 - Modify: `docs/04-planning/backend-next-steps.md`
 - Modify: `docs/05-history/changelog.md`
 - Modify: `docs/05-history/release-notes.md`
@@ -301,9 +301,9 @@ Update `docs/04-planning/current-progress-and-next-steps.md` and `docs/06-testin
 - Consumes: verification results from Task 2 and Task 3.
 - Produces: docs that describe the verified release candidate without relying on chat history.
 
-- [ ] **Step 1: Update current progress**
+- [ ] **Step 1: Update release readiness**
 
-Update `docs/04-planning/current-progress-and-next-steps.md`:
+Update `docs/04-planning/mvp-release-readiness.md`:
 
 - Mark Workstream 6A integrated if Task 1 merged successfully.
 - Mark API verification status from Task 2.
@@ -348,7 +348,7 @@ Run:
 ```bash
 git diff --check
 git status --short
-git add README.md docs/00-project/documentation-map.md docs/04-planning/current-progress-and-next-steps.md docs/04-planning/backend-next-steps.md docs/05-history/changelog.md docs/05-history/release-notes.md docs/06-testing/acceptance-checklist.md
+git add README.md docs/00-project/documentation-map.md docs/04-planning/mvp-release-readiness.md docs/04-planning/backend-next-steps.md docs/05-history/changelog.md docs/05-history/release-notes.md docs/06-testing/acceptance-checklist.md
 git commit -m "docs: sync mvp release candidate status"
 ```
 
@@ -357,7 +357,7 @@ Expected: docs commit succeeds after diff check passes.
 ## Task 5: Push And Deployment Verification Gate
 
 **Files:**
-- Modify: `docs/04-planning/current-progress-and-next-steps.md`
+- Modify: `docs/04-planning/mvp-release-readiness.md`
 - Modify: `docs/04-planning/render-deployment-plan.md`
 - Modify: `docs/05-history/release-notes.md`
 
@@ -420,7 +420,7 @@ Expected: response includes current admin user data and a bearer session token.
 
 - [ ] **Step 6: Record deployment result**
 
-Update `docs/04-planning/current-progress-and-next-steps.md`, `docs/04-planning/render-deployment-plan.md` and `docs/05-history/release-notes.md` with:
+Update `docs/04-planning/mvp-release-readiness.md`, `docs/04-planning/render-deployment-plan.md` and `docs/05-history/release-notes.md` with:
 
 - Pushed commit hash.
 - GitHub Actions result if available.
@@ -433,7 +433,7 @@ Run if docs changed:
 
 ```bash
 git diff --check
-git add docs/04-planning/current-progress-and-next-steps.md docs/04-planning/render-deployment-plan.md docs/05-history/release-notes.md
+git add docs/04-planning/mvp-release-readiness.md docs/04-planning/render-deployment-plan.md docs/05-history/release-notes.md
 git commit -m "docs: record mvp deployment verification"
 git push origin main
 ```
