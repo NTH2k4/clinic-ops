@@ -49,3 +49,17 @@ npm run typecheck: exit 0
 jq empty docs/03-architecture/openapi.json: exit 0
 git diff --check: exit 0
 ```
+
+## Fix Round 2
+
+- Updated the active API contract authorization-boundary note so it no longer says `/users` administration is a later slice.
+- The note now states that admin-only list/detail/status/reset account lifecycle endpoints are implemented, while full staff/doctor/admin account creation remains deferred.
+
+### Verification
+
+```text
+npm test -- --runInBand src/openapi-contract.spec.ts: 1 suite passed, 9 tests passed
+npm run typecheck: exit 0
+jq empty docs/03-architecture/openapi.json: exit 0
+git diff --check: exit 0
+```
