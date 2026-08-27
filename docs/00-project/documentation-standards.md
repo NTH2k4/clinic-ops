@@ -1,57 +1,66 @@
-# Documentation Standards
+# Quy Chuẩn Tài Liệu
 
-CareFlow documentation is written for both humans and agents. Each document must be clear enough to guide implementation, review and verification without relying on chat history.
+CareFlow dùng tài liệu như contract chung giữa người triển khai, người review và agent. Mọi thay đổi quan trọng phải có dấu vết trong `docs` để không phụ thuộc vào lịch sử chat.
 
-## Goals
+## Mục Tiêu
 
-- Help human contributors understand product intent, scope, workflows and technical decisions.
-- Give AI agents and subagents precise context so they change the right scope without guessing.
-- Keep requirements, decisions, changes and open questions traceable.
-- Provide the foundation for product specs, architecture, API contracts, implementation plans and testing.
+- Giúp người tham gia dự án hiểu rõ mục tiêu sản phẩm, phạm vi, workflow và quyết định kỹ thuật.
+- Giúp agent/subagent có đủ context để triển khai đúng scope, đúng thứ tự và đúng tiêu chí kiểm chứng.
+- Giữ requirements, decisions, plan, tiến độ, thay đổi và câu hỏi mở ở trạng thái traceable.
+- Làm nền cho product spec, architecture, API contract, implementation plan, testing và release notes.
 
-## Language Policy
+## Chính Sách Ngôn Ngữ
 
-- New documentation should use English by default.
-- Documentation written for AI agents or subagents must use English, especially implementation plans, work packages, review handoffs, verification instructions and architecture references.
-- Human-facing documentation should also use English unless a specific product copy, user-facing screen label or stakeholder requirement needs Vietnamese.
-- Existing Vietnamese documents can remain in place until they are materially updated. When a document is substantially revised, convert the touched document to English instead of extending the mixed-language surface.
-- Do not mix languages for decoration. Use Vietnamese only where it is intentional user-facing product language or required business context.
+- Tài liệu dự án viết bằng tiếng Việt theo mặc định.
+- Technical terms, framework names, API names, command, file path và thuật ngữ chuyên ngành phổ biến có thể giữ bằng tiếng Anh khi dịch sang tiếng Việt làm giảm độ rõ nghĩa.
+- Tài liệu execution dành riêng cho agent/subagent có thể dùng tiếng Anh khi workflow/tooling yêu cầu, nhưng phải có một tài liệu tổng quan hoặc status bằng tiếng Việt trong `docs/04-planning/` để người dùng theo dõi.
+- Không trộn ngôn ngữ để trang trí. Dùng tiếng Anh khi nó làm kỹ thuật rõ hơn; dùng tiếng Việt cho định hướng dự án, kế hoạch, tiến độ, quyết định và ghi chú bàn giao cho người dùng.
+- Khi cập nhật đáng kể một tài liệu đang lệch chính sách ngôn ngữ, ưu tiên chỉnh phần liên quan sang tiếng Việt hoặc bổ sung bản tổng quan tiếng Việt thay vì mở rộng thêm nội dung khó theo dõi.
 
-## Quality Requirements
+## Quy Tắc Ghi Nhận Tiến Độ
 
-Important documents should include:
+- Trước khi sửa mã nguồn, phải tạo hoặc cập nhật plan trong `docs/04-planning/`.
+- Plan triển khai phải ghi rõ mục tiêu, phạm vi, file dự kiến sửa, task checklist, tiêu chí hoàn thành, verification commands và rủi ro còn lại.
+- Khi hoàn thành một bước, phải cập nhật checklist hoặc status trong tài liệu liên quan trước khi báo cáo tiến độ.
+- Khi một bước tạo commit, tài liệu tiến độ phải ghi branch/commit hoặc trạng thái local phù hợp.
+- Khi người dùng hỏi đã triển khai đến đâu, câu trả lời phải dẫn chứng bằng đường dẫn tài liệu, trạng thái checklist, commit/branch và verification đã chạy.
+- Các plan tạm trong `docs/superpowers/plans/` chỉ được xem là tài liệu hỗ trợ agent; trạng thái tổng quan cho người dùng vẫn phải nằm trong `docs/04-planning/`.
 
-- Purpose.
-- Scope.
-- Primary audience.
-- Current status such as `draft`, `approved` or `baseline`.
-- Decisions that have been made.
-- Open questions when something is unresolved.
-- Acceptance criteria or verification notes when the document is used for implementation.
-- Links to related documents.
+## Yêu Cầu Chất Lượng
 
-## Agent Writing Rules
+Tài liệu quan trọng nên có:
 
-- State exactly which files, modules or scope may change when a document is used for implementation.
-- State constraints that must not be violated.
-- Avoid vague instructions such as "make it better", "improve handling" or "optimize" without concrete criteria.
-- For workflows, include actor, precondition, main flow, alternate flow and expected result.
-- For data models, include entity, field, relationship, enum and business rules.
-- For UI specs, include screen scope, state, empty/loading/error state, responsive behavior and acceptance criteria.
-- For implementation plans, use English task names, exact file paths, concrete verification commands and independently reviewable task boundaries.
+- Mục đích.
+- Phạm vi.
+- Đối tượng đọc chính.
+- Trạng thái hiện tại như `draft`, `approved`, `in progress`, `baseline` hoặc `completed`.
+- Quyết định đã chốt.
+- Câu hỏi mở khi còn điểm chưa rõ.
+- Acceptance criteria hoặc verification notes nếu tài liệu dùng để triển khai.
+- Liên kết tới tài liệu liên quan.
 
-## Change Control
+## Quy Tắc Viết Cho Agent
 
-- New requirements or scope changes must be recorded in `docs/01-requirements/change-requests.md`.
-- Important technical decisions must be recorded in `docs/05-history/decision-log.md`.
-- Completed changes must be recorded in `docs/05-history/changelog.md`.
-- If a change makes another document stale, update the related document in the same change.
+- Ghi rõ file, module hoặc scope được phép thay đổi khi tài liệu dùng để triển khai.
+- Ghi rõ ràng buộc không được vi phạm.
+- Tránh chỉ dẫn mơ hồ như "làm tốt hơn", "tối ưu" hoặc "xử lý edge case" nếu không có tiêu chí cụ thể.
+- Với workflow, ghi actor, precondition, main flow, alternate flow và expected result.
+- Với data model, ghi entity, field, relationship, enum và business rules.
+- Với UI spec, ghi screen scope, state, empty/loading/error state, responsive behavior và acceptance criteria.
+- Với implementation plan, dùng task boundary có thể review độc lập, exact file paths, concrete verification commands và checklist cập nhật được.
 
-## Detail Level By Phase
+## Kiểm Soát Thay Đổi
+
+- Yêu cầu mới hoặc thay đổi scope phải được ghi vào `docs/01-requirements/change-requests.md`.
+- Quyết định kỹ thuật quan trọng phải được ghi vào `docs/05-history/decision-log.md`.
+- Thay đổi đã hoàn thành phải được ghi vào `docs/05-history/changelog.md`.
+- Nếu một thay đổi làm tài liệu khác stale, phải cập nhật tài liệu liên quan trong cùng change.
+
+## Mức Độ Chi Tiết Theo Giai Đoạn
 
 ### Frontend-First Phase
 
-Documentation must be detailed enough for:
+Tài liệu phải đủ chi tiết cho:
 
 - Role-based navigation.
 - Screen list.
@@ -62,11 +71,11 @@ Documentation must be detailed enough for:
 - Acceptance criteria.
 - Verification commands.
 
-Detailed ERD and backend schema decisions were intentionally deferred until the backend phase.
+Detailed ERD và backend schema decisions được defer có chủ đích tới backend phase.
 
 ### Backend Phase
 
-Documentation must cover:
+Tài liệu phải bao phủ:
 
 - API contract.
 - Backend architecture.
@@ -74,26 +83,28 @@ Documentation must cover:
 - Security design.
 - Error code convention.
 - Transaction boundaries.
-- Deployment and environment design.
+- Deployment và environment design.
 - Agent-readable next-step plans.
+- User-readable current progress và next-step summary trong `docs/04-planning/`.
 
 ## Definition Of Ready For Implementation
 
-A work item should move to implementation only when it has:
+Một work item chỉ nên chuyển sang implementation khi đã có:
 
-- Clear scope.
-- Relevant data model or API boundary.
-- User flow or technical flow.
+- Scope rõ.
+- Data model hoặc API boundary liên quan.
+- User flow hoặc technical flow.
 - Acceptance criteria.
-- Constraints that must not be violated.
-- Verification commands or checklist.
+- Ràng buộc không được vi phạm.
+- Verification commands hoặc checklist.
+- Plan/status document trong `docs/04-planning/`.
 
 ## Definition Of Done For Documentation
 
-A documentation change is done when:
+Một documentation change được xem là xong khi:
 
-- It has no placeholder text such as `TODO`, `TBD` or `FIXME`.
-- It does not contradict related documents.
-- It is recorded in the changelog or change request log when it changes scope or decisions.
-- It has a clear commit message when committed.
-- If the repository is being synchronized with a remote, it is pushed after review.
+- Không còn placeholder text như `TODO`, `TBD` hoặc `FIXME`.
+- Không mâu thuẫn với tài liệu liên quan.
+- Đã ghi vào changelog hoặc change request log khi thay đổi scope, quy trình hoặc quyết định.
+- Có commit message rõ khi được commit.
+- Nếu repository đang đồng bộ với remote, được push sau review theo lựa chọn tích hợp đã chốt.
