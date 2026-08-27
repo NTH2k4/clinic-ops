@@ -35,8 +35,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | Backend README | Setup, scripts, local database, seed accounts và verification | `apps/api/README.md` | Hoàn thành cho backend MVP |
 | Backend RUNBOOK | Operational checks for request IDs, database, migrations, seed guard and auth failures | `docs/03-architecture/backend-runbook.md` | Baseline |
 | Backend AUDIT/DATA GOVERNANCE | Audit coverage, patient projection and sensitive log rules | `docs/03-architecture/audit-data-governance.md` | Baseline |
-| MVP Release Readiness | Tổng quan mức độ sẵn sàng release, branch/commit đang chờ tích hợp và bước tiếp theo | `docs/04-planning/mvp-release-readiness.md` | Active |
-| MVP Release Completion | Kế hoạch subagent-driven để tích hợp authorization hardening, chạy full verification, cập nhật docs và chuẩn bị deploy | `docs/04-planning/mvp-release-completion-plan.md` | Chờ người dùng duyệt |
+| MVP Release Readiness | Tổng quan release candidate, branch/commit, verification và deployment gate | `docs/04-planning/mvp-release-readiness.md` | Local release candidate đã verified; chưa push/deploy |
+| MVP Release Completion | Kế hoạch subagent-driven để tích hợp authorization hardening, chạy full verification, cập nhật docs và chuẩn bị deploy | `docs/04-planning/mvp-release-completion-plan.md` | Tasks 1-4 hoàn thành local; push/deploy chờ approval riêng |
 | CareFlow V1 Delivery Roadmap | Roadmap từ MVP release candidate tới CareFlow v1 hoàn chỉnh trong phạm vi đã chốt | `docs/04-planning/careflow-v1-delivery-roadmap.md` | Chờ người dùng duyệt |
 | CareFlow V1 Subagent Execution | Kế hoạch điều phối workstream v1 bằng subagent-driven development | `docs/04-planning/careflow-v1-subagent-execution-plan.md` | Chờ người dùng duyệt |
 
@@ -64,7 +64,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có audit/data governance baseline cho audit coverage, patient projection và sensitive log rules.
 - Có backend next steps plan bằng tiếng Anh để agent/subagent tiếp tục auth hardening, deployment, observability, audit/data governance và scheduling depth follow-up.
 - Có tài liệu tổng quan mức độ sẵn sàng release bằng tiếng Việt tại `docs/04-planning/mvp-release-readiness.md`, dùng để trả lời trạng thái triển khai bằng dẫn chứng docs/branch/commit/verification.
-- Có kế hoạch hoàn tất MVP release bằng subagent-driven tại `docs/04-planning/mvp-release-completion-plan.md`, đang chờ người dùng duyệt trước khi triển khai.
+- Có release candidate local đã verified: authorization hardening đã tích hợp vào `main`, API/Web gates pass và docs/release notes đã được đồng bộ; push/deploy vẫn chờ approval riêng.
 - Có roadmap CareFlow v1 tại `docs/04-planning/careflow-v1-delivery-roadmap.md`, định nghĩa đích cuối cho v1 và các phase sau MVP release candidate.
 - Có kế hoạch điều phối subagent-driven tại `docs/04-planning/careflow-v1-subagent-execution-plan.md`, chia các package v1 theo thứ tự triển khai và verification gate.
 
@@ -85,8 +85,8 @@ Thứ tự nên làm tiếp:
 
 1. Use `docs/04-planning/backend-next-steps.md` as the backend-facing planning source.
 2. Keep `docs/04-planning/mvp-release-readiness.md` updated before and after every implementation step.
-3. Review and approve `docs/04-planning/mvp-release-completion-plan.md`, then execute it with subagent-driven development.
-4. Review and approve `docs/04-planning/careflow-v1-delivery-roadmap.md` and `docs/04-planning/careflow-v1-subagent-execution-plan.md` before opening post-MVP workstreams.
-5. Keep the single-service Render plus Neon deployment path documented and verified.
+3. Request explicit approval before pushing or deploying the verified local release candidate.
+4. After an approved deployment, record Render health/login smoke evidence in the readiness and acceptance docs.
+5. Review and approve `docs/04-planning/careflow-v1-delivery-roadmap.md` and `docs/04-planning/careflow-v1-subagent-execution-plan.md` before opening post-MVP workstreams.
 6. Maintain the checked-in OpenAPI spec when endpoint behavior changes.
 7. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.

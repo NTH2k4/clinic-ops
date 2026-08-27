@@ -32,8 +32,8 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Frontend API integration | Đã merge vào `main` | `docs/04-planning/frontend-api-integration-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
-| Authorization matrix hardening | Đã merge local vào `main`, chờ full verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194` |
-| MVP Release Completion | Task 1-3 đã hoàn thành local; chờ Task 4 documentation/release notes sync | `docs/04-planning/mvp-release-completion-plan.md`, API và Web verification gates sau merge |
+| Authorization matrix hardening | Đã tích hợp vào `main` và đã qua regression verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194`, API E2E 71/71 |
+| MVP Release Completion | MVP release candidate local đã hoàn tất; chờ approval riêng để push/deploy | `docs/04-planning/mvp-release-completion-plan.md`, API và Web verification gates sau merge |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 
@@ -45,7 +45,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 - Commit triển khai authorization hardening: `e6ed2c18 fix(api): harden authorization boundaries`.
 - Commit docs/workflow mới nhất trên branch: `8c41ecb9 docs: document progress tracking workflow`.
 - Merge commit local trên `main`: `7d5a5194 merge: authorization hardening`.
-- Trạng thái tích hợp: đã merge local vào `main`; chưa push và chưa chạy lại full verification sau merge.
+- Trạng thái tích hợp: đã merge local vào `main`; API và Web full verification sau merge đều pass; chưa push và chưa deploy.
 
 ## API Verification Gate Sau Merge (Task 2)
 
@@ -88,7 +88,7 @@ Không có failure command hoặc actionable error trong Web gate. Các warning 
 
 ### Workstream 6A: Authorization Matrix Hardening
 
-Trạng thái: đã triển khai xong baseline cho các module API hiện tại và đã merge local vào `main`.
+Trạng thái: đã tích hợp vào `main` và regression verification sau merge đã pass cho các module API hiện tại.
 
 Đã làm:
 
@@ -116,7 +116,7 @@ Trạng thái verification sau merge:
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Cập nhật changelog và release notes bằng kết quả verification thật.
-2. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
+1. Chỉ push/deploy nếu approval của người dùng bao gồm push/deploy hoặc người dùng xác nhận riêng.
+2. Sau khi deploy, chạy Render health/login smoke với `RENDER_EXTERNAL_URL` và ghi kết quả vào checklist/readiness.
 
 Khuyến nghị: hoàn tất MVP release candidate trước khi mở thêm feature mới như schedule management UI, password reset hoặc user administration.

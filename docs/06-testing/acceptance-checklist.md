@@ -23,12 +23,12 @@
 
 ## MVP Release Candidate
 
-- Authorization hardening được tích hợp vào `main`.
-- API verification gate chạy lại sau merge: Prisma generate, migrations, seed, typecheck, lint, unit tests, E2E tests, build và high-severity audit.
-- Web verification gate chạy lại sau merge: unit tests, typecheck, lint, build, mock Playwright và API-mode Playwright.
-- Docs trong `docs/04-planning/` phản ánh đúng branch, commit, verification và deployment status.
-- Release notes ghi rõ scope MVP, known constraints và demo safety note.
-- Render health/login smoke được kiểm tra nếu `RENDER_EXTERNAL_URL` khả dụng và push/deploy đã được người dùng duyệt.
+- [x] Authorization hardening được tích hợp vào `main`; patient-owner, doctor-owner và role-excluded scheduling boundaries được bao phủ bởi API E2E regression (71/71 API E2E tests pass).
+- [x] API verification gate sau merge: Prisma generate, migrations, seed, typecheck, lint, unit tests (6/6 suites, 37/37 tests), E2E tests (8/8 suites, 71/71 tests), build và high-severity audit đều pass.
+- [x] Web mock-mode gate sau merge: unit tests (16/16 files, 130/130 tests), typecheck, lint, build và mock Playwright (9/9) đều pass.
+- [x] Web API-mode gate sau merge: API-mode Playwright (5/5) pass trên configured host PostgreSQL target.
+- [x] Docs trong `docs/04-planning/` và release notes phản ánh branch, commit, verification, known constraints và demo safety.
+- [ ] Render health/login smoke chưa chạy: chỉ thực hiện sau khi có approval push/deploy và `RENDER_EXTERNAL_URL` khả dụng.
 
 ## Task 2 API Verification (2026-08-27)
 

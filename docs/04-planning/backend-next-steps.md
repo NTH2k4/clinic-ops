@@ -73,17 +73,15 @@ Acceptance criteria:
 
 ## Workstream 3: Production Auth And Session Hardening
 
-Status: in progress; durable bearer sessions, expiry, logout revocation, bcrypt password verification, inactive/locked account login coverage and authorization regression coverage are implemented.
+Status: in progress only for account lockout and password reset requirements; durable bearer sessions, expiry, logout revocation, bcrypt password verification, inactive/locked account coverage and authorization regression coverage are implemented.
 
-Goal: replace MVP demo auth with deployable auth behavior.
+Goal: complete the remaining production-login requirements without reopening the verified session or authorization baseline.
 
 Recommended actions:
 
 1. Keep server-side persisted bearer sessions unless a later product/security decision chooses signed tokens.
 2. Add account lockout and password reset requirements if production login is in scope.
-3. Add password rotation/change-password flows when real user administration is added.
-4. Add a cleanup job or operational task for expired/revoked sessions if session volume becomes meaningful.
-5. Keep route-level role gates covered by focused E2E authorization tests before adding new admin or patient-facing endpoints.
+3. Keep route-level role gates covered by focused E2E authorization tests before adding new admin or patient-facing endpoints.
 
 Acceptance criteria:
 
@@ -150,7 +148,7 @@ Acceptance criteria:
 
 ## Workstream 6A: Authorization Matrix Hardening
 
-Status: baseline implemented for current API modules.
+Status: integrated on `main`; current API modules passed focused authorization regression coverage after the local merge.
 
 Goal: keep role and ownership access rules explicit as the endpoint surface grows.
 
@@ -174,7 +172,7 @@ Goal: support more realistic clinic scheduling once MVP flows are stable.
 
 Recommended actions:
 
-1. Add blocked/leave interval controls to the UI when admin schedule management becomes a frontend slice.
+1. Keep blocked/leave interval controls and schedule management UI as a later product slice.
 2. Expand E2E tests for cross-day, unavailable doctor and automatic doctor selection cases.
 3. Add richer unavailable-slot explanations if operations staff need diagnostics inside the product UI.
 
