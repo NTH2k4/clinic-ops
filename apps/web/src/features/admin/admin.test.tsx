@@ -124,6 +124,10 @@ describe("admin workspace", () => {
     expect(within(createdRow).getByText("Blocked")).toBeInTheDocument();
     expect(within(createdRow).getByText("BS. Tran Quang Huy")).toBeInTheDocument();
     expect(within(createdRow).getByText("2026-08-25 to 2026-08-25")).toBeInTheDocument();
+
+    await user.click(within(createdRow).getByRole("button", { name: "Deactivate BS. Tran Quang Huy 10:00-11:00" }));
+
+    expect(await within(createdRow).findByLabelText("Trạng thái: Không hoạt động")).toBeInTheDocument();
   });
 
   it("renders account email, role, and status from the admin API", async () => {
