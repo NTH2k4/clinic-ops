@@ -71,7 +71,7 @@ References:
 - Consumes: optional environment variables `CAREFLOW_SMOKE_EMAIL` and `CAREFLOW_SMOKE_PASSWORD`; defaults to demo admin credentials.
 - Produces: command `node scripts/production-smoke.mjs` that exits non-zero on failed smoke and prints only non-secret evidence.
 
-- [ ] **Step 1: Write failing smoke-script test by running the missing script**
+- [x] **Step 1: Write failing smoke-script test by running the missing script**
 
 ```bash
 RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs
@@ -79,7 +79,7 @@ RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smok
 
 Expected: FAIL because `scripts/production-smoke.mjs` does not exist.
 
-- [ ] **Step 2: Implement read-only production smoke script**
+- [x] **Step 2: Implement read-only production smoke script**
 
 Script behavior:
 
@@ -91,7 +91,7 @@ Script behavior:
 - Fetch `/availability/slots?serviceId=service-general&date=2026-08-26&doctorId=doctor-4&includeUnavailable=true&pageSize=5` and assert at least one slot has `availabilityStatus`.
 - Print JSON evidence with paths, status codes and counts only.
 
-- [ ] **Step 3: Verify syntax and production smoke**
+- [x] **Step 3: Verify syntax and production smoke**
 
 ```bash
 node --check scripts/production-smoke.mjs
@@ -100,7 +100,7 @@ RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smok
 
 Expected: syntax pass and production smoke pass without logging token.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/production-smoke.mjs docs/03-architecture/backend-runbook.md docs/06-testing/acceptance-checklist.md

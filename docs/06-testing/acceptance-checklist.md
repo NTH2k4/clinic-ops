@@ -89,3 +89,8 @@
 - [x] Remediation verification passed locally: RED targeted unit failed before implementation; GREEN targeted unit `4/4`; API typecheck/lint/build/audit pass; API unit `7/7` suites `43/43`; API E2E `10/10` suites `98/98`; local Prisma repair smoke after two runs reported `8` services, `5` doctors, `50` schedules.
 - [x] Remediation push/CI completed. Latest `main` is `9b8e9799`; API CI and Web CI passed. Render Deployment failed because production health still returned `49a4ff2a`, matching the known Render auto-deploy disconnect.
 - [x] Final production health/login smoke passed after manual deploy. Health returned `f66970492103620d021a9bd9041374b9e656d684`; admin login returned `currentUser.role=admin` and session token. Token was not logged in docs.
+
+## Phase 4 Production Demo Operations (2026-08-28)
+
+- [x] Task 1 production smoke script RED/GREEN completed. RED: `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs` failed with `MODULE_NOT_FOUND` before script creation. GREEN: `node --check scripts/production-smoke.mjs` passed and `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com EXPECTED_RENDER_COMMIT=f66970492103620d021a9bd9041374b9e656d684 node scripts/production-smoke.mjs` passed.
+- [x] Smoke script output is read-only and non-secret. It reported health commit `f66970492103620d021a9bd9041374b9e656d684`, login role `admin`, services total `8`, doctors total `5`, specialties total `3`, doctor-4 schedule total `1`, and availability explanation `5` slots with first status `available`. It did not print the bearer token.

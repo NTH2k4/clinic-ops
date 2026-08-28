@@ -109,6 +109,24 @@ curl "$RENDER_EXTERNAL_URL/api/v1/doctor-schedules?doctorId=doctor-4&from=2026-0
 
 Expected output: services/doctors/schedules return non-empty data after the deployed app has restarted on a commit containing hosted demo baseline repair.
 
+## Production Smoke Script
+
+Use the checked-in smoke script for read-only production verification:
+
+```bash
+RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs
+```
+
+Optional strict commit check:
+
+```bash
+RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com \
+EXPECTED_RENDER_COMMIT=<expected-git-sha> \
+node scripts/production-smoke.mjs
+```
+
+Expected output: JSON evidence with health commit, login role, catalog totals, doctor schedule count and availability slot count. The script logs only non-secret evidence and never prints the bearer session token.
+
 ## Auth Failures
 
 Symptoms:
