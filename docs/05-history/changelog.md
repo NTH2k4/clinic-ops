@@ -3,7 +3,7 @@
 ## 2026-08-27
 
 - Hoàn thiện Phase 2 Account Administration verification: bổ sung Playwright API-mode cho patient registration vào booking workspace, password change bắt buộc đăng nhập lại và admin lock/unlock account smoke; dữ liệu patient dùng email/số điện thoại sinh duy nhất, API-mode teardown reset DB về seeded baseline sau suite, không ghi session token hay mật khẩu vào test/docs. Full API gate pass (`7/7` unit suites, `41/41` tests; `10/10` E2E suites, `90/90` tests); full Web gate pass (`16/16` files, `141/141` tests; mock Playwright `9/9`; API-mode Playwright `8/8`).
-- Rerun final local verification cho Phase 2 sau account lifecycle race hardening: API/Web gates pass, OpenAPI JSON parse pass, `git diff --check` pass và API-mode teardown để lại `0` generated `@example.test` users.
+- Rerun final local verification cho Phase 2 commit `54b9818d` sau account lifecycle race hardening: API/Web gates pass, OpenAPI JSON parse pass, `git diff --check` pass và API-mode teardown để lại `0` generated `@example.test` users.
 - Hardened account administration review findings: password change dùng conditional update theo password hash và account active status, account status transitions chặn reactivation từ inactive, lifecycle mutation/audit nằm trong cùng transaction, user id params dùng Zod validation và Accounts UI hiển thị lỗi status action.
 - Ghi nhận Render manual deploy latest commit `91fd347f` và production health/login smoke pass sau API-startup demo auth repair.
 - Đưa demo auth repair vào API startup hosted-demo mode (`SERVE_WEB_APP=true`) để production runtime tự upsert demo login users/password hashes khi Render service start command chưa được sync từ blueprint.

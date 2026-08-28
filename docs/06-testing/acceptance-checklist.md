@@ -38,7 +38,7 @@
 - [x] API verification đầy đủ: typecheck, lint, build và high-severity audit pass; unit `7/7` suites, `41/41` tests; E2E `10/10` suites, `90/90` tests.
 - [x] Web verification đầy đủ: unit `16/16` files, `141/141` tests; typecheck, lint và build pass; mock Playwright `9/9`; API-mode Playwright `8/8`.
 - [x] Không ghi session token, temporary password hoặc dữ liệu patient thật vào test output hay tài liệu. Vite vẫn cảnh báo không blocking: bundle JavaScript `634.62 kB` vượt ngưỡng `500 kB`.
-- [x] Final local rerun on 2026-08-28 confirms OpenAPI JSON parse, diff hygiene and API-mode teardown cleanup with `0` generated `@example.test` users remaining.
+- [x] Final local rerun on 2026-08-28 for commit `54b9818d` confirms OpenAPI JSON parse, diff hygiene and API-mode teardown cleanup with `0` generated `@example.test` users remaining.
 
 ## Task 2 API Verification (2026-08-27)
 

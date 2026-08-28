@@ -12,7 +12,7 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1-7 have been implemented and locally verified on branch `account-administration`. The post-review account lifecycle race hardening and documentation count updates have fresh local verification; the branch is ready for the final local completion commit and final review gate before any merge, push or production deploy.
+Status as of 2026-08-28: Tasks 1-7 have been implemented and locally verified on branch `account-administration`. The post-review account lifecycle race hardening and documentation count updates are committed in `54b9818d fix(api): close account lifecycle race gaps`; the branch is ready for the final review gate before any merge, push or production deploy.
 
 Completed local scope:
 
@@ -25,7 +25,6 @@ Completed local scope:
 
 Pending before merge/deploy:
 
-- Commit the post-review race hardening and docs updates.
 - Run final review/merge gate, then request explicit approval before merge, push or production deploy.
 
 ## Global Constraints

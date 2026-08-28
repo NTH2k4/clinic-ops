@@ -89,7 +89,7 @@ Trạng thái: **pass local verification** trên branch `account-administration`
 
 Chưa chạy production register/password/admin smoke cho branch này, nên Phase 2 chưa được đánh dấu đã deploy. Production release candidate trước đó vẫn giữ trạng thái riêng ở mục Push Và Deployment Gate.
 
-Post-review verification rerun on 2026-08-28 confirmed the final local branch candidate after account lifecycle race hardening: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `90/90` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
+Post-review verification rerun on 2026-08-28 confirmed final local commit candidate `54b9818d fix(api): close account lifecycle race gaps` after account lifecycle race hardening: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `90/90` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
 
 ## Web Verification Gate Sau Merge (Task 3)
 
