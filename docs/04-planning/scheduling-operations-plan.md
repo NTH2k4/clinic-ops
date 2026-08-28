@@ -13,7 +13,7 @@
 ## Implementation Status
 
 Status as of 2026-08-28: Tasks 1, 2 and 3 are implemented on branch/worktree `scheduling-operations`.
-Latest Phase 3 commit: `ef39d1e4 feat(web): add admin schedule management`.
+Latest Phase 3 commit: `5bf3ab62 test(web): cover schedule deactivation`.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
