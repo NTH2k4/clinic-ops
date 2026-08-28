@@ -71,7 +71,7 @@ References:
 - Consumes: optional environment variables `CAREFLOW_SMOKE_EMAIL` and `CAREFLOW_SMOKE_PASSWORD`; defaults to demo admin credentials.
 - Produces: command `node scripts/production-smoke.mjs` that exits non-zero on failed smoke and prints only non-secret evidence.
 
-- [ ] **Step 1: Write failing smoke-script test by running the missing script**
+- [x] **Step 1: Write failing smoke-script test by running the missing script**
 
 ```bash
 RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs
@@ -79,19 +79,20 @@ RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smok
 
 Expected: FAIL because `scripts/production-smoke.mjs` does not exist.
 
-- [ ] **Step 2: Implement read-only production smoke script**
+- [x] **Step 2: Implement read-only production smoke script**
 
 Script behavior:
 
 - Validate `RENDER_EXTERNAL_URL` is set.
 - Fetch `/api/v1/health` and print `data.commit`.
 - Login with smoke credentials, assert `currentUser.role=admin`, and never print `sessionToken`.
+- Revoke the smoke login session with `/auth/logout` in cleanup, including when a later smoke check fails.
 - Fetch `/services?pageSize=1`, `/doctors?pageSize=1`, `/specialties?pageSize=1` and assert totals are at least `1`.
 - Fetch `/doctor-schedules?doctorId=doctor-4&from=2026-08-26&to=2026-08-26&pageSize=5` and assert total is at least `1`.
 - Fetch `/availability/slots?serviceId=service-general&date=2026-08-26&doctorId=doctor-4&includeUnavailable=true&pageSize=5` and assert at least one slot has `availabilityStatus`.
 - Print JSON evidence with paths, status codes and counts only.
 
-- [ ] **Step 3: Verify syntax and production smoke**
+- [x] **Step 3: Verify syntax and production smoke**
 
 ```bash
 node --check scripts/production-smoke.mjs
@@ -100,7 +101,15 @@ RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smok
 
 Expected: syntax pass and production smoke pass without logging token.
 
-- [ ] **Step 4: Commit**
+Review fix verification:
+
+```bash
+node --test scripts/production-smoke.test.mjs
+```
+
+Expected: logout cleanup regression passes.
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/production-smoke.mjs docs/03-architecture/backend-runbook.md docs/06-testing/acceptance-checklist.md
@@ -119,7 +128,7 @@ git commit -m "test: add production smoke script"
 - Consumes: optional repository secret `RENDER_DEPLOY_HOOK_URL`.
 - Produces: workflow behavior that triggers Render via deploy hook when the secret exists, then polls `/api/v1/health` for `GITHUB_SHA`.
 
-- [ ] **Step 1: Add a local workflow assertion**
+- [x] **Step 1: Add a local workflow assertion**
 
 Use a shell check that fails before the workflow contains deploy hook support:
 
@@ -129,29 +138,27 @@ rg -n 'RENDER_DEPLOY_HOOK_URL|Trigger Render deploy' .github/workflows/render-de
 
 Expected: FAIL before implementation.
 
-- [ ] **Step 2: Add optional deploy hook trigger**
+- [x] **Step 2: Add optional deploy hook trigger**
 
 Add a step before `Wait for Render health`:
 
 ```yaml
       - name: Trigger Render deploy
-        if: env.RENDER_EXTERNAL_URL != '' && env.RENDER_DEPLOY_HOOK_URL != ''
+        if: env.RENDER_EXTERNAL_URL != ''
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL"
+          if [ -z "${RENDER_DEPLOY_HOOK_URL:-}" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL is not configured; waiting for Render auto-deploy or manual deploy."
+            exit 0
+          fi
+          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL" >/dev/null
 ```
 
-Also add job env:
+Do not add `RENDER_DEPLOY_HOOK_URL` to job-level env. Keep the secret scoped to the trigger step and do not print the hook URL.
 
-```yaml
-      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-```
-
-Do not print the hook URL.
-
-- [ ] **Step 3: Verify workflow text and YAML-sensitive diff**
+- [x] **Step 3: Verify workflow text and YAML-sensitive diff**
 
 ```bash
 rg -n 'RENDER_DEPLOY_HOOK_URL|Trigger Render deploy' .github/workflows/render-deployment.yml
@@ -160,7 +167,7 @@ git diff --check
 
 Expected: grep finds the hook support and diff hygiene passes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github/workflows/render-deployment.yml docs/04-planning/render-deployment-plan.md docs/03-architecture/backend-runbook.md
@@ -182,7 +189,7 @@ git commit -m "ci: trigger render deploy from workflow"
 - Consumes: deploy hook workflow behavior from Task 2.
 - Produces: documented operator workflow for first deploy, routine deploy, manual fallback, failed health wait, demo baseline repair, rollback and smoke.
 
-- [ ] **Step 1: Update runbook with exact operator paths**
+- [x] **Step 1: Update runbook with exact operator paths**
 
 Document:
 
@@ -192,7 +199,7 @@ Document:
 - Demo data recovery: rely on hosted baseline repair; avoid destructive full seed.
 - Smoke command: `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs`.
 
-- [ ] **Step 2: Update deployment plan with GitHub setup**
+- [x] **Step 2: Update deployment plan with GitHub setup**
 
 Document:
 
@@ -201,11 +208,11 @@ Document:
 - Deploy hook URL is secret and must be rotated if exposed.
 - Manual deploy remains acceptable on Render Free.
 
-- [ ] **Step 3: Update release/readiness docs**
+- [x] **Step 3: Update release/readiness docs**
 
 Record Phase 4 status, verification commands and free-tier constraints without introducing temporary status document names.
 
-- [ ] **Step 4: Verify docs**
+- [x] **Step 4: Verify docs**
 
 ```bash
 rg -n 'RENDER_DEPLOY_HOOK_URL|production-smoke|Manual Deploy|Deploy latest commit' docs/03-architecture/backend-runbook.md docs/04-planning/render-deployment-plan.md
@@ -214,7 +221,7 @@ git diff --check
 
 Expected: all key operations are documented and diff hygiene passes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/03-architecture/backend-runbook.md docs/04-planning/render-deployment-plan.md docs/05-history/release-notes.md docs/05-history/changelog.md docs/04-planning/mvp-release-readiness.md docs/00-project/documentation-map.md

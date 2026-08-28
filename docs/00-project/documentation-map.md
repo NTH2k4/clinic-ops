@@ -41,7 +41,7 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | CareFlow V1 Subagent Execution | Kế hoạch điều phối workstream v1 bằng subagent-driven development | `docs/04-planning/careflow-v1-subagent-execution-plan.md` | Đã duyệt execution map; push/deploy vẫn cần gate riêng |
 | Account Administration | Kế hoạch Phase 2 cho auth/account lifecycle: patient registration, password change, admin reset/status actions và account UI | `docs/04-planning/account-administration-plan.md` | Deployed complete trên Render |
 | Scheduling Operations | Kế hoạch Phase 3 cho schedule management UI, blocked/leave intervals và availability explanation | `docs/04-planning/scheduling-operations-plan.md` | Deployed complete trên Render |
-| Production Demo Operations | Kế hoạch Phase 4 cho Render/Neon operations, smoke script, deploy hook hardening và runbook closure | `docs/04-planning/production-demo-operations-plan.md` | Plan created; awaiting implementation approval |
+| Production Demo Operations | Kế hoạch Phase 4 cho Render/Neon operations, smoke script, deploy hook hardening và runbook closure | `docs/04-planning/production-demo-operations-plan.md` | Implementation in progress on branch `production-demo-operations` |
 
 ## Đánh Giá Hiện Tại
 

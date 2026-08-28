@@ -67,6 +67,18 @@ jobs:
               description: "Waiting for Render to serve this commit"
             });
 
+      - name: Trigger Render deploy
+        if: env.RENDER_EXTERNAL_URL != ''
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RENDER_DEPLOY_HOOK_URL:-}" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL is not configured; waiting for Render auto-deploy or manual deploy."
+            exit 0
+          fi
+          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL" >/dev/null
+
       - name: Wait for Render health
         if: env.RENDER_EXTERNAL_URL != ''
         run: |

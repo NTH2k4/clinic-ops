@@ -109,6 +109,66 @@ curl "$RENDER_EXTERNAL_URL/api/v1/doctor-schedules?doctorId=doctor-4&from=2026-0
 
 Expected output: services/doctors/schedules return non-empty data after the deployed app has restarted on a commit containing hosted demo baseline repair.
 
+## Production Smoke Script
+
+Use the checked-in smoke script for read-only production verification:
+
+```bash
+RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs
+```
+
+Optional strict commit check:
+
+```bash
+RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com \
+EXPECTED_RENDER_COMMIT=<expected-git-sha> \
+node scripts/production-smoke.mjs
+```
+
+Expected output: JSON evidence with health commit, login role, catalog totals, doctor schedule count and availability slot count. The script logs only non-secret evidence, never prints the bearer session token, and revokes the temporary smoke session through `/api/v1/auth/logout` before exiting.
+
+## Render Deploy Trigger
+
+The GitHub `Render Deployment` workflow records a GitHub Deployment and waits for `/api/v1/health` to return the pushed commit. It can also trigger Render directly when GitHub repository secret `RENDER_DEPLOY_HOOK_URL` is configured.
+
+Routine deploy path:
+
+1. Push to `main`.
+2. The workflow sends a POST request to the deploy hook when `RENDER_DEPLOY_HOOK_URL` exists.
+3. The workflow polls `$RENDER_EXTERNAL_URL/api/v1/health` until `data.commit` matches the pushed SHA.
+4. Run `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs`.
+
+Manual fallback:
+
+```text
+Render Dashboard -> clinic-ops -> Manual Deploy -> Deploy latest commit
+```
+
+Use the fallback when the workflow reports that Render is healthy but still serving an older commit. Do not paste the deploy hook URL into logs or documentation; rotate it in Render if it is exposed.
+
+Failed health wait triage:
+
+1. Compare production health with remote `main`.
+
+   ```bash
+   curl "$RENDER_EXTERNAL_URL/api/v1/health"
+   git ls-remote origin refs/heads/main
+   ```
+
+2. If health serves an older commit and there is no Render deploy for the latest SHA, check `RENDER_DEPLOY_HOOK_URL` and Render GitHub integration.
+3. If Render has a failed deploy for the latest SHA, inspect the Render deploy logs before retrying.
+4. If the latest SHA is docs-only, deploy is optional for runtime behavior, but health will continue to show the last runtime deploy until Render is manually deployed again.
+
+Rollback:
+
+Use Render's dashboard rollback to redeploy a previously healthy deploy when the latest deploy fails after release. After rollback, run:
+
+```bash
+RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs
+```
+
+Record the rolled-back commit, reason and smoke result in `docs/05-history/release-notes.md` before continuing new feature work.
+
 ## Auth Failures
 
 Symptoms:
