@@ -76,7 +76,7 @@ Copy `apps/api/.env.example` when preparing a local or hosted environment and re
 
 ## Seeded Demo Accounts
 
-All seeded demo users use password `careflow-demo`.
+The original seeded demo users use password `careflow-demo`.
 
 | Role | Email |
 | --- | --- |
@@ -85,6 +85,20 @@ All seeded demo users use password `careflow-demo`.
 | Receptionist | `reception@careflow.local` |
 | Nurse | `nurse@careflow.local` |
 | Admin | `admin@careflow.local` |
+
+Manual QA accounts are seeded with actor-name passwords for faster role testing:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@test.com` | `admin` |
+| Doctor | `doctor@test.com` | `doctor` |
+| Receptionist | `receptionist@test.com` | `receptionist` |
+| Nurse | `nurse@test.com` | `nurse` |
+| Patient | `patient@test.com` | `patient` |
+
+The full seed now creates at least 10 active patients, at least 10 appointments, at least 10 notifications and at least 10 active schedules for the manual QA doctor account. Hosted demo startup repair creates missing manual QA accounts and baseline records only; it does not reset existing user credentials, roles or statuses.
+
+Seed data may keep English display names and labels because it is synthetic developer/test data, not final user-facing clinic content.
 
 Login example:
 

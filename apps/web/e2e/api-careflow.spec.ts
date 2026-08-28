@@ -201,7 +201,7 @@ test("admin can filter audit events and a notification reference opens its targe
   await page.getByRole("link", { name: "Nhật ký kiểm toán" }).click();
   await page.getByLabel("Loại đối tượng").selectOption("appointment");
   await page.getByLabel("Hành động").selectOption("appointment_created");
-  await expect(page.getByRole("table", { name: "Sự kiện kiểm toán" })).toContainText("appointment_created");
+  await expect(page.getByRole("table", { name: "Sự kiện kiểm toán" })).toContainText("Tạo lịch hẹn");
 
   await page.getByRole("button", { name: "Đăng xuất" }).click();
   await page.getByRole("button", { name: "Đăng xuất khỏi hệ thống" }).click();

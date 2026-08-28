@@ -282,12 +282,12 @@ describe("admin workspace", () => {
 
     await user.selectOptions(screen.getByLabelText("Loại đối tượng"), "appointment");
 
-    expect(screen.getAllByText("appointment").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Lịch hẹn").length).toBeGreaterThan(0);
 
     await user.selectOptions(screen.getByLabelText("Hành động"), "appointment_updated");
     const auditTable = screen.getByRole("table", { name: "Sự kiện kiểm toán" });
-    expect(within(auditTable).getAllByText("appointment_updated").length).toBeGreaterThan(0);
-    expect(within(auditTable).queryByText("appointment_status_changed")).not.toBeInTheDocument();
+    expect(within(auditTable).getAllByText("Cập nhật lịch hẹn").length).toBeGreaterThan(0);
+    expect(within(auditTable).queryByText("Đổi trạng thái lịch hẹn")).not.toBeInTheDocument();
     expect(screen.getByText("Đang hiển thị 10 sự kiện kiểm toán.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
@@ -303,7 +303,7 @@ describe("admin workspace", () => {
     expect(await screen.findByText("Đang hiển thị 1 sự kiện kiểm toán.")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Loại đối tượng"), "appointment");
-    await screen.findByRole("option", { name: "appointment_updated" });
+    await screen.findByRole("option", { name: "Cập nhật lịch hẹn" });
     await user.selectOptions(screen.getByLabelText("Hành động"), "appointment_updated");
 
     await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toContain(

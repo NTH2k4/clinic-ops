@@ -2,6 +2,10 @@
 
 ## 2026-08-28 Tinh Chỉnh UX Auth Và Shell V1
 
+- Bổ sung nhóm tài khoản test thủ công dễ nhớ cho từng tác nhân: `admin@test.com` / `admin`, `doctor@test.com` / `doctor`, `receptionist@test.com` / `receptionist`, `nurse@test.com` / `nurse`, `patient@test.com` / `patient`.
+- Mở rộng seed data cho manual QA: tối thiểu 10 bệnh nhân, 10 lịch hẹn, 10 thông báo và 10 lịch làm việc cho bác sĩ test. Hosted startup repair chỉ tạo dữ liệu còn thiếu và không reset password/role/status của user đã tồn tại.
+- Chốt quy ước: demo data có thể giữ tiếng Anh vì đây là dữ liệu tổng hợp phục vụ test/dev, không phải nội dung phòng khám thật hướng người dùng cuối.
+- Việt hóa audit log hiển thị trên UI: action/entity như `appointment_updated` vẫn là raw API value, nhưng người dùng thấy nhãn như `Cập nhật lịch hẹn` và `Lịch hẹn`.
 - Việt hóa thêm UI shell và các luồng gần auth cho điều hướng, nhãn vai trò, quản trị tài khoản, lịch làm việc, metric bác sĩ, đặt lịch của nhân sự và thao tác mở đối tượng từ thông báo.
 - Thêm xác nhận đăng xuất trong TopBar: bấm `Đăng xuất` mở `Xác nhận đăng xuất`; session chỉ bị xóa sau khi xác nhận `Đăng xuất khỏi hệ thống`.
 - Cập nhật notification popover để đóng khi người dùng nhấn ra ngoài popover, đồng thời vẫn giữ nút đóng và reference navigation hiện có.

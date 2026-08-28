@@ -2,6 +2,8 @@
 
 ## 2026-08-28
 
+- Bổ sung tài khoản test thủ công dễ nhớ cho từng tác nhân (`admin@test.com`, `doctor@test.com`, `receptionist@test.com`, `nurse@test.com`, `patient@test.com`) với mật khẩu theo tên actor; mở rộng full seed và hosted startup repair để có tối thiểu 10 bệnh nhân, 10 lịch hẹn, 10 thông báo và 10 lịch làm việc cho bác sĩ test mà không reset account đã tồn tại. Demo data được phép giữ tiếng Anh vì chỉ phục vụ test/dev.
+- Việt hóa nhãn hiển thị cho audit entity/action trong Audit Log và Detail Drawer; raw audit id vẫn được giữ trong API/filter value để không đổi contract.
 - Việt hóa thêm UI shell và các luồng gần auth theo hướng tiếng Việt trước, thêm xác nhận trước khi xóa session lúc đăng xuất, cho popover thông báo đóng khi nhấn ra ngoài và ghi lại quy tắc tương tác trong frontend design system.
 - Prepared Phase 5 V1 Documentation And Acceptance Closure: added `v1-documentation-closure-plan.md`, `v1-traceability-matrix.md` and `v1-acceptance-package.md`; updated documentation map, readiness, acceptance checklist and release notes for final user acceptance review.
 - Verified Render deploy hook automation after setup: pushed `ac78a21d` and cleanup `05ebf87b`; API CI, Web CI and Render Deployment succeeded for both, and production smoke passed for `05ebf87b00399bbdc677a3668fa107152d10620e`.

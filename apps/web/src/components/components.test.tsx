@@ -171,7 +171,7 @@ describe("shared UI components", () => {
       />,
     );
 
-    expect(await screen.findByText("appointment_updated")).toBeInTheDocument();
+    expect(await screen.findByText("Cập nhật lịch hẹn")).toBeInTheDocument();
     expect(fetcher.mock.calls.map(([url]) => String(url))).toContain(
       "/api/v1/audit-events?entityId=appointment-api-1&page=1&pageSize=100",
     );

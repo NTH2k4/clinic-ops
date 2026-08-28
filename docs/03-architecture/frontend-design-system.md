@@ -510,7 +510,8 @@ Màn hình app CareFlow không cần hình ảnh marketing trang trí. Nếu dù
 UI copy nên dùng tiếng Việt ngắn gọn với domain term ổn định:
 
 - Ưu tiên tiếng Việt cho navigation, heading, button, form label, empty/loading/error state và notification action.
-- Chỉ giữ tiếng Anh cho mã kỹ thuật, API enum, audit action id hoặc dữ liệu seed/backend khi đó là record nghiệp vụ đang được hiển thị nguyên văn.
+- Chỉ giữ tiếng Anh cho mã kỹ thuật, API enum hoặc dữ liệu seed/backend khi đó là record nghiệp vụ/test data đang được hiển thị nguyên văn. Seed data có thể dùng tiếng Anh để developer dễ đọc và không phải là nội dung phòng khám thật.
+- Với user-facing audit table/filter, ưu tiên map action/entity id kỹ thuật sang nhãn tiếng Việt; raw id vẫn được giữ trong API payload, test fixture, log và docs kỹ thuật.
 - Dùng `lịch hẹn`, `đặt lịch`, `check-in`, `hàng đợi`, `nhật ký kiểm toán`, `dịch vụ`, `bác sĩ`, `bệnh nhân`, `chuyên khoa`, `trạng thái` cho label hướng người dùng.
 - Không gợi ý rằng MVP có medical record thật, prescription, payment, insurance hoặc telemedicine.
 

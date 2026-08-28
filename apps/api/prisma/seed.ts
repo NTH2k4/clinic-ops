@@ -11,6 +11,13 @@ const prisma = new PrismaClient();
 const seedTimestamp = new Date("2026-08-01T00:00:00.000Z");
 const baseDate = new Date("2026-08-24T00:00:00.000Z");
 const demoPasswordHash = "$2a$10$Gfgzco0n8DMTE/AqMyfb.ekoNCRoI6QlhM88/1a.dgKwKEkX.Xmwi";
+const actorPasswordHashes = {
+  admin: "$2a$10$EOKY5iWR8UI8ftp2vl9pAO3485jRiJ0NfnXJ1wWZnAy5MRwwiTQfm",
+  doctor: "$2a$10$UvwQzfKl8mXjuxm04YwDWesgd46cnfcQcNWGc/tUl4YL/d/bvtaia",
+  receptionist: "$2a$10$DIWO8Tb2FJByP00Ab7Iom./HaHe9Uqy5FQDxFBfL3YGe0NzMZgDfG",
+  nurse: "$2a$10$U/08FelonbOUNnc96C5Bhe7UCYQT3ythDIAmKNg/vzU1kAECWyXyi",
+  patient: "$2a$10$2n8VSO9/Uc2ovmo.Asgklu6AnKtDVTLUpxXe7gqs4AGSMsu1b734m",
+};
 // 01:00Z-06:00Z is 08:00-13:00 in Vietnam, leaving room for the 45-minute service.
 const appointmentStartHoursUtc = [1, 2, 3, 4, 5, 6];
 
@@ -37,6 +44,7 @@ const doctors = [
   { id: "doctor-3", fullName: "Dr. Quang Pham", specialtyId: "specialty-pediatrics", phone: "+84900000003", email: "quang.pham@careflow.local", title: "MD", room: "C301", serviceIds: ["service-pediatric", "service-vaccination"] },
   { id: "doctor-4", fullName: "Dr. Hoa Le", specialtyId: "specialty-general", phone: "+84900000004", email: "hoa.le@careflow.local", title: "MD", room: "A102", serviceIds: ["service-general", "service-follow-up"] },
   { id: "doctor-5", fullName: "Dr. Tuan Vo", specialtyId: "specialty-cardiology", phone: "+84900000005", email: "tuan.vo@careflow.local", title: "MD", room: "B202", serviceIds: ["service-cardiac", "service-ecg"] },
+  { id: "doctor-test", userId: "user-doctor-test", fullName: "Doctor Test", specialtyId: "specialty-general", phone: "+84900000006", email: "doctor@test.com", title: "MD", room: "A103", serviceIds: ["service-general", "service-follow-up", "service-health-check"] },
 ];
 
 type SeedClient = Prisma.TransactionClient;
@@ -90,17 +98,27 @@ async function seedDatabase(db: SeedClient) {
       { id: "user-receptionist-1", displayName: "Reception Demo", email: "reception@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000002", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
       { id: "user-nurse-1", displayName: "Nurse Demo", email: "nurse@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000003", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
       { id: "user-admin-1", displayName: "Admin Demo", email: "admin@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000004", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-admin-test", displayName: "Admin Test", email: "admin@test.com", passwordHash: actorPasswordHashes.admin, phone: "+84910000104", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-doctor-test", displayName: "Doctor Test", email: "doctor@test.com", passwordHash: actorPasswordHashes.doctor, phone: "+84910000101", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-receptionist-test", displayName: "Receptionist Test", email: "receptionist@test.com", passwordHash: actorPasswordHashes.receptionist, phone: "+84910000102", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-nurse-test", displayName: "Nurse Test", email: "nurse@test.com", passwordHash: actorPasswordHashes.nurse, phone: "+84910000103", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-patient-test", displayName: "Patient Test", email: "patient@test.com", passwordHash: actorPasswordHashes.patient, phone: "+84910000100", role: UserRole.patient, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
     ],
   });
 
   await db.patient.createMany({
-    data: Array.from({ length: 6 }, (_, index) => ({
-      id: `patient-${index + 1}`,
-      userId: index === 0 ? "user-patient-1" : undefined,
-      fullName: index === 0 ? "Patient Demo" : `Demo Patient ${index + 1}`,
-      phone: `+8492000000${index + 1}`,
-      email: `patient${index + 1}@careflow.local`,
-      dateOfBirth: new Date(Date.UTC(1985 + index, index, index + 1)),
+    data: [
+      { id: "patient-test", userId: "user-patient-test", fullName: "Patient Test", phone: "+84920000100", email: "patient@test.com" },
+      ...Array.from({ length: 10 }, (_, index) => ({
+        id: `patient-${index + 1}`,
+        userId: index === 0 ? "user-patient-1" : undefined,
+        fullName: index === 0 ? "Patient Demo" : `Demo Patient ${index + 1}`,
+        phone: `+849200000${String(index + 1).padStart(2, "0")}`,
+        email: `patient${index + 1}@careflow.local`,
+      })),
+    ].map((patient, index) => ({
+      ...patient,
+      dateOfBirth: new Date(Date.UTC(1985 + index, index % 12, (index % 28) + 1)),
       gender: index % 2 === 0 ? "female" : "male",
       address: "Ho Chi Minh City",
       status: "active",
@@ -114,6 +132,9 @@ async function seedDatabase(db: SeedClient) {
       { id: "staff-receptionist-1", userId: "user-receptionist-1", fullName: "Reception Demo", phone: "+84910000002", email: "reception@careflow.local", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
       { id: "staff-nurse-1", userId: "user-nurse-1", fullName: "Nurse Demo", phone: "+84910000003", email: "nurse@careflow.local", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
       { id: "staff-admin-1", userId: "user-admin-1", fullName: "Admin Demo", phone: "+84910000004", email: "admin@careflow.local", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "staff-receptionist-test", userId: "user-receptionist-test", fullName: "Receptionist Test", phone: "+84910000102", email: "receptionist@test.com", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "staff-nurse-test", userId: "user-nurse-test", fullName: "Nurse Test", phone: "+84910000103", email: "nurse@test.com", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "staff-admin-test", userId: "user-admin-test", fullName: "Admin Test", phone: "+84910000104", email: "admin@test.com", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
     ],
   });
 
@@ -163,8 +184,8 @@ async function seedDatabase(db: SeedClient) {
 
   const serviceById = new Map(services.map((service) => [service.id, service]));
   const statuses = Object.values(AppointmentStatus);
-  const appointments = Array.from({ length: 30 }, (_, index) => {
-    const doctor = doctors[index % doctors.length];
+  const appointments = Array.from({ length: 40 }, (_, index) => {
+    const doctor = index < 30 ? doctors[index % 5] : doctors[5];
     const serviceId = doctor.serviceIds[index % doctor.serviceIds.length];
     const service = serviceById.get(serviceId);
     if (!service) {
@@ -178,14 +199,14 @@ async function seedDatabase(db: SeedClient) {
 
     return {
       id: `appointment-${index + 1}`,
-      patientId: `patient-${(index % 6) + 1}`,
+      patientId: index < 30 ? `patient-${(index % 6) + 1}` : "patient-test",
       doctorId: doctor.id,
       serviceId,
       startAt,
       endAt,
       status,
       reason: "Demo appointment",
-      createdByUserId: index % 2 === 0 ? "user-patient-1" : "user-receptionist-1",
+      createdByUserId: index < 30 ? index % 2 === 0 ? "user-patient-1" : "user-receptionist-1" : "user-patient-test",
       updatedByUserId: status === AppointmentStatus.requested ? undefined : "user-receptionist-1",
       checkedInAt: status === AppointmentStatus.checked_in || status === AppointmentStatus.in_progress || status === AppointmentStatus.completed ? terminalAt : undefined,
       startedAt: status === AppointmentStatus.in_progress || status === AppointmentStatus.completed ? terminalAt : undefined,
@@ -223,9 +244,9 @@ async function seedDatabase(db: SeedClient) {
   });
 
   await db.notification.createMany({
-    data: Array.from({ length: 8 }, (_, index) => ({
+    data: Array.from({ length: 10 }, (_, index) => ({
       id: `notification-${index + 1}`,
-      recipientUserId: index % 2 === 0 ? "user-patient-1" : "user-receptionist-1",
+      recipientUserId: index < 8 ? index % 2 === 0 ? "user-patient-1" : "user-receptionist-1" : "user-patient-test",
       type: index % 2 === 0 ? NotificationType.appointment_confirmed : NotificationType.appointment_created,
       title: "Appointment update",
       message: `Appointment ${index + 1} has been updated.`,
