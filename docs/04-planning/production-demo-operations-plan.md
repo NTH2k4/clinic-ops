@@ -86,6 +86,7 @@ Script behavior:
 - Validate `RENDER_EXTERNAL_URL` is set.
 - Fetch `/api/v1/health` and print `data.commit`.
 - Login with smoke credentials, assert `currentUser.role=admin`, and never print `sessionToken`.
+- Revoke the smoke login session with `/auth/logout` in cleanup, including when a later smoke check fails.
 - Fetch `/services?pageSize=1`, `/doctors?pageSize=1`, `/specialties?pageSize=1` and assert totals are at least `1`.
 - Fetch `/doctor-schedules?doctorId=doctor-4&from=2026-08-26&to=2026-08-26&pageSize=5` and assert total is at least `1`.
 - Fetch `/availability/slots?serviceId=service-general&date=2026-08-26&doctorId=doctor-4&includeUnavailable=true&pageSize=5` and assert at least one slot has `availabilityStatus`.
@@ -99,6 +100,14 @@ RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smok
 ```
 
 Expected: syntax pass and production smoke pass without logging token.
+
+Review fix verification:
+
+```bash
+node --test scripts/production-smoke.test.mjs
+```
+
+Expected: logout cleanup regression passes.
 
 - [x] **Step 4: Commit**
 

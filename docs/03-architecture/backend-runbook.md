@@ -125,7 +125,7 @@ EXPECTED_RENDER_COMMIT=<expected-git-sha> \
 node scripts/production-smoke.mjs
 ```
 
-Expected output: JSON evidence with health commit, login role, catalog totals, doctor schedule count and availability slot count. The script logs only non-secret evidence and never prints the bearer session token.
+Expected output: JSON evidence with health commit, login role, catalog totals, doctor schedule count and availability slot count. The script logs only non-secret evidence, never prints the bearer session token, and revokes the temporary smoke session through `/api/v1/auth/logout` before exiting.
 
 ## Render Deploy Trigger
 
