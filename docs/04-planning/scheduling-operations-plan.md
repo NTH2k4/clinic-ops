@@ -13,7 +13,7 @@
 ## Implementation Status
 
 Status as of 2026-08-28: Tasks 1, 2, 3, 4, 5 and 6 are locally verified on branch/worktree `scheduling-operations`.
-Latest Phase 3 commit: `fc420ef2 docs: record scheduling operations local gate`.
+Latest Phase 3 commit: `8c7ee246 docs: clarify scheduling explanation contract`.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:

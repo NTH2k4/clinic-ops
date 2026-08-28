@@ -228,7 +228,7 @@ serviceId=service-general&date=2026-08-25&doctorId=doctor-1
 
 Nếu không truyền `doctorId`, backend trả slot cho any available doctor. Mỗi slot response phải có doctor candidate để frontend có thể assign deterministic khi submit.
 
-Phase 3 bổ sung planned backward-compatible explanation mode:
+Phase 3 bổ sung backward-compatible explanation mode:
 
 ```text
 serviceId=service-general&date=2026-08-25&doctorId=doctor-1&includeUnavailable=true
