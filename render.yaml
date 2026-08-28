@@ -1,5 +1,4 @@
 services:
-  # No-op marker for validating GitHub push -> Render deployment automation.
   - type: web
     name: clinic-ops
     runtime: node
