@@ -12,8 +12,8 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1, 2, 3 and 4 are implemented on branch/worktree `scheduling-operations`.
-Latest Phase 3 commit: `80281ad6 fix(web): format API availability times in clinic timezone`.
+Status as of 2026-08-28: Tasks 1, 2, 3, 4 and 5 are implemented on branch/worktree `scheduling-operations`.
+Latest Phase 3 commit: pending Task 5 cleanup/docs commit.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
@@ -28,6 +28,7 @@ Completed during implementation:
 - Task 2 added the frontend scheduling API/service boundary and aligned mock availability explanation validation with the backend contract.
 - Task 3 added admin schedule management at `/app/admin/schedules`, including filters, create/update/deactivate controls and admin navigation.
 - Task 4 wired API-mode operations booking to scheduling availability explanation and fixed UTC API timestamp display back to clinic time.
+- Task 5 added API-mode Playwright coverage proving backend schedule blocks disable matching operations booking slots with reason labels.
 
 ## Global Constraints
 
@@ -249,11 +250,11 @@ Expected: operations tests and static checks pass.
 - Consumes: completed Task 1-4 behavior.
 - Produces: browser-level proof that schedule management affects booking availability.
 
-- [ ] **Step 1: Write failing Playwright API-mode test**
+- [x] **Step 1: Write failing Playwright API-mode test**
 
 Login as admin, create a blocked interval for `doctor-1`, navigate to operations create appointment, select matching service/doctor/date, and assert the blocked time is disabled with its reason.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run:
 
@@ -264,7 +265,7 @@ DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:
 
 Expected: fail before UI/API implementation.
 
-- [ ] **Step 3: Run GREEN after implementation**
+- [x] **Step 3: Run GREEN after implementation**
 
 Run the same command after Tasks 1-4 are complete.
 
