@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { StatusBadge } from "../../components/StatusBadge";
 import { isApiMode } from "../../lib/dataSource";
-import { formatDateInputValue } from "../../lib/dateTime";
+import { formatDateInputValue, formatTime } from "../../lib/dateTime";
 import type { Appointment, Patient } from "../../types/models";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
@@ -23,7 +23,7 @@ const availabilityReasonLabels = {
 } as const;
 
 function timeFromSlot(slot: AvailabilitySlot): string {
-  return slot.startAt.match(/T(\d{2}:\d{2})/)?.[1] ?? slot.startAt;
+  return formatTime(slot.startAt);
 }
 
 function unavailableReason(slot: AvailabilitySlot): string {

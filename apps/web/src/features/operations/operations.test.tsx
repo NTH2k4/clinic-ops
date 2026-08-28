@@ -164,8 +164,8 @@ describe("operations workspace", () => {
           {
             doctorId: "doctor-1",
             serviceId: "service-general",
-            startAt: "2026-08-26T09:00:00+07:00",
-            endAt: "2026-08-26T09:30:00+07:00",
+            startAt: "2026-08-26T02:00:00.000Z",
+            endAt: "2026-08-26T02:30:00.000Z",
             availabilityStatus: "unavailable",
             reasonCode: "blocked",
             reasonLabel: "Bác sĩ bị chặn lịch",
@@ -173,8 +173,8 @@ describe("operations workspace", () => {
           {
             doctorId: "doctor-1",
             serviceId: "service-general",
-            startAt: "2026-08-26T09:30:00+07:00",
-            endAt: "2026-08-26T10:00:00+07:00",
+            startAt: "2026-08-26T02:30:00.000Z",
+            endAt: "2026-08-26T03:00:00.000Z",
             availabilityStatus: "available",
             reasonCode: "available",
             reasonLabel: "Còn trống",
