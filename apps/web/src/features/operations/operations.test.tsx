@@ -6,6 +6,8 @@ import { OperationsCalendar } from "./OperationsCalendar";
 import { OperationsDashboard } from "./OperationsDashboard";
 import { QueuePage } from "./QueuePage";
 import { appointmentService } from "../appointments/appointmentService";
+import { createSchedulingService } from "../scheduling/schedulingService";
+import type { SchedulingApi } from "../../lib/api/scheduling";
 import { mockStore } from "../../mocks/mockStore";
 import { expectClinicDateField, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
@@ -151,6 +153,41 @@ describe("operations workspace", () => {
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
     await setClinicDateDay(user, "Ngày khám", 25);
     expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "08:00" })).toBeDisabled();
+  });
+
+  it("surfaces API-mode unavailable slot reasons from the scheduling boundary", async () => {
+    const api: SchedulingApi = {
+      listSchedules: vi.fn(),
+      createSchedule: vi.fn(),
+      updateSchedule: vi.fn(),
+      deactivateSchedule: vi.fn(),
+      listAvailability: vi.fn().mockResolvedValue({
+        data: [{
+          doctorId: "doctor-1",
+          serviceId: "service-general",
+          startAt: "2026-08-25T09:00:00+07:00",
+          endAt: "2026-08-25T09:30:00+07:00",
+          availabilityStatus: "unavailable",
+          reasonCode: "blocked",
+          reasonLabel: "Bác sĩ bị chặn lịch",
+        }],
+        meta: { requestId: "test", page: 1, pageSize: 50, total: 1 },
+      }),
+    };
+    const service = createSchedulingService({ source: "api", api });
+
+    const response = await service.listAvailability({
+      serviceId: "service-general",
+      doctorId: "doctor-1",
+      date: "2026-08-25",
+      includeUnavailable: true,
+    });
+
+    expect(response.data[0]).toMatchObject({
+      availabilityStatus: "unavailable",
+      reasonCode: "blocked",
+      reasonLabel: "Bác sĩ bị chặn lịch",
+    });
   });
 
   it("does not render actions for completed queue entries", () => {
