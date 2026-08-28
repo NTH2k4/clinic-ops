@@ -12,7 +12,7 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1-7 and final review fix round 3 have local implementation verification and are merged/pushed to `main` at merge commit `32464b3d`. This round extends the bcrypt-safe UTF-8 password boundary to login, preserves hosted-demo lifecycle actions across startup, rejects password reuse, and aligns login/logout OpenAPI status codes. Scoped re-review passed for the final login fix; production CI/Render smoke is still pending, so it is not deployed complete.
+Status as of 2026-08-28: Tasks 1-7 and final review fix round 3 have local implementation verification and are merged/pushed to `main` at merge commit `32464b3d`. The deployed production head is docs commit `a52072e1`, which includes the runtime merge. This round extends the bcrypt-safe UTF-8 password boundary to login, preserves hosted-demo lifecycle actions across startup, rejects password reuse, and aligns login/logout OpenAPI status codes. Scoped re-review passed for the final login fix; GitHub Actions and Render production smoke passed, so Phase 2 is deployed complete.
 
 Completed local scope:
 
@@ -24,10 +24,12 @@ Completed local scope:
 - Regression coverage for hosted demo lifecycle preservation, bcrypt-safe UTF-8 limits across login/registration/password change, password reuse rejection, and login/logout `201` contract codes.
 - Full local verification evidence is tracked in `docs/04-planning/mvp-release-readiness.md`.
 
-Pending before deploy:
+Deployment evidence:
 
-- Monitor CI/Render for pushed commit `32464b3d`.
-- Run production smoke for health, login, registration/password and admin account flows after Render serves `32464b3d`.
+- GitHub Actions on `main`: API CI, Web CI and Web Pages passed for runtime merge `32464b3d`; Render Deployment passed for deployed head `a52072e1`.
+- Render health: `https://clinic-ops.onrender.com/api/v1/health` returned commit `a52072e1a36166a14b0e29b912032377dad1995b`.
+- Production smoke passed: admin login, patient registration, patient `/auth/me`, password change with old-session revocation, old password rejection, new password login, admin user list, lock/unlock, reset password, temporary-password login, deactivate, and deactivated-login rejection.
+- Smoke user: `prod-smoke-1787884654973-61f9ed61ee5d5@example.test`; the account was deactivated at the end of the smoke flow.
 
 ## Global Constraints
 

@@ -6,7 +6,7 @@
 | --- | --- |
 | Trạng thái | `active` |
 | Đối tượng đọc chính | Người dùng, senior engineer và agent tiếp tục triển khai |
-| Cập nhật lần cuối | 2026-08-27 |
+| Cập nhật lần cuối | 2026-08-28 |
 | Nguồn | `docs/04-planning/backend-next-steps.md`, `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, trạng thái git của release candidate |
 
 ## Mục Đích
@@ -33,14 +33,14 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã tích hợp vào `main` và đã qua regression verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194`, API E2E 71/71 |
-| Phase 2 Account Administration | Đã merge/push lên `main` tại `32464b3d`; pending CI/Render production smoke, chưa deployed complete | Patient registration, password change/session revocation, admin account lock/unlock; final review round 3 extends the bcrypt password boundary to login |
+| Phase 2 Account Administration | Đã deploy complete trên Render tại `a52072e1`, bao gồm runtime merge `32464b3d` | Patient registration, password change/session revocation, admin account list/lock/unlock/reset/deactivate; production smoke pass |
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 
 ## Trạng Thái Branch Hiện Tại
 
-- Root worktree `clinic-ops` đang ở `main`; Phase 2 Account Administration đã push lên `origin/main` tại merge commit `32464b3d`.
+- Root worktree `clinic-ops` đang ở `main`; Phase 2 Account Administration đã push lên `origin/main` tại merge commit `32464b3d` và docs deployment evidence commit `a52072e1`.
 - Worktree triển khai authorization hardening nằm tại `.worktrees/authorization-hardening`.
 - Branch triển khai: `authorization-hardening`.
 - Commit triển khai authorization hardening: `e6ed2c18 fix(api): harden authorization boundaries`.
@@ -70,7 +70,7 @@ API verification sau merge đạt đầy đủ trên configured host PostgreSQL 
 
 ## Phase 2 Account Administration Verification (Task 7)
 
-Trạng thái: **pass local verification** trên branch `account-administration`. Task 7 commit: `848cafa23ba99f169450f8de0fa7fbaa81d37582`. Tasks 1-6 cung cấp public patient registration, password change với session revocation, admin user list/status/reset APIs và frontend auth/admin workspace. Task 7 bổ sung browser regression cho registration vào patient booking workspace, password change bắt buộc re-login và admin lock/unlock account action. Test tạo email/số điện thoại duy nhất; API-mode teardown reset database về seeded baseline sau suite; không ghi session token, mật khẩu hoặc temporary password vào output/tài liệu.
+Trạng thái: **deployed complete**. Task 7 commit: `848cafa23ba99f169450f8de0fa7fbaa81d37582`; runtime merge commit: `32464b3d`; deployed head: `a52072e1a36166a14b0e29b912032377dad1995b`. Tasks 1-6 cung cấp public patient registration, password change với session revocation, admin user list/status/reset APIs và frontend auth/admin workspace. Task 7 bổ sung browser regression cho registration vào patient booking workspace, password change bắt buộc re-login và admin lock/unlock account action. Test tạo email/số điện thoại duy nhất; API-mode teardown reset database về seeded baseline sau suite; không ghi session token, mật khẩu hoặc temporary password vào output/tài liệu.
 
 | Command | Kết quả | Chi tiết |
 | --- | --- | --- |
@@ -87,11 +87,11 @@ Trạng thái: **pass local verification** trên branch `account-administration`
 | `cd apps/web && npm run e2e` | Pass | Mock-mode Playwright `9/9`. |
 | `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` | Pass | API-mode Playwright `8/8`, bao gồm Phase 2 auth/account smoke. |
 
-Chưa chạy production register/password/admin smoke cho commit `32464b3d`, nên Phase 2 chưa được đánh dấu đã deploy. Production release candidate trước đó vẫn giữ trạng thái riêng ở mục Push Và Deployment Gate.
+Production smoke trên Render đã pass cho deployed head `a52072e1`, bao gồm runtime merge `32464b3d`: health commit check, admin login, patient registration, patient `/auth/me`, password change với old-session revocation, old password rejection, new password login, admin user list, lock/unlock, reset password, temporary-password login, deactivate và deactivated-login rejection. Smoke user `prod-smoke-1787884654973-61f9ed61ee5d5@example.test` đã được deactivate ở cuối flow.
 
 Pre-round-3 verification rerun on 2026-08-28 confirmed local commit `10537ed9 fix(api): preserve account lifecycle on startup`: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `92/92` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
 
-Final review fix round 2 on 2026-08-28: routine hosted startup now creates missing demo users only, so existing password changes and locked/deactivated states persist; password registration/change validation rejects inputs over bcrypt's 72-byte UTF-8 limit and rejects reuse; OpenAPI now declares `201` for login/logout. RED targeted E2E covered the prior lifecycle reset, overlong 72-byte-prefix collision, and password reuse; targeted GREEN passed API E2E `2/2` suites `21/21` tests and unit/contract `2/2` suites `12/12` tests. API typecheck, lint, build, and high-severity audit also passed. This branch remains pending final review, merge, and deploy.
+Final review fix round 2 on 2026-08-28: routine hosted startup now creates missing demo users only, so existing password changes and locked/deactivated states persist; password registration/change validation rejects inputs over bcrypt's 72-byte UTF-8 limit and rejects reuse; OpenAPI now declares `201` for login/logout. RED targeted E2E covered the prior lifecycle reset, overlong 72-byte-prefix collision, and password reuse; targeted GREEN passed API E2E `2/2` suites `21/21` tests and unit/contract `2/2` suites `12/12` tests. API typecheck, lint, build, and high-severity audit also passed. This was superseded by final review fix round 3, merge and production deploy.
 
 Final review fix round 3 on 2026-08-28: login now rejects passwords over bcrypt's 72-byte UTF-8 limit with the existing generic `401 UNAUTHENTICATED` response before bcrypt comparison. RED reproduced a `201` login for a password whose first 72 bytes matched the stored hash; targeted GREEN passed `auth.e2e-spec.ts` `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, API typecheck, and lint. Coordinator rerun confirmed API unit `7/7` suites `41/41` tests, API build/audit pass, and full API E2E `10/10` suites `93/93` tests. Scoped re-review marked the login finding addressed with no new breakage in the fix diff.
 
@@ -114,7 +114,7 @@ Không có failure command hoặc actionable error trong Web gate. Các warning 
 
 ## Push Và Deployment Gate (Task 5)
 
-Trạng thái: **historical production verification**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng. Production `https://clinic-ops.onrender.com` đang serve commit `91fd347fe479a174026a69f0e2b782316e39944d`; final review fix round 2 on branch `account-administration` has not been merged or deployed.
+Trạng thái: **Phase 2 deployed complete**. Push `main` đã được thực hiện sau approval của người dùng. Production `https://clinic-ops.onrender.com` đang serve commit `a52072e1a36166a14b0e29b912032377dad1995b`, bao gồm runtime merge `32464b3d`.
 
 | Check | Kết quả | Chi tiết |
 | --- | --- | --- |
@@ -124,6 +124,9 @@ Trạng thái: **historical production verification**. Push `main` đã được
 | GitHub Deployment workflow | Stale run ignored | Workflow cho `44b5b9cf` fail vì sau manual deploy Render serve commit mới hơn `91fd347f`; production smoke được xác minh trực tiếp bằng health/login curl. |
 | Render health smoke | Pass | `/api/v1/health` trả commit `91fd347fe479a174026a69f0e2b782316e39944d`. |
 | Render login smoke | Pass | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả user role `admin` và session token. Token không được ghi vào docs. |
+| Phase 2 GitHub Actions | Pass | API CI, Web CI và Web Pages pass cho runtime merge `32464b3d`; Render Deployment pass cho deployed head `a52072e1`. |
+| Phase 2 Render health smoke | Pass | `/api/v1/health` trả commit `a52072e1a36166a14b0e29b912032377dad1995b`. |
+| Phase 2 auth/account smoke | Pass | Admin login, patient registration/access, password change/session revocation, admin list, lock/unlock, reset-password, temporary-password login và deactivate đều pass. Smoke user `@example.test` đã deactivate. |
 
 The historical deployed fix used startup demo-auth repair. Final review fix round 2 supersedes that behavior on `account-administration`: Render starts the API directly, and hosted startup creates only missing demo users without changing existing credentials, roles, or statuses.
 
@@ -169,8 +172,8 @@ Trạng thái verification sau merge:
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Tạo và duyệt `docs/04-planning/account-administration-plan.md`.
-2. Triển khai Phase 2 theo hướng authentication-first: patient registration, password change, admin account actions và audit.
-3. Sau Phase 2, chạy lại API/Web verification và production smoke trước khi chuyển sang Scheduling Operations UI.
+1. Tạo `docs/04-planning/scheduling-operations-plan.md` trước khi sửa code Phase 3.
+2. Cập nhật `docs/02-product/workflows.md`, `docs/03-architecture/api-contract.md` và `docs/03-architecture/openapi.json` nếu Scheduling Operations UI yêu cầu đổi workflow hoặc API contract.
+3. Triển khai Phase 3 Scheduling Operations UI bằng subagent-driven development sau khi plan được duyệt.
 
-Khuyến nghị: bắt đầu Phase 2 bằng auth/account lifecycle vì người dùng cần đăng ký, đăng nhập và truy cập app bằng luồng gần sản phẩm thật trước khi mở thêm scheduling operations UI.
+Khuyến nghị: chuyển sang Scheduling Operations UI vì auth/account lifecycle đã deploy complete và người dùng đã có luồng đăng ký, đăng nhập, đổi mật khẩu và admin account actions ở production.

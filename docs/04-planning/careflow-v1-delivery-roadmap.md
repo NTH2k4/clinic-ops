@@ -73,7 +73,7 @@ Exit criteria:
 
 ## Phase 2: Account Administration Foundation
 
-Trạng thái: đã merge và push lên `main` tại merge commit `32464b3d` sau local verification và scoped final review. Đang chờ CI/Render production smoke cho commit này; chưa được đánh dấu deployed complete.
+Trạng thái: deployed complete trên Render tại deployed head `a52072e1`, bao gồm runtime merge `32464b3d`; local verification, scoped final review, GitHub Actions và production smoke đều pass.
 
 Mục tiêu:
 

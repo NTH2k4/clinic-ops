@@ -2,12 +2,13 @@
 
 ## 2026-08-28
 
-- Merged and pushed Phase 2 Account Administration to `main` at merge commit `32464b3d` after post-merge local API/Web verification passed. Production CI/Render smoke for this commit remains pending.
+- Closed Phase 2 Account Administration as deployed complete after manual Render deploy and GitHub Actions verification. Production health serves `a52072e1a36166a14b0e29b912032377dad1995b`, which includes runtime merge `32464b3d`; production smoke passed health, admin login, patient registration/access, password change/session revocation, admin user list, lock/unlock, reset-password, temporary-password login, deactivate and deactivated-login rejection. The generated `@example.test` smoke user was deactivated at the end of the flow.
+- Merged and pushed Phase 2 Account Administration to `main` at merge commit `32464b3d` after post-merge local API/Web verification passed.
 - Final review fix round 3: login now rejects passwords over bcrypt's 72-byte UTF-8 input limit before comparison, preserving the established generic `401 UNAUTHENTICATED` response. Added an E2E prefix-collision regression using a stored 72-byte password hash; targeted auth E2E passed `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, typecheck, and lint. Coordinator rerun confirmed full API E2E `10/10` suites `93/93` tests.
 - Scoped re-review for final review fix round 3 passed: the login bcrypt boundary finding is addressed and no new breakage was found in the fix diff.
 - Final review fix round 2 on `account-administration`: hosted startup and the demo-auth utility now create only missing demo users, while Render no longer runs demo-auth seeding in `startCommand`; existing password hashes, roles, locked/inactive states, and lifecycle actions are preserved.
 - Added bcrypt-safe password validation for registration and password change (maximum 72 UTF-8 bytes), rejected password reuse with a stable non-secret validation response, and corrected OpenAPI login/logout success responses to `201`.
-- Recorded targeted RED/GREEN evidence: E2E `2/2` suites `21/21` tests, unit/contract `2/2` suites `12/12` tests; API typecheck, lint, build, and high-severity audit passed. Phase 2 remains pending CI/Render production smoke. Admin Accounts pagination page upper-bound remains deferred.
+- Recorded targeted RED/GREEN evidence: E2E `2/2` suites `21/21` tests, unit/contract `2/2` suites `12/12` tests; API typecheck, lint, build, and high-severity audit passed. Admin Accounts pagination page upper-bound remains deferred.
 
 ## 2026-08-27
 

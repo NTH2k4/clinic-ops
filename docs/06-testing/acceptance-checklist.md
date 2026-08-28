@@ -43,7 +43,7 @@
 - [x] Final review fix round 3 targeted regression: a login password longer than 72 UTF-8 bytes is rejected with `401 UNAUTHENTICATED` even when its first 72 bytes match the stored bcrypt hash. GREEN: auth E2E `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, typecheck and lint pass. Coordinator rerun confirmed full API E2E `10/10` suites `93/93` tests.
 - [x] Scoped re-review for final review fix round 3 passed with the login bcrypt boundary finding addressed and no new breakage in the fix diff.
 - [x] Phase 2 final review and merge/push to `main` completed at `32464b3d`.
-- [ ] Phase 2 production CI/Render smoke remains pending for commit `32464b3d`. Deferred minor: Admin Accounts pagination has no page upper bound.
+- [x] Phase 2 production CI/Render smoke passed on deployed head `a52072e1a36166a14b0e29b912032377dad1995b`, which includes runtime merge `32464b3d`. GitHub Actions: API CI, Web CI and Web Pages pass for `32464b3d`; Render Deployment pass for `a52072e1`. Production smoke covered health, admin login, patient registration/access, password change/session revocation, admin user list, lock/unlock, reset-password, temporary-password login, deactivate and deactivated-login rejection. Deferred minor: Admin Accounts pagination has no page upper bound.
 
 ## Task 2 API Verification (2026-08-27)
 
