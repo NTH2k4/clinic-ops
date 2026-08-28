@@ -12,8 +12,8 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1, 2 and 3 are implemented on branch/worktree `scheduling-operations`.
-Latest Phase 3 commit: `5bf3ab62 test(web): cover schedule deactivation`.
+Status as of 2026-08-28: Tasks 1, 2, 3 and 4 are implemented on branch/worktree `scheduling-operations`.
+Latest Phase 3 commit: `80281ad6 fix(web): format API availability times in clinic timezone`.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
@@ -27,6 +27,7 @@ Completed during implementation:
 - Task 1 added backend availability explanation mode, OpenAPI/docs coverage and regression coverage for explicit `includeUnavailable=false`.
 - Task 2 added the frontend scheduling API/service boundary and aligned mock availability explanation validation with the backend contract.
 - Task 3 added admin schedule management at `/app/admin/schedules`, including filters, create/update/deactivate controls and admin navigation.
+- Task 4 wired API-mode operations booking to scheduling availability explanation and fixed UTC API timestamp display back to clinic time.
 
 ## Global Constraints
 
@@ -213,19 +214,19 @@ Expected: targeted admin tests and static checks pass.
 - Consumes: `schedulingQueryOptions.availability({ serviceId, doctorId, date, includeUnavailable: true })`.
 - Produces: staff booking time selection with available/unavailable explanation in API mode.
 
-- [ ] **Step 1: Write failing operations test**
+- [x] **Step 1: Write failing operations test**
 
 Assert that when service, doctor and date are selected, unavailable time options are visible but disabled with a readable reason.
 
-- [ ] **Step 2: Replace fixed API-mode time list**
+- [x] **Step 2: Replace fixed API-mode time list**
 
 In API mode, use backend availability explanation. Keep mock mode behavior stable for existing tests.
 
-- [ ] **Step 3: Preserve booking behavior**
+- [x] **Step 3: Preserve booking behavior**
 
 Only enabled available slots can submit. Submit continues to call `appointmentService.createStaffAppointment`; backend remains final conflict authority.
 
-- [ ] **Step 4: Verify Task 4**
+- [x] **Step 4: Verify Task 4**
 
 Run:
 
