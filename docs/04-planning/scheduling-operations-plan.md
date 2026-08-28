@@ -12,8 +12,8 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Task 1 availability explanation contract is implemented on branch/worktree `scheduling-operations`.
-Latest Phase 3 commit: `d161ab76 fix(api): parse availability explanation flag explicitly`.
+Status as of 2026-08-28: Tasks 1 and 2 are implemented on branch/worktree `scheduling-operations`.
+Latest Phase 3 commit: `755d06b6 fix(web): align mock availability explanation contract`.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
@@ -25,6 +25,7 @@ Completed before implementation:
 Completed during implementation:
 
 - Task 1 added backend availability explanation mode, OpenAPI/docs coverage and regression coverage for explicit `includeUnavailable=false`.
+- Task 2 added the frontend scheduling API/service boundary and aligned mock availability explanation validation with the backend contract.
 
 ## Global Constraints
 
@@ -139,19 +140,19 @@ Expected: targeted E2E and contract tests pass.
 - Consumes: API endpoint shapes from Task 1.
 - Produces: `schedulingQueryOptions.schedules(filters)`, `schedulingQueryOptions.availability(filters)`, `schedulingService.createSchedule(input)`, `updateSchedule(id, input)`, `deactivateSchedule(id)`.
 
-- [ ] **Step 1: Write failing unit test for API-mode availability explanation**
+- [x] **Step 1: Write failing unit test for API-mode availability explanation**
 
 In `operations.test.tsx`, mock the scheduling service or API fetcher and assert unavailable slots render their `reasonLabel` when API mode provides them.
 
-- [ ] **Step 2: Implement typed API client**
+- [x] **Step 2: Implement typed API client**
 
 Create `apps/web/src/lib/api/scheduling.ts` with typed request/response models for schedule list, create, update, deactivate and availability explanation.
 
-- [ ] **Step 3: Implement service boundary**
+- [x] **Step 3: Implement service boundary**
 
 Create `apps/web/src/features/scheduling/schedulingService.ts` that supports both mock and API modes. Mock mode may derive availability from existing `mockStore.doctorSchedules` and `mockStore.appointments`; API mode must call backend.
 
-- [ ] **Step 4: Verify Task 2**
+- [x] **Step 4: Verify Task 2**
 
 Run:
 
