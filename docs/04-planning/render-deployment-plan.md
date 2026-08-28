@@ -62,6 +62,8 @@ Set this when Render auto-deploy does not reliably receive GitHub push events:
 
 When `RENDER_DEPLOY_HOOK_URL` exists, the `Render Deployment` workflow sends a POST request to the hook before polling `/api/v1/health`. The workflow does not print the hook URL. If the secret is missing, the workflow keeps the previous behavior: it records the GitHub Deployment and waits for Render to serve the pushed commit.
 
+Verification on 2026-08-28 confirmed the deploy hook path works for commits that trigger `.github/workflows/render-deployment.yml`: test commit `ac78a21d` and cleanup commit `05ebf87b` both moved Render health to the pushed SHA, and API CI, Web CI and Render Deployment completed successfully. Docs-only commits do not trigger this workflow because the workflow intentionally filters push paths to `apps/api/**`, `apps/web/**`, `render.yaml` and the workflow file.
+
 Use manual deploy as fallback when the hook is not configured or Render still serves an older commit:
 
 ```text
@@ -109,8 +111,9 @@ RENDER_EXTERNAL_URL=https://your-render-service.onrender.com node scripts/produc
 - Do not use real patient data on this demo deployment.
 - Render Free Web Services do not support pre-deploy commands, so database migrations run in `buildCommand`.
 - Render auto-deploy depends on the GitHub integration receiving push events. If auto-deploy does not move production to the pushed SHA, use `RENDER_DEPLOY_HOOK_URL` or manual deploy.
+- GitHub Actions deploy hook automation is verified for runtime/deployment-path commits as of `05ebf87b`. Native Render auto-deploy for docs-only commits is not required for runtime behavior.
 
 ## Next Hardening Work
 
-- Add a small V1 documentation closure package that links release scope, acceptance checks and deployment smoke evidence.
-- Decide whether to keep GitHub Pages as a mock-only demo or retire it after Render is stable.
+- Keep `RENDER_DEPLOY_HOOK_URL` configured and rotate it if it is exposed.
+- Decide whether to keep GitHub Pages as a mock-only demo or retire it after Render remains stable.

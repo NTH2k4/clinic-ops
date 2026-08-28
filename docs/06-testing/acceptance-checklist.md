@@ -97,6 +97,7 @@
 - [x] Review fix: smoke script revokes its temporary login session in cleanup. RED: `node --test scripts/production-smoke.test.mjs` initially failed because `runProductionSmoke` did not exist. GREEN: the same command passed `2/2` tests, covering later-failure cleanup plus success-path logout/token omission, and production smoke still passed.
 - [x] Branch merge/push completed. `production-demo-operations` merged to `main` at `f9902abc`; API CI and Web CI passed for `f9902abc`.
 - [x] Phase 4 production deployment closure passed after manual Render deploy latest `main`. Health returned `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`; admin login returned role `admin`; catalog smoke returned services total `8`, doctors total `5`, specialties total `3`; doctor-4 schedule total `1`; availability explanation returned `5` slots with first status `available`. Session token was not logged.
+- [x] Render deploy hook automation verified after setup. Test commit `ac78a21d` and cleanup commit `05ebf87b` both triggered API CI, Web CI and Render Deployment successfully; production smoke passed for `05ebf87b00399bbdc677a3668fa107152d10620e`.
 
 ## Phase 5 V1 Documentation Closure (2026-08-28)
 

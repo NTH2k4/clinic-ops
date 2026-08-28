@@ -15,6 +15,7 @@
 - Updated operations docs with manual deploy fallback, failed health wait triage, demo baseline repair guidance and rollback documentation. Render Free and Neon Free remain the deployment target.
 - GitHub Actions for `f9902abc`: API CI and Web CI passed. Render Deployment failed before manual deploy because production health still returned `f66970492103620d021a9bd9041374b9e656d684`, matching the known auto-deploy disconnect when deploy hook triggering is absent or not verified.
 - Manual Render deploy latest `main` closed Phase 4 at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`. Production smoke passed: health commit matched `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`, admin login returned role `admin`, catalog totals were services `8`, doctors `5`, specialties `3`, doctor-4 schedule total was `1`, and availability explanation returned `5` slots with first status `available`. Session token was not logged.
+- After `RENDER_DEPLOY_HOOK_URL` was configured, deploy hook automation was verified with two pushed `render.yaml` commits. `ac78a21d` and `05ebf87b` both completed API CI, Web CI and Render Deployment successfully, and production smoke passed at `05ebf87b00399bbdc677a3668fa107152d10620e`.
 
 ## 2026-08-28 Phase 3 Scheduling Operations Deployment Remediation
 

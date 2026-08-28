@@ -38,7 +38,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 | Phase 3 Scheduling Operations | Deployed complete on Render at `f6697049`, including scheduling baseline repair `58d9ca0e` | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`; production health/login/catalog/scheduling smoke pass |
-| Phase 4 Production Demo Operations | Deployed complete on Render at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2` after manual deploy latest `main`; API/Web CI pass for implementation merge `f9902abc`; production smoke pass. | `docs/04-planning/production-demo-operations-plan.md`, `scripts/production-smoke.mjs`, `.github/workflows/render-deployment.yml` |
+| Phase 4 Production Demo Operations | Deployed complete on Render; deploy hook automation later verified at `05ebf87b00399bbdc677a3668fa107152d10620e` with API/Web/Render workflows success and production smoke pass. | `docs/04-planning/production-demo-operations-plan.md`, `scripts/production-smoke.mjs`, `.github/workflows/render-deployment.yml` |
 | Phase 5 V1 Documentation Closure | Ready for user acceptance review; traceability matrix and acceptance package prepared. | `docs/04-planning/v1-documentation-closure-plan.md`, `docs/01-requirements/v1-traceability-matrix.md`, `docs/06-testing/v1-acceptance-package.md` |
 
 ## Trạng Thái Branch Hiện Tại
@@ -199,6 +199,12 @@ Production smoke sau deploy:
 - Scheduling smoke: pass. `/doctor-schedules?doctorId=doctor-4&from=2026-08-26&to=2026-08-26&pageSize=5` total `1`; `/availability/slots?serviceId=service-general&date=2026-08-26&doctorId=doctor-4&includeUnavailable=true&pageSize=5` returned `5` slots with first status `available`.
 
 Render Deployment workflow for `f9902abc` failed before manual deploy because production still served `f6697049`; this confirms the known auto-deploy disconnect when `RENDER_DEPLOY_HOOK_URL` is absent or not verified. Manual Render deploy remains the documented fallback.
+
+Automation retest after `RENDER_DEPLOY_HOOK_URL` setup:
+
+- `ac78a21d chore: verify render auto deploy`: API CI, Web CI and Render Deployment all completed successfully; production health moved to `ac78a21dbd84168ab8297cef20b876bad13f653f`.
+- `05ebf87b chore: remove render auto deploy test marker`: API CI, Web CI and Render Deployment all completed successfully; production health moved to `05ebf87b00399bbdc677a3668fa107152d10620e`.
+- Production smoke for `05ebf87b00399bbdc677a3668fa107152d10620e` passed health, admin login, catalog totals, doctor schedule and availability explanation. Session token was not logged.
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 

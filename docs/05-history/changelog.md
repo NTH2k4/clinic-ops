@@ -3,6 +3,7 @@
 ## 2026-08-28
 
 - Prepared Phase 5 V1 Documentation And Acceptance Closure: added `v1-documentation-closure-plan.md`, `v1-traceability-matrix.md` and `v1-acceptance-package.md`; updated documentation map, readiness, acceptance checklist and release notes for final user acceptance review.
+- Verified Render deploy hook automation after setup: pushed `ac78a21d` and cleanup `05ebf87b`; API CI, Web CI and Render Deployment succeeded for both, and production smoke passed for `05ebf87b00399bbdc677a3668fa107152d10620e`.
 - Implemented Phase 4 Production Demo Operations Tasks 1-3 on branch `production-demo-operations`: added read-only `scripts/production-smoke.mjs`, optional `RENDER_DEPLOY_HOOK_URL` workflow trigger and production runbook/deployment documentation updates.
 - Merged and pushed Phase 4 Production Demo Operations to `main` at `f9902abc`; API CI and Web CI passed. Render Deployment failed because production still served `f6697049`, so manual Render deploy of latest `main` was used for closure.
 - Closed Phase 4 Production Demo Operations after manual Render deploy latest `main` at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`; production smoke passed health, admin login, catalog totals, doctor schedule and availability explanation checks without logging the session token.

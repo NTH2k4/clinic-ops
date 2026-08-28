@@ -138,6 +138,14 @@ Routine deploy path:
 3. The workflow polls `$RENDER_EXTERNAL_URL/api/v1/health` until `data.commit` matches the pushed SHA.
 4. Run `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs`.
 
+Verified automation evidence on 2026-08-28:
+
+- `ac78a21d chore: verify render auto deploy`: API CI, Web CI and Render Deployment completed successfully; Render health moved from `ca0fe505` to `ac78a21d`.
+- `05ebf87b chore: remove render auto deploy test marker`: API CI, Web CI and Render Deployment completed successfully; Render health moved from `ac78a21d` to `05ebf87b`.
+- Production smoke passed for `05ebf87b00399bbdc677a3668fa107152d10620e`.
+
+The workflow is path-filtered. It runs for changes under `apps/api/**`, `apps/web/**`, `render.yaml` and `.github/workflows/render-deployment.yml`; docs-only commits do not run the deploy hook workflow unless manually dispatched.
+
 Manual fallback:
 
 ```text

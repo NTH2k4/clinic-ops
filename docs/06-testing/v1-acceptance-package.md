@@ -21,8 +21,8 @@ CareFlow v1 is a Render-hosted clinic operations demo with React/Vite frontend, 
 | Demo admin email | `admin@careflow.local` |
 | Demo admin password | `careflow-demo` |
 | Hosted infrastructure | Render Free Web Service + Neon PostgreSQL |
-| Deployed smoke commit | `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2` |
-| Latest docs closure commit before Phase 5 | `c758c7f0efd574ba10ef7aeffff789e221e9bba6` |
+| Deployed smoke commit | `05ebf87b00399bbdc677a3668fa107152d10620e` |
+| Initial Phase 5 docs package commit | `8157b224f81e7910f0f404d7711d9e60f17ef404` |
 
 Do not enter real patient data in this environment.
 
@@ -32,18 +32,18 @@ Do not enter real patient data in this environment.
 | --- | --- |
 | Phase 2 Account Administration | API typecheck/lint/unit/E2E/build/audit pass; Web unit/typecheck/lint/build/mock Playwright/API-mode Playwright pass; production account smoke pass on Render at `a52072e1`. |
 | Phase 3 Scheduling Operations | API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`; production catalog/scheduling smoke pass after remediation at `f6697049`. |
-| Phase 4 Production Demo Operations | `scripts/production-smoke.mjs` added and tested; workflow supports optional `RENDER_DEPLOY_HOOK_URL`; production smoke pass at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`. |
+| Phase 4 Production Demo Operations | `scripts/production-smoke.mjs` added and tested; workflow supports optional `RENDER_DEPLOY_HOOK_URL`; deploy hook automation verified with successful API/Web/Render workflows at `05ebf87b`; production smoke pass at `05ebf87b00399bbdc677a3668fa107152d10620e`. |
 | Final docs closure | `git diff --check` pass; placeholder scan reviewed; traceability and acceptance docs created. |
 
 Production smoke command:
 
 ```bash
 RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com \
-EXPECTED_RENDER_COMMIT=ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2 \
+EXPECTED_RENDER_COMMIT=05ebf87b00399bbdc677a3668fa107152d10620e \
 node scripts/production-smoke.mjs
 ```
 
-Observed smoke result: health commit matched `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`, admin login returned role `admin`, services total `8`, doctors total `5`, specialties total `3`, doctor-4 schedule total `1`, and availability explanation returned `5` slots with first status `available`. Session token was not logged.
+Observed smoke result: health commit matched `05ebf87b00399bbdc677a3668fa107152d10620e`, admin login returned role `admin`, services total `8`, doctors total `5`, specialties total `3`, doctor-4 schedule total `1`, and availability explanation returned `5` slots with first status `available`. Session token was not logged.
 
 ## User Acceptance Checklist
 
@@ -59,7 +59,7 @@ Observed smoke result: health commit matched `ca0fe5052e63e8a76e58ec34a2782f5e6c
 ## Known Constraints
 
 - Render Free can cold start after idle time.
-- Render auto-deploy has been unreliable in this project; manual deploy latest or verified deploy hook triggering remains the documented fallback.
+- GitHub Actions deploy hook automation is verified for runtime/deployment-path commits. Docs-only commits do not trigger that workflow by default because of path filters.
 - Neon Free tier limits storage and compute.
 - GitHub Pages remains a mock/demo surface; Render is the production full-stack target.
 - Demo data is synthetic and not suitable for real patient operations.
