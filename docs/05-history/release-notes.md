@@ -1,5 +1,12 @@
 # Ghi Chú Phát Hành
 
+## 2026-08-28 V1 Documentation And Acceptance Closure
+
+- Added `docs/04-planning/v1-documentation-closure-plan.md` to define the docs-only Phase 5 package and verification steps.
+- Added `docs/01-requirements/v1-traceability-matrix.md`, mapping v1 auth, patient, operations, doctor, admin, scheduling, audit and deployment requirements to product docs, architecture/API docs, implementation plans and verification evidence.
+- Added `docs/06-testing/v1-acceptance-package.md`, giving the product owner a final review checklist with production URL, demo credentials, deployed smoke commit, verification evidence and known constraints.
+- Updated documentation map, readiness, acceptance checklist and changelog so CareFlow v1 can be reviewed without chat history. Runtime code and infrastructure were not changed in this phase.
+
 ## 2026-08-28 Phase 4 Production Demo Operations
 
 - Phase 4 implementation was merged/pushed to `main` at `f9902abc` after plan approval. Scope covers read-only production smoke automation, optional Render deploy hook trigger, runbook/deployment documentation and final production operations closure.

@@ -39,6 +39,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 | Phase 3 Scheduling Operations | Deployed complete on Render at `f6697049`, including scheduling baseline repair `58d9ca0e` | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`; production health/login/catalog/scheduling smoke pass |
 | Phase 4 Production Demo Operations | Deployed complete on Render at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2` after manual deploy latest `main`; API/Web CI pass for implementation merge `f9902abc`; production smoke pass. | `docs/04-planning/production-demo-operations-plan.md`, `scripts/production-smoke.mjs`, `.github/workflows/render-deployment.yml` |
+| Phase 5 V1 Documentation Closure | Ready for user acceptance review; traceability matrix and acceptance package prepared. | `docs/04-planning/v1-documentation-closure-plan.md`, `docs/01-requirements/v1-traceability-matrix.md`, `docs/06-testing/v1-acceptance-package.md` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -201,6 +202,6 @@ Render Deployment workflow for `f9902abc` failed before manual deploy because pr
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Create `docs/04-planning/v1-documentation-closure-plan.md`.
-2. Reconcile release scope, acceptance checks, architecture docs, product workflows and deployment smoke evidence.
-3. Prepare the final CareFlow v1 acceptance package for user review before additional feature work.
+1. Người dùng review `docs/06-testing/v1-acceptance-package.md`.
+2. Nếu acceptance feedback yêu cầu thay đổi, cập nhật traceability matrix, acceptance package, release notes và readiness trong cùng follow-up.
+3. Sau khi user accept v1, tạo phase mới riêng trước khi thêm feature hoặc refactor runtime.

@@ -39,9 +39,12 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | MVP Release Completion | Kế hoạch subagent-driven để tích hợp authorization hardening, chạy full verification, cập nhật docs và chuẩn bị deploy | `docs/04-planning/mvp-release-completion-plan.md` | Hoàn thành; production smoke pass sau manual deploy latest commit |
 | CareFlow V1 Delivery Roadmap | Roadmap từ MVP release candidate tới CareFlow v1 hoàn chỉnh trong phạm vi đã chốt | `docs/04-planning/careflow-v1-delivery-roadmap.md` | Đã duyệt hướng tổng thể; mỗi phase sau vẫn cần plan riêng |
 | CareFlow V1 Subagent Execution | Kế hoạch điều phối workstream v1 bằng subagent-driven development | `docs/04-planning/careflow-v1-subagent-execution-plan.md` | Đã duyệt execution map; push/deploy vẫn cần gate riêng |
+| CareFlow V1 Traceability Matrix | Link từng requirement v1 tới product docs, architecture/API docs, implementation plans và verification evidence | `docs/01-requirements/v1-traceability-matrix.md` | Ready for acceptance review |
+| CareFlow V1 Acceptance Package | Checklist cuối để người dùng duyệt release v1 mà không cần đọc chat history | `docs/06-testing/v1-acceptance-package.md` | Ready for user review |
 | Account Administration | Kế hoạch Phase 2 cho auth/account lifecycle: patient registration, password change, admin reset/status actions và account UI | `docs/04-planning/account-administration-plan.md` | Deployed complete trên Render |
 | Scheduling Operations | Kế hoạch Phase 3 cho schedule management UI, blocked/leave intervals và availability explanation | `docs/04-planning/scheduling-operations-plan.md` | Deployed complete trên Render |
-| Production Demo Operations | Kế hoạch Phase 4 cho Render/Neon operations, smoke script, deploy hook hardening và runbook closure | `docs/04-planning/production-demo-operations-plan.md` | Implementation in progress on branch `production-demo-operations` |
+| Production Demo Operations | Kế hoạch Phase 4 cho Render/Neon operations, smoke script, deploy hook hardening và runbook closure | `docs/04-planning/production-demo-operations-plan.md` | Deployed complete trên Render |
+| V1 Documentation Closure | Kế hoạch Phase 5 cho traceability, acceptance package và release documentation closure | `docs/04-planning/v1-documentation-closure-plan.md` | Complete; waiting for user acceptance review |
 
 ## Đánh Giá Hiện Tại
 
@@ -72,15 +75,16 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có kế hoạch điều phối subagent-driven tại `docs/04-planning/careflow-v1-subagent-execution-plan.md`, chia các package v1 theo thứ tự triển khai và verification gate.
 - Có kế hoạch Phase 2 tại `docs/04-planning/account-administration-plan.md`, ưu tiên authentication-first và đã deploy complete.
 - Có kế hoạch Phase 3 tại `docs/04-planning/scheduling-operations-plan.md`, tập trung vào Scheduling Operations UI, blocked/leave intervals và availability explanation; Phase 3 đã deployed complete trên Render.
-- Có kế hoạch Phase 4 tại `docs/04-planning/production-demo-operations-plan.md`, tập trung vào smoke script, deploy hook hardening và runbook vận hành demo.
+- Có kế hoạch Phase 4 tại `docs/04-planning/production-demo-operations-plan.md`, tập trung vào smoke script, deploy hook hardening và runbook vận hành demo; Phase 4 đã deployed complete trên Render.
+- Có Phase 5 documentation closure gồm `docs/04-planning/v1-documentation-closure-plan.md`, `docs/01-requirements/v1-traceability-matrix.md` và `docs/06-testing/v1-acceptance-package.md` để người dùng duyệt v1 không cần đọc chat history.
 
 ### Còn Thiếu So Với Mẫu
 
 - Chưa có phần kiểm soát tài liệu và lịch sử phiên bản trong từng tài liệu quan trọng.
 - Chưa có BRD/SRS chuẩn theo template riêng; frontend MVP spec hiện đóng vai trò PRD gọn cho phase đầu.
 - Đã có persona chi tiết ở `docs/02-product/frontend-mvp-spec.md`, nhưng chưa có stakeholder matrix riêng.
-- Đã có MoSCoW priority và acceptance criteria cho frontend MVP, nhưng chưa có trace đầy đủ theo từng requirement/user story.
-- Chưa có traceability matrix.
+- Đã có MoSCoW priority và acceptance criteria cho frontend MVP; Phase 5 bổ sung trace đầy đủ theo nhóm requirement v1 tại `docs/01-requirements/v1-traceability-matrix.md`.
+- Chưa có traceability matrix dạng enterprise chi tiết theo từng test case; v1 dùng matrix gọn theo requirement area để tránh SRS nặng không cần thiết.
 - API contract v1 đã có response standard, error code convention, endpoint detail và OpenAPI machine-readable spec baseline.
 - Chưa có sequence diagram/spec cho các flow chính.
 - Chưa có ERD dạng hình/diagram; hiện đã có database schema reference dạng text.
@@ -89,8 +93,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Xin duyệt và triển khai Phase 4 theo `docs/04-planning/production-demo-operations-plan.md`.
-2. Giữ `docs/04-planning/mvp-release-readiness.md` và plan Phase 4 được cập nhật trước và sau mỗi bước triển khai.
+1. Người dùng review `docs/06-testing/v1-acceptance-package.md` và quyết định accept v1 hoặc yêu cầu follow-up.
+2. Giữ `docs/04-planning/mvp-release-readiness.md` được cập nhật khi acceptance result thay đổi.
 3. Xin approval rõ trước khi push hoặc deploy thay đổi ảnh hưởng shared `main` hoặc production.
 4. Duy trì OpenAPI spec đã checked-in khi endpoint behavior thay đổi.
-5. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.
+5. Chỉ thêm SRS/diagram nặng hơn khi product/API scope vượt quá v1 hiện tại.

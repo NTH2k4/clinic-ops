@@ -97,3 +97,9 @@
 - [x] Review fix: smoke script revokes its temporary login session in cleanup. RED: `node --test scripts/production-smoke.test.mjs` initially failed because `runProductionSmoke` did not exist. GREEN: the same command passed `2/2` tests, covering later-failure cleanup plus success-path logout/token omission, and production smoke still passed.
 - [x] Branch merge/push completed. `production-demo-operations` merged to `main` at `f9902abc`; API CI and Web CI passed for `f9902abc`.
 - [x] Phase 4 production deployment closure passed after manual Render deploy latest `main`. Health returned `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`; admin login returned role `admin`; catalog smoke returned services total `8`, doctors total `5`, specialties total `3`; doctor-4 schedule total `1`; availability explanation returned `5` slots with first status `available`. Session token was not logged.
+
+## Phase 5 V1 Documentation Closure (2026-08-28)
+
+- [x] V1 traceability matrix prepared at `docs/01-requirements/v1-traceability-matrix.md`, linking auth, patient, operations, doctor, admin, scheduling, audit and deployment requirements to docs and verification evidence.
+- [x] V1 acceptance package prepared at `docs/06-testing/v1-acceptance-package.md`, including production URL, demo credentials, deployed smoke commit, verification evidence, user acceptance checklist and known constraints.
+- [x] Release readiness, documentation map, release notes and changelog updated so final acceptance review can start without reading chat history.

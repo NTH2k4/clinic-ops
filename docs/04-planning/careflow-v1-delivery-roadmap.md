@@ -159,7 +159,7 @@ Exit criteria:
 
 ## Phase 5: V1 Documentation And Acceptance Closure
 
-Trạng thái: chưa bắt đầu.
+Trạng thái: documentation closure prepared. `docs/04-planning/v1-documentation-closure-plan.md`, `docs/01-requirements/v1-traceability-matrix.md` và `docs/06-testing/v1-acceptance-package.md` đã sẵn sàng cho user acceptance review.
 
 Mục tiêu:
 
