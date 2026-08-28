@@ -76,7 +76,7 @@
           }
         },
         "responses": {
-          "200": { "$ref": "#/components/responses/AuthSession" },
+          "201": { "$ref": "#/components/responses/AuthSession" },
           "401": { "$ref": "#/components/responses/Error" }
         }
       }
@@ -111,7 +111,7 @@
         "tags": ["Auth"],
         "summary": "Log out the current bearer session",
         "responses": {
-          "200": { "$ref": "#/components/responses/Success" },
+          "201": { "$ref": "#/components/responses/Success" },
           "401": { "$ref": "#/components/responses/Error" }
         }
       }
@@ -1132,7 +1132,7 @@
           "displayName": { "type": "string", "minLength": 1, "maxLength": 200 },
           "email": { "type": "string", "format": "email" },
           "phone": { "type": "string", "minLength": 1, "maxLength": 30 },
-          "password": { "type": "string", "minLength": 8, "maxLength": 200 }
+          "password": { "type": "string", "minLength": 8, "maxLength": 72, "description": "Maximum 72 UTF-8 bytes." }
         }
       },
       "ChangePasswordRequest": {
@@ -1140,8 +1140,8 @@
         "additionalProperties": false,
         "required": ["currentPassword", "newPassword"],
         "properties": {
-          "currentPassword": { "type": "string", "minLength": 1, "maxLength": 200 },
-          "newPassword": { "type": "string", "minLength": 8, "maxLength": 200 }
+          "currentPassword": { "type": "string", "minLength": 1, "maxLength": 72, "description": "Maximum 72 UTF-8 bytes." },
+          "newPassword": { "type": "string", "minLength": 8, "maxLength": 72, "description": "Maximum 72 UTF-8 bytes." }
         }
       },
       "AuthSessionEnvelope": {

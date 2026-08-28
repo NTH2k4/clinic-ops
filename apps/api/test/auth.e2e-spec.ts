@@ -215,6 +215,40 @@ describe("Auth and RBAC", () => {
     }
   });
 
+  it("rejects passwords over bcrypt's 72-byte UTF-8 limit during registration and password change", async () => {
+    const { app, server } = await createApp();
+    const email = `bcrypt-limit-${Date.now()}@careflow.local`;
+    const phone = "+84919990003";
+    const bcryptSafePrefix = "a".repeat(72);
+    const truncatedCollision = `${bcryptSafePrefix}different-suffix`;
+
+    try {
+      await request(server)
+        .post("/api/v1/auth/register")
+        .send({ displayName: "Bcrypt Limit User", email, phone, password: truncatedCollision })
+        .expect(400)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+      await expect(prisma.user.findUnique({ where: { email } })).resolves.toBeNull();
+
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email: "admin@careflow.local", password: "careflow-demo" })
+        .expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ currentPassword: "careflow-demo", newPassword: truncatedCollision })
+        .expect(400)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+      await app.close();
+    }
+  });
+
   it("logs in and returns the current user", async () => {
     const { app, server } = await createApp();
 
@@ -355,6 +389,48 @@ describe("Auth and RBAC", () => {
           expect(parsed.error.code).toBe("UNAUTHENTICATED");
           expect(parsed.error.message).toBe("Current password is incorrect.");
         });
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("rejects a new password that reuses the current credential", async () => {
+    const { app, server } = await createApp();
+    const email = `password-reuse-${Date.now()}@careflow.local`;
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: "Password Reuse User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ currentPassword: "custom-password", newPassword: "custom-password" })
+        .expect(400)
+        .expect((response) => {
+          const parsed = errorResponseSchema.parse(response.body);
+          expect(parsed.error.code).toBe("VALIDATION_ERROR");
+          expect(parsed.error.message).toBe("New password must be different from the current password.");
+        });
+
+      await request(server)
+        .get("/api/v1/auth/me")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .expect(200);
+      await expect(prisma.user.findUniqueOrThrow({ where: { email } })).resolves.toMatchObject({ passwordHash: customPasswordHash });
     } finally {
       await prisma.user.deleteMany({ where: { email } });
       await app.close();

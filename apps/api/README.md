@@ -115,7 +115,7 @@ curl http://localhost:3000/api/v1/auth/me \
 | `npm run prisma:generate` | Generate Prisma client. |
 | `npm run prisma:migrate` | Create/apply a local Prisma development migration. |
 | `npm run prisma:seed` | Reset and seed the local CareFlow database. |
-| `npm run prisma:seed:demo-auth` | Idempotently repair demo login users and `careflow-demo` password hashes without resetting data. |
+| `npm run prisma:seed:demo-auth` | Idempotently create missing demo login users without changing existing credentials, roles, or statuses. |
 
 ## Verification Gate
 
@@ -170,8 +170,8 @@ Key behavior:
 - Non-API browser routes fall back to the React `index.html`.
 - Frontend production build uses `VITE_DATA_SOURCE=api` and `VITE_API_BASE_URL=/api/v1`, so browser calls stay same-origin.
 - Render `buildCommand` runs Prisma migrations before the API build.
-- In hosted demo mode (`SERVE_WEB_APP=true`), API startup repairs demo login credentials against the runtime database after each deploy/restart.
-- Render `startCommand` also runs `npm run prisma:seed:demo-auth` before starting the API process as an explicit operational repair step.
+- In hosted demo mode (`SERVE_WEB_APP=true`), API startup creates only missing demo users; deploys and restarts preserve existing credentials, roles, and statuses.
+- Render `startCommand` starts the API directly; it does not run a credential-reset seed step.
 - `initialDeployHook` seeds the full demo dataset once with `ALLOW_DATABASE_SEED=true`.
 
 Render configuration lives in the repository root `render.yaml`. Deployment runbook details are in `docs/04-planning/render-deployment-plan.md`.

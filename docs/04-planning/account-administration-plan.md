@@ -12,7 +12,7 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1-7 have been implemented and locally verified on branch `account-administration`. The post-review account lifecycle race hardening and documentation count updates are committed in `54b9818d fix(api): close account lifecycle race gaps`; the branch is ready for the final review gate before any merge, push or production deploy.
+Status as of 2026-08-28: Tasks 1-7 and final review fix round 2 have local implementation verification on branch `account-administration`. This round preserves hosted-demo lifecycle actions across startup, rejects bcrypt-unsafe/reused passwords, and aligns login/logout OpenAPI status codes. The branch is pending final review, merge, and deployment; it is not deployed complete.
 
 Completed local scope:
 
@@ -21,6 +21,7 @@ Completed local scope:
 - Admin user list/detail/status/reset APIs.
 - Admin account management UI.
 - API contract, OpenAPI, security notes, acceptance checklist, changelog and release notes updates.
+- Regression coverage for hosted demo lifecycle preservation, bcrypt-safe UTF-8 password limits, password reuse rejection, and login/logout `201` contract codes.
 - Full local verification evidence is tracked in `docs/04-planning/mvp-release-readiness.md`.
 
 Pending before merge/deploy:

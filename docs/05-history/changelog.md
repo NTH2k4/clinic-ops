@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-28
+
+- Final review fix round 2 on `account-administration`: hosted startup and the demo-auth utility now create only missing demo users, while Render no longer runs demo-auth seeding in `startCommand`; existing password hashes, roles, locked/inactive states, and lifecycle actions are preserved.
+- Added bcrypt-safe password validation for registration and password change (maximum 72 UTF-8 bytes), rejected password reuse with a stable non-secret validation response, and corrected OpenAPI login/logout success responses to `201`.
+- Recorded targeted RED/GREEN evidence: E2E `2/2` suites `21/21` tests, unit/contract `2/2` suites `12/12` tests; API typecheck, lint, build, and high-severity audit passed. Phase 2 remains pending final review, merge, and deploy. Admin Accounts pagination page upper-bound remains deferred.
+
 ## 2026-08-27
 
 - Hoàn thiện Phase 2 Account Administration verification: bổ sung Playwright API-mode cho patient registration vào booking workspace, password change bắt buộc đăng nhập lại và admin lock/unlock account smoke; dữ liệu patient dùng email/số điện thoại sinh duy nhất, API-mode teardown reset DB về seeded baseline sau suite, không ghi session token hay mật khẩu vào test/docs. Full API gate pass (`7/7` unit suites, `41/41` tests; `10/10` E2E suites, `90/90` tests); full Web gate pass (`16/16` files, `141/141` tests; mock Playwright `9/9`; API-mode Playwright `8/8`).

@@ -33,7 +33,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã tích hợp vào `main` và đã qua regression verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194`, API E2E 71/71 |
-| Phase 2 Account Administration | Hoàn thành local verification trên branch `account-administration`; chưa production smoke/deploy | Patient registration, password change/session revocation, admin account lock/unlock; API unit 41/41, API E2E 90/90, Web unit 141/141, mock Playwright 9/9, API-mode Playwright 8/8 |
+| Phase 2 Account Administration | Local implementation verification trên branch `account-administration`; pending final review/merge/deploy, chưa deployed complete | Patient registration, password change/session revocation, admin account lock/unlock; final review round 2 adds hosted-demo lifecycle, bcrypt password-boundary, and login/logout OpenAPI regressions |
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
@@ -91,6 +91,8 @@ Chưa chạy production register/password/admin smoke cho branch này, nên Phas
 
 Post-review verification rerun on 2026-08-28 confirmed final local commit candidate `54b9818d fix(api): close account lifecycle race gaps` after account lifecycle race hardening: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `90/90` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
 
+Final review fix round 2 on 2026-08-28: routine hosted startup now creates missing demo users only, so existing password changes and locked/deactivated states persist; password registration/change validation rejects inputs over bcrypt's 72-byte UTF-8 limit and rejects reuse; OpenAPI now declares `201` for login/logout. RED targeted E2E covered the prior lifecycle reset, overlong 72-byte-prefix collision, and password reuse; targeted GREEN passed API E2E `2/2` suites `21/21` tests and unit/contract `2/2` suites `12/12` tests. API typecheck, lint, build, and high-severity audit also passed. This branch remains pending final review, merge, and deploy.
+
 ## Web Verification Gate Sau Merge (Task 3)
 
 Trạng thái: **pass** cho toàn bộ Web gate sau merge. API-mode Playwright dùng đúng configured host PostgreSQL target `postgresql://careflow:careflow@localhost:5432/careflow`.
@@ -110,7 +112,7 @@ Không có failure command hoặc actionable error trong Web gate. Các warning 
 
 ## Push Và Deployment Gate (Task 5)
 
-Trạng thái: **pass sau manual deploy latest commit**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng. Production `https://clinic-ops.onrender.com` đang serve commit `91fd347fe479a174026a69f0e2b782316e39944d`; health smoke pass và login smoke với demo admin pass sau khi `DemoAuthRepairService` chạy trong API startup hosted-demo mode (`SERVE_WEB_APP=true`).
+Trạng thái: **historical production verification**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng. Production `https://clinic-ops.onrender.com` đang serve commit `91fd347fe479a174026a69f0e2b782316e39944d`; final review fix round 2 on branch `account-administration` has not been merged or deployed.
 
 | Check | Kết quả | Chi tiết |
 | --- | --- | --- |
@@ -121,7 +123,7 @@ Trạng thái: **pass sau manual deploy latest commit**. Push `main` đã đư�
 | Render health smoke | Pass | `/api/v1/health` trả commit `91fd347fe479a174026a69f0e2b782316e39944d`. |
 | Render login smoke | Pass | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả user role `admin` và session token. Token không được ghi vào docs. |
 
-Fix đã được Render serve: `DemoAuthRepairService` chạy khi Nest bootstrap trong hosted demo mode (`SERVE_WEB_APP=true`) và gọi cùng logic với `npm run prisma:seed:demo-auth`. Script/service này chỉ upsert demo login users/password hashes và không reset database.
+The historical deployed fix used startup demo-auth repair. Final review fix round 2 supersedes that behavior on `account-administration`: Render starts the API directly, and hosted startup creates only missing demo users without changing existing credentials, roles, or statuses.
 
 Local verification cho fix:
 

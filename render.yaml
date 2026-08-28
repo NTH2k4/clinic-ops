@@ -16,7 +16,7 @@ services:
       cd ../.. &&
       npm run build --prefix apps/api
     initialDeployHook: cd apps/api && ALLOW_DATABASE_SEED=true npm run prisma:seed
-    startCommand: npm run prisma:seed:demo-auth --prefix apps/api && npm run start --prefix apps/api
+    startCommand: npm run start --prefix apps/api
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_VERSION

@@ -119,17 +119,21 @@ describe("OpenAPI contract", () => {
 
     expect(spec.paths?.["/api/v1/auth/register"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/AuthSession");
     expect(responseSchemaRef("/api/v1/auth/register", "post", "201")).toBe("#/components/schemas/AuthSessionEnvelope");
+    expect(spec.paths?.["/api/v1/auth/login"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/AuthSession");
+    expect(spec.paths?.["/api/v1/auth/login"]?.post?.responses?.["200"]).toBeUndefined();
     expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/Success");
     expect(responseSchemaRef("/api/v1/auth/change-password", "post", "201")).toBe("#/components/schemas/SuccessEnvelope");
+    expect(spec.paths?.["/api/v1/auth/logout"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/Success");
+    expect(spec.paths?.["/api/v1/auth/logout"]?.post?.responses?.["200"]).toBeUndefined();
 
     const registration = spec.components?.schemas?.PatientRegistrationRequest;
     expect(registration?.required).toEqual(["displayName", "email", "phone", "password"]);
-    expect(registration?.properties?.password).toMatchObject({ type: "string", minLength: 8, maxLength: 200 });
+    expect(registration?.properties?.password).toMatchObject({ type: "string", minLength: 8, maxLength: 72 });
 
     const changePassword = spec.components?.schemas?.ChangePasswordRequest;
     expect(changePassword?.required).toEqual(["currentPassword", "newPassword"]);
-    expect(changePassword?.properties?.currentPassword).toMatchObject({ type: "string", minLength: 1, maxLength: 200 });
-    expect(changePassword?.properties?.newPassword).toMatchObject({ type: "string", minLength: 8, maxLength: 200 });
+    expect(changePassword?.properties?.currentPassword).toMatchObject({ type: "string", minLength: 1, maxLength: 72 });
+    expect(changePassword?.properties?.newPassword).toMatchObject({ type: "string", minLength: 8, maxLength: 72 });
 
     const user = spec.components?.schemas?.User;
     expect(user?.required).toEqual(["id", "displayName", "email", "phone", "role", "status", "createdAt", "updatedAt", "linkedProfile"]);

@@ -50,13 +50,7 @@ export async function ensureDemoAuthUsers(db: PrismaClient) {
   for (const user of demoUsers) {
     await db.user.upsert({
       where: { email: user.email },
-      update: {
-        displayName: user.displayName,
-        passwordHash: demoPasswordHash,
-        phone: user.phone,
-        role: user.role,
-        status: AccountStatus.active,
-      },
+      update: {},
       create: {
         ...user,
         passwordHash: demoPasswordHash,
@@ -78,6 +72,6 @@ export class DemoAuthRepairService implements OnApplicationBootstrap {
     }
 
     await ensureDemoAuthUsers(this.prisma);
-    this.logger.log("Demo auth users repaired for hosted demo mode.");
+    this.logger.log("Demo auth users ensured for hosted demo mode.");
   }
 }

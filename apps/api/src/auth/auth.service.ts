@@ -100,6 +100,9 @@ export class AuthService {
     if (!user || !(await bcrypt.compare(input.currentPassword, user.passwordHash))) {
       throw new ApiError(401, "UNAUTHENTICATED", "Current password is incorrect.");
     }
+    if (await bcrypt.compare(input.newPassword, user.passwordHash)) {
+      throw new ApiError(400, "VALIDATION_ERROR", "New password must be different from the current password.");
+    }
 
     const passwordHash = await bcrypt.hash(input.newPassword, 10);
     await this.prisma.$transaction(async (tx) => {
