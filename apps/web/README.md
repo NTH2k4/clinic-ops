@@ -1,12 +1,12 @@
 # CareFlow Web
 
-CareFlow Web là frontend-first MVP cho quy trình đặt lịch khám, doctor workspace, operations workspace và admin views. Mặc định app chạy với `mock data`; không cần backend để phát triển, test hoặc demo.
+CareFlow Web là React frontend cho CareFlow v1: patient portal, doctor workspace, operations workspace, admin views, auth entry và account administration. App hỗ trợ hai data source: `mock` cho local UI development và `api` cho production/API-mode regression.
 
 ## Requirements
 
 - Node.js 22 trở lên
 - npm hoặc yarn
-- Không cần backend, database hay tài khoản dịch vụ ngoài
+- Backend local chỉ cần khi chạy API mode hoặc Playwright API regression.
 
 ## Phát Triển
 
@@ -21,17 +21,19 @@ Vite hiện URL local trong terminal. Để kiểm tra từ thiết bị khác t
 npm run dev -- --host 0.0.0.0
 ```
 
-## Mock API Và Đường Hướng API Thật
+## Data Source Modes
 
 Fixtures khởi tạo nằm ở `src/mocks/fixtures.ts`; `src/mocks/mockStore.ts` tạo in-memory mutable store cho mỗi phiên chạy. Các mutation appointment đi qua `src/features/appointments/appointmentService.ts`, đóng vai trò mock API boundary.
 
-Backend API v1 hiện có ở `apps/api`, nhưng web vẫn chạy mock mode trong Phase 3. Phase 4 sẽ thay implementation của service boundary bằng API client (và chuyển fixtures/mock store thành test fixtures) mà không để route-level UI gọi HTTP trực tiếp. TanStack Query và feature components giữ nguyên consumer boundary.
+API mode đã được triển khai qua service boundaries trong `src/lib/api` và từng feature service. Route-level UI không gọi HTTP trực tiếp; TanStack Query và feature components dùng cùng consumer boundary ở cả mock/API mode.
 
-API integration dùng `VITE_DATA_SOURCE=mock|api` và `VITE_API_BASE_URL=/api/v1`; `mock` là default. Kế hoạch migration, auth session, query invalidation và Playwright gates nằm tại [frontend API integration plan](../../docs/04-planning/frontend-api-integration-plan.md).
+API integration dùng `VITE_DATA_SOURCE=mock|api` và `VITE_API_BASE_URL=/api/v1`; `mock` là default local mode. Render production build dùng `api` same-origin, còn GitHub Pages dùng static mock-mode preview.
 
 ## Auth Và Session
 
-Mock mode dùng mock auth để demo theo role. API mode dùng `POST /api/v1/auth/login` để lấy `currentUser`, `linkedProfile` và bearer session token, rồi dùng `POST /api/v1/auth/logout` khi đăng xuất; `GET /api/v1/auth/me` vẫn thuộc backend contract nhưng frontend không dùng để hydrate session vì token không được persist. Cả hai mode đều không lưu password hoặc session token trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
+Mock mode dùng mock auth để demo theo role. API mode dùng backend auth contract: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `POST /auth/change-password` và `POST /auth/logout`. Session token chỉ giữ trong memory; app không lưu password hoặc bearer token trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
+
+Sau khi đổi mật khẩu ở API mode, backend revoke session hiện có và frontend yêu cầu đăng nhập lại.
 
 ## Scripts
 
@@ -75,7 +77,7 @@ Manual responsive follow-up vẫn nên dùng `npm run dev -- --host 0.0.0.0` đ�
 - [Frontend MVP spec](../../docs/02-product/frontend-mvp-spec.md)
 - [Frontend design system](../../docs/03-architecture/frontend-design-system.md)
 - [Frontend architecture](../../docs/03-architecture/frontend-architecture.md)
-- [Frontend implementation plan](../../docs/04-planning/frontend-implementation-plan.md)
+- [API contract](../../docs/03-architecture/api-contract.md)
 - [Acceptance checklist](../../docs/06-testing/acceptance-checklist.md)
 
 ## CI/CD

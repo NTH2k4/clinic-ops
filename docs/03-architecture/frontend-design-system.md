@@ -6,24 +6,25 @@
 | --- | --- |
 | Tên tài liệu | Frontend Design System |
 | Sản phẩm | CareFlow - Đặt lịch khám online |
-| Phiên bản | 1.1 |
-| Ngày | 2026-08-26 |
-| Trạng thái | baseline |
-| Phạm vi | Design system cho frontend-first MVP |
+| Phiên bản | 1.2 |
+| Ngày | 2026-08-28 |
+| Trạng thái | v1 accepted |
+| Phạm vi | Design system as-built cho CareFlow v1 web app |
 | Đối tượng đọc | Product owner, frontend developer, QA, agent contributors |
 
 ## Lịch Sử Phiên Bản
 
 | Phiên bản | Ngày | Nội dung thay đổi |
 | --- | --- | --- |
+| 1.2 | 2026-08-28 | Chuẩn hóa tài liệu theo trạng thái CareFlow v1 accepted: auth entry, account administration, scheduling operations, production API mode và verification gates. |
 | 1.1 | 2026-08-26 | Ghi nhận production-style visual refresh cho app shell, dashboard surfaces, metric cards, timeline cards, login surface và token thực tế trong `apps/web`. |
 | 1.0 | 2026-08-25 | Bản design system đầu tiên cho frontend MVP. |
 
 ## Mục Đích
 
-Tài liệu này định nghĩa ngôn ngữ giao diện, layout, quy tắc component, accessibility và responsive behavior cho frontend MVP của CareFlow. Mục tiêu là giúp các màn hình patient, doctor, operations và admin có cùng một ngôn ngữ giao diện trước khi scaffold `apps/web`.
+Tài liệu này định nghĩa ngôn ngữ giao diện, layout, quy tắc component, accessibility và responsive behavior cho CareFlow v1 web app. Mục tiêu là giữ patient portal, doctor workspace, operations workspace, admin workspace và auth/account screens nhất quán trong cả mock mode và API-backed production mode.
 
-Design system này là baseline cho prototype dùng `mock data`. Khi backend hoặc brand guideline thật xuất hiện, tài liệu này có thể được cập nhật, nhưng frontend MVP không được tự ý thêm theme switcher hoặc nhiều theme giao diện.
+Design system này là source of truth cho implementation hiện có trong `apps/web`. Khi thêm feature sau v1, thay đổi token, component pattern hoặc responsive behavior phải cập nhật tài liệu này cùng pull request/commit liên quan.
 
 ## Tài Liệu Liên Quan
 
@@ -469,7 +470,7 @@ Quy tắc:
 
 ### Mapping Tailwind
 
-Khi scaffold `apps/web`, định nghĩa:
+Implementation hiện có trong `apps/web` phải giữ mapping này:
 
 - CSS variables for colors in `src/index.css` or equivalent.
 - Tailwind theme extension cho color, radius, shadow và spacing token.
@@ -517,7 +518,7 @@ UI copy nên dùng tiếng Việt ngắn gọn với domain term ổn định:
 
 ## Checklist Kiểm Tra
 
-Trước khi xem frontend MVP đạt yêu cầu visual:
+Trước khi xem frontend thay đổi sau v1 đạt yêu cầu visual:
 
 - App shell render đúng trên desktop và mobile.
 - Patient booking hoàn tất được trên mobile và không có horizontal overflow.
@@ -531,6 +532,21 @@ Trước khi xem frontend MVP đạt yêu cầu visual:
 - Không có nested card hoặc background trang trí nặng.
 - Visual refresh phải chạy qua `npm run typecheck`, `npm run lint`, `npm test -- --run`, `npm run build` và Playwright responsive/accessibility smoke trước khi xem là xong.
 
+## Verification Commands
+
+Chạy trong `apps/web` khi thay đổi layout, token, navigation, auth/account UI hoặc workflow screen:
+
+```bash
+npm test -- --run
+npm run typecheck
+npm run lint
+npm run build
+npm run e2e
+DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api
+```
+
+`npm run e2e` bảo vệ mock-mode visual/workflow baseline. `npm run e2e:api` bảo vệ API-backed auth, account administration, scheduling và booking regression.
+
 ## Ngoài Phạm Vi
 
 - Dark mode hoặc theme switcher.
@@ -538,4 +554,4 @@ Trước khi xem frontend MVP đạt yêu cầu visual:
 - Marketing website hoặc public landing page.
 - Full medical record UI.
 - Prescription, insurance, payment hoặc telemedicine UI.
-- Production authorization UI ngoài mock role/session behavior.
+- Thay đổi authorization model ngoài account/session behavior đã có trong CareFlow v1.

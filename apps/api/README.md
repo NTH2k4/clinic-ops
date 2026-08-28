@@ -1,6 +1,12 @@
 # CareFlow API
 
-NestJS API for the CareFlow clinic operations MVP.
+NestJS API for CareFlow v1 clinic operations.
+
+Production demo:
+
+```text
+https://clinic-ops.onrender.com/api/v1
+```
 
 ## Requirements
 
@@ -194,10 +200,11 @@ Render configuration lives in the repository root `render.yaml`. Deployment runb
 ## Main Resources
 
 - `health`: health probe.
-- `auth`: login, logout and current session.
+- `auth`: patient registration, login, current session, password change and logout.
+- `users`: admin account list/detail, lock, unlock, deactivate and password reset.
 - `doctors`, `specialties`, `services`: catalog resources.
 - `patients`: patient records.
-- `doctor-schedules`, `availability/slots`: scheduling reads.
+- `doctor-schedules`, `availability/slots`: schedule management and availability explanation.
 - `appointments`: booking, reschedule and workflow transitions.
 - `audit-events`: admin-only audit log.
 - `notifications`: current-user notification inbox.

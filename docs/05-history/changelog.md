@@ -2,6 +2,7 @@
 
 ## 2026-08-28
 
+- Chuẩn hóa README và documentation map sau nghiệm thu v1 theo hướng production-first/source-of-truth: thêm Render URL, demo account, local setup, verification gates, mock/API runtime modes và ghi rõ planning docs cũ được giữ làm implementation records.
 - Ghi nhận CareFlow v1 đã được product owner chấp nhận sau khi review acceptance package và production behavior tại commit `673ffe52b12033eecc3fa9927ebebf906ab0d016`; cập nhật acceptance package, traceability matrix, readiness, documentation map, release notes và acceptance checklist.
 - Bổ sung tài khoản test thủ công dễ nhớ cho từng tác nhân (`admin@test.com`, `doctor@test.com`, `receptionist@test.com`, `nurse@test.com`, `patient@test.com`) với mật khẩu theo tên actor; mở rộng full seed và hosted startup repair để có tối thiểu 10 bệnh nhân, 10 lịch hẹn, 10 thông báo và 10 lịch làm việc cho bác sĩ test mà không reset account đã tồn tại. Demo data được phép giữ tiếng Anh vì chỉ phục vụ test/dev.
 - Việt hóa nhãn hiển thị cho audit entity/action trong Audit Log và Detail Drawer; raw audit id vẫn được giữ trong API/filter value để không đổi contract.

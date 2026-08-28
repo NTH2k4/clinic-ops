@@ -1,5 +1,12 @@
 # Ghi Chú Phát Hành
 
+## 2026-08-28 Documentation Source-Of-Truth Refresh
+
+- Chuẩn hóa README gốc theo hướng production-first: Render URL, demo admin account, local development, architecture, verification gates và docs index.
+- Cập nhật Web/API README để phản ánh trạng thái as-built: mock/API data source modes, backend auth registration/login/me/change-password/logout, admin account lifecycle và scheduling availability explanation.
+- Cập nhật frontend design system và documentation map sau nghiệm thu v1; các planning docs cũ được giữ làm implementation records, chưa dọn hoặc đổi tên trong lượt này.
+- Runtime code và infrastructure không thay đổi.
+
 ## 2026-08-28 CareFlow V1 Đã Được Chấp Nhận
 
 - Product owner đã chấp nhận CareFlow v1 sau khi review acceptance package và hành vi production.
