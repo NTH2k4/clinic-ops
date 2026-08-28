@@ -63,9 +63,9 @@ describe("authentication and role routing", () => {
 
     expect(screen.getByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
 
-    expect(screen.getByText("Trang chính patient")).toBeInTheDocument();
+    expect(screen.getByText("Trang chính bệnh nhân")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
 
@@ -80,8 +80,8 @@ describe("authentication and role routing", () => {
 
   it.each([
     ["doctor", "Không gian bác sĩ"],
-    ["receptionist", "Operations Workspace"],
-    ["admin", "Admin dashboard"],
+    ["receptionist", "Không gian điều hành"],
+    ["admin", "Bảng điều khiển quản trị"],
   ] as const)("redirects %s from /app to %s", async (role, expectedHeading) => {
     const user = userEvent.setup();
 
@@ -92,7 +92,7 @@ describe("authentication and role routing", () => {
       </>,
     );
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), role);
     await user.click(screen.getByRole("button", { name: "Go to role home" }));
 
@@ -109,23 +109,23 @@ describe("authentication and role routing", () => {
       </>,
     );
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "receptionist");
     await user.click(screen.getByRole("button", { name: "Go to role home" }));
-    expect(screen.getByRole("heading", { name: "Operations Workspace" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Không gian điều hành" })).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "nurse");
     await user.click(screen.getByRole("button", { name: "Go to role home" }));
-    expect(screen.getByRole("heading", { name: "Operations Workspace" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Không gian điều hành" })).toBeInTheDocument();
   });
 
   it("denies non-operations roles direct access to operations routes", async () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToOperations /></>);
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
-    expect(screen.getByText("Trang chính patient")).toBeInTheDocument();
+    expect(screen.getByText("Trang chính bệnh nhân")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
@@ -133,14 +133,14 @@ describe("authentication and role routing", () => {
 
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "admin");
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
-    expect(screen.getByRole("heading", { name: "Admin dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Bảng điều khiển quản trị" })).toBeInTheDocument();
   });
 
   it("allows receptionist and nurse direct access to operations routes", async () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToOperations /></>);
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "receptionist");
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
     expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
@@ -154,9 +154,9 @@ describe("authentication and role routing", () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToAdmin /></>);
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
     await user.click(screen.getByRole("button", { name: "Go to admin" }));
-    expect(screen.getByText("Trang chính patient")).toBeInTheDocument();
+    expect(screen.getByText("Trang chính bệnh nhân")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
     await user.click(screen.getByRole("button", { name: "Go to admin" }));
@@ -167,20 +167,32 @@ describe("authentication and role routing", () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToAdmin /></>);
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "admin");
     await user.click(screen.getByRole("button", { name: "Go to admin" }));
 
-    expect(screen.getByRole("heading", { name: "Admin dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Bảng điều khiển quản trị" })).toBeInTheDocument();
   });
 
-  it("returns to login after sign-out", async () => {
+  it("asks for confirmation before signing out", async () => {
     const user = userEvent.setup();
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
     await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
+
+    expect(screen.getByRole("dialog", { name: "Xác nhận đăng xuất" })).toBeInTheDocument();
+    expect(screen.getByText("Bạn có chắc chắn muốn đăng xuất khỏi CareFlow không?")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Đăng nhập" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Ở lại" }));
+
+    expect(screen.queryByRole("dialog", { name: "Xác nhận đăng xuất" })).not.toBeInTheDocument();
+    expect(screen.getByText("Trang chính bệnh nhân")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
+    await user.click(screen.getByRole("button", { name: "Đăng xuất khỏi hệ thống" }));
 
     expect(screen.getByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
   });
@@ -190,7 +202,7 @@ describe("authentication and role routing", () => {
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
 
     const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng di động" });
     await user.click(within(mobileNavigation).getByRole("link", { name: "Dịch vụ" }));
@@ -203,18 +215,18 @@ describe("authentication and role routing", () => {
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Admin Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Quản trị demo/i }));
 
     const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng di động" });
     expect(mobileNavigation).toHaveClass("sticky", "bottom-0");
     expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(navigationForRole("admin").length);
-    expect(within(mobileNavigation).getByRole("link", { name: "Schedules" })).toBeInTheDocument();
-    expect(within(mobileNavigation).getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
+    expect(within(mobileNavigation).getByRole("link", { name: "Lịch làm việc" })).toBeInTheDocument();
+    expect(within(mobileNavigation).getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
 
-    await user.click(within(mobileNavigation).getByRole("link", { name: "Audit log" }));
+    await user.click(within(mobileNavigation).getByRole("link", { name: "Nhật ký kiểm toán" }));
 
-    expect(screen.getByRole("heading", { name: "Audit log" })).toBeInTheDocument();
-    expect(within(mobileNavigation).getByRole("link", { name: "Audit log" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("heading", { name: "Nhật ký kiểm toán" })).toBeInTheDocument();
+    expect(within(mobileNavigation).getByRole("link", { name: "Nhật ký kiểm toán" })).toHaveAttribute("aria-current", "page");
   });
 
   it("lets desktop users collapse and expand the sidebar without losing navigation access", async () => {
@@ -222,7 +234,7 @@ describe("authentication and role routing", () => {
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
 
     const sidebarToggle = screen.getByRole("button", { name: "Thu gọn thanh điều hướng" });
@@ -230,7 +242,7 @@ describe("authentication and role routing", () => {
 
     const mainNavigation = screen.getByRole("navigation", { name: "Điều hướng chính" });
     expect(mainNavigation.closest("aside")).toHaveClass("sticky", "top-0", "h-screen");
-    expect(within(mainNavigation).getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
+    expect(within(mainNavigation).getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
 
     await user.click(sidebarToggle);
 
@@ -308,7 +320,7 @@ describe("API authentication", () => {
     await user.type(screen.getByLabelText("Xác nhận mật khẩu"), "Careflow#123");
     await user.click(screen.getByRole("button", { name: "Tạo tài khoản" }));
 
-    expect(await screen.findByText("Trang chính patient")).toBeInTheDocument();
+    expect(await screen.findByText("Trang chính bệnh nhân")).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledWith(
       "/api/v1/auth/register",
       expect.objectContaining({
@@ -412,7 +424,7 @@ describe("API authentication", () => {
     await user.type(screen.getByLabelText("Email"), "patient@example.test");
     await user.type(screen.getByLabelText("Mật khẩu"), "current-password");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
-    await screen.findByText("Trang chính patient");
+    await screen.findByText("Trang chính bệnh nhân");
 
     await user.click(screen.getByRole("button", { name: "Bảo mật tài khoản" }));
 
@@ -470,7 +482,7 @@ describe("API authentication", () => {
     await user.type(screen.getByLabelText("Email"), "patient@example.test");
     await user.type(screen.getByLabelText("Mật khẩu"), "secret");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
-    expect(await screen.findByRole("heading", { name: "Trang chính patient" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Trang chính bệnh nhân" })).toBeInTheDocument();
 
     const { queryClient } = await import("../../lib/queryClient");
     const { getApiSessionToken } = await import("../../lib/api/session");
@@ -517,13 +529,13 @@ describe("API authentication", () => {
 
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Mật khẩu")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Patient Demo/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Bệnh nhân demo/i })).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Email"), "patient@example.test");
     await user.type(screen.getByLabelText("Mật khẩu"), "secret");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
 
-    expect(await screen.findByText("Trang chính patient")).toBeInTheDocument();
+    expect(await screen.findByText("Trang chính bệnh nhân")).toBeInTheDocument();
     expect(fetcher).toHaveBeenNthCalledWith(
       1,
       "/api/v1/auth/login",
@@ -542,6 +554,7 @@ describe("API authentication", () => {
     queryClient.setQueryData(["auth-cache"], { value: "stale" });
 
     await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
+    await user.click(screen.getByRole("button", { name: "Đăng xuất khỏi hệ thống" }));
 
     await waitFor(() => expect(fetcher).toHaveBeenCalledWith(
       "/api/v1/auth/logout",
@@ -569,7 +582,7 @@ describe("API authentication", () => {
     await user.type(screen.getByLabelText("Mật khẩu"), "incorrect");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
 
-    expect(await screen.findByText("Email or password is incorrect.")).toBeInTheDocument();
+    expect(await screen.findByText("Email hoặc mật khẩu không đúng.")).toBeInTheDocument();
     expect(screen.queryByText("api-session-token")).not.toBeInTheDocument();
   });
 });

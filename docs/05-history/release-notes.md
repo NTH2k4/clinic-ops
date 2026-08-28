@@ -1,5 +1,12 @@
 # Ghi Chú Phát Hành
 
+## 2026-08-28 Tinh Chỉnh UX Auth Và Shell V1
+
+- Việt hóa thêm UI shell và các luồng gần auth cho điều hướng, nhãn vai trò, quản trị tài khoản, lịch làm việc, metric bác sĩ, đặt lịch của nhân sự và thao tác mở đối tượng từ thông báo.
+- Thêm xác nhận đăng xuất trong TopBar: bấm `Đăng xuất` mở `Xác nhận đăng xuất`; session chỉ bị xóa sau khi xác nhận `Đăng xuất khỏi hệ thống`.
+- Cập nhật notification popover để đóng khi người dùng nhấn ra ngoài popover, đồng thời vẫn giữ nút đóng và reference navigation hiện có.
+- Ghi lại interaction/copy rule trong frontend design system. Audit/action id kỹ thuật và dữ liệu seed/backend có thể vẫn hiển thị nguyên văn khi đó là nội dung record, không phải UI chrome.
+
 ## 2026-08-28 V1 Documentation And Acceptance Closure
 
 - Added `docs/04-planning/v1-documentation-closure-plan.md` to define the docs-only Phase 5 package and verification steps.

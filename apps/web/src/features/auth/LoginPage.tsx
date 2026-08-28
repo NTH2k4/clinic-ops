@@ -5,8 +5,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { isApiMode } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import { roleHomePath } from "../../routes/RoleHomeRedirect";
+import type { UserRole } from "../../types/models";
 import { useAuth } from "./AuthProvider";
 import { PasswordField } from "./PasswordField";
+
+const demoRoleLabels: Record<UserRole, string> = {
+  admin: "Quản trị",
+  doctor: "Bác sĩ",
+  nurse: "Điều dưỡng",
+  patient: "Bệnh nhân",
+  receptionist: "Lễ tân",
+};
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -97,7 +106,7 @@ export function LoginPage() {
                   onClick={() => signInAs(user.id)}
                   type="button"
                 >
-                  <span>{`${user.role[0].toUpperCase()}${user.role.slice(1)} Demo`}</span>
+                  <span>{`${demoRoleLabels[user.role]} demo`}</span>
                   <span className="text-text-muted">{user.displayName}</span>
                 </button>
               ))}

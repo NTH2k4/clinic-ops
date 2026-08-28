@@ -85,7 +85,7 @@ describe("admin workspace", () => {
   it("includes the Accounts navigation target for administrators", () => {
     expect(navigationForRole("admin")).toContainEqual({
       icon: expect.anything(),
-      label: "Accounts",
+      label: "Tài khoản",
       to: "/app/admin/accounts",
     });
   });
@@ -95,37 +95,37 @@ describe("admin workspace", () => {
 
     expect(navigationForRole("admin")).toContainEqual({
       icon: expect.anything(),
-      label: "Schedules",
+      label: "Lịch làm việc",
       to: "/app/admin/schedules",
     });
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Admin Demo/i }));
-    await user.click((await screen.findAllByRole("link", { name: "Schedules" }))[0]);
+    await user.click(screen.getByRole("button", { name: /Quản trị demo/i }));
+    await user.click((await screen.findAllByRole("link", { name: "Lịch làm việc" }))[0]);
 
-    expect(await screen.findByRole("heading", { name: "Schedules" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Lịch làm việc" })).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText("Filter doctor"), "doctor-1");
-    await user.click(screen.getByRole("button", { name: "Apply filters" }));
+    await user.selectOptions(screen.getByLabelText("Lọc bác sĩ"), "doctor-1");
+    await user.click(screen.getByRole("button", { name: "Áp dụng bộ lọc" }));
 
-    await user.selectOptions(screen.getByLabelText("Doctor"), "doctor-1");
-    await user.selectOptions(screen.getByLabelText("Schedule type"), "blocked");
-    await user.selectOptions(screen.getByLabelText("Day of week"), "2");
-    await user.clear(screen.getByLabelText("Start time"));
-    await user.type(screen.getByLabelText("Start time"), "10:00");
-    await user.clear(screen.getByLabelText("End time"));
-    await user.type(screen.getByLabelText("End time"), "11:00");
-    await user.click(screen.getByRole("button", { name: "Create schedule" }));
+    await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-1");
+    await user.selectOptions(screen.getByLabelText("Loại lịch"), "blocked");
+    await user.selectOptions(screen.getByLabelText("Thứ trong tuần"), "2");
+    await user.clear(screen.getByLabelText("Giờ bắt đầu"));
+    await user.type(screen.getByLabelText("Giờ bắt đầu"), "10:00");
+    await user.clear(screen.getByLabelText("Giờ kết thúc"));
+    await user.type(screen.getByLabelText("Giờ kết thúc"), "11:00");
+    await user.click(screen.getByRole("button", { name: "Tạo lịch" }));
 
-    const schedulesTable = await screen.findByRole("table", { name: "Doctor schedules" });
+    const schedulesTable = await screen.findByRole("table", { name: "Lịch làm việc bác sĩ" });
     await waitFor(() => expect(within(schedulesTable).getByText("10:00-11:00")).toBeInTheDocument());
     const createdRow = within(schedulesTable).getByText("10:00-11:00").closest("tr")!;
-    expect(within(createdRow).getByText("Blocked")).toBeInTheDocument();
+    expect(within(createdRow).getByText("Chặn lịch")).toBeInTheDocument();
     expect(within(createdRow).getByText("BS. Tran Quang Huy")).toBeInTheDocument();
-    expect(within(createdRow).getByText("2026-08-25 to 2026-08-25")).toBeInTheDocument();
+    expect(within(createdRow).getByText("2026-08-25 đến 2026-08-25")).toBeInTheDocument();
 
-    await user.click(within(createdRow).getByRole("button", { name: "Deactivate BS. Tran Quang Huy 10:00-11:00" }));
+    await user.click(within(createdRow).getByRole("button", { name: "Vô hiệu hóa BS. Tran Quang Huy 10:00-11:00" }));
 
     expect(await within(createdRow).findByLabelText("Trạng thái: Không hoạt động")).toBeInTheDocument();
   });
@@ -135,8 +135,8 @@ describe("admin workspace", () => {
     await renderApiAdminAccounts(fetcher);
 
     expect(await screen.findByText("minh.anh@example.test")).toBeInTheDocument();
-    expect(screen.getByRole("table", { name: "Accounts" })).toHaveTextContent("patient");
-    expect(screen.getByRole("table", { name: "Accounts" })).toHaveTextContent("locked");
+    expect(screen.getByRole("table", { name: "Tài khoản" })).toHaveTextContent("Bệnh nhân");
+    expect(screen.getByRole("table", { name: "Tài khoản" })).toHaveTextContent("Đã khóa");
   });
 
   it("calls the lock and unlock endpoints for explicit account status actions", async () => {
@@ -149,8 +149,8 @@ describe("admin workspace", () => {
     const user = userEvent.setup();
     await renderApiAdminAccounts(fetcher);
 
-    await user.click(await screen.findByRole("button", { name: "Lock Nguyen Minh Anh" }));
-    await user.click(screen.getByRole("button", { name: "Unlock Locked Doctor" }));
+    await user.click(await screen.findByRole("button", { name: "Khóa Nguyen Minh Anh" }));
+    await user.click(screen.getByRole("button", { name: "Mở khóa Locked Doctor" }));
 
     await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toEqual(expect.arrayContaining([
       "/api/v1/users/user-active-1/lock",
@@ -171,10 +171,10 @@ describe("admin workspace", () => {
     const user = userEvent.setup();
     await renderApiAdminAccounts(fetcher);
 
-    await user.click(await screen.findByRole("button", { name: "Lock Nguyen Minh Anh" }));
+    await user.click(await screen.findByRole("button", { name: "Khóa Nguyen Minh Anh" }));
 
-    expect(await screen.findByRole("button", { name: "Unlock Nguyen Minh Anh" })).toBeInTheDocument();
-    expect(within(screen.getByText("Nguyen Minh Anh").closest("tr")!).getByText("locked")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Mở khóa Nguyen Minh Anh" })).toBeInTheDocument();
+    expect(within(screen.getByText("Nguyen Minh Anh").closest("tr")!).getByText("Đã khóa")).toBeInTheDocument();
   });
 
   it("reports account status action failures to the administrator", async () => {
@@ -187,7 +187,7 @@ describe("admin workspace", () => {
     const user = userEvent.setup();
     await renderApiAdminAccounts(fetcher);
 
-    await user.click(await screen.findByRole("button", { name: "Lock Nguyen Minh Anh" }));
+    await user.click(await screen.findByRole("button", { name: "Khóa Nguyen Minh Anh" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Cannot lock this account.");
   });
@@ -203,17 +203,17 @@ describe("admin workspace", () => {
     const user = userEvent.setup();
     const { queryClient } = await renderApiAdminAccounts(fetcher);
 
-    await user.click(await screen.findByRole("button", { name: "Reset password for Nguyen Minh Anh" }));
+    await user.click(await screen.findByRole("button", { name: "Đặt lại mật khẩu cho Nguyen Minh Anh" }));
 
-    const result = await screen.findByRole("status", { name: "Temporary password result" });
+    const result = await screen.findByRole("status", { name: "Kết quả mật khẩu tạm thời" });
     expect(result).toHaveTextContent(temporaryPassword);
     expect(window.localStorage.getItem("temporaryPassword")).toBeNull();
     expect(window.sessionStorage.getItem("temporaryPassword")).toBeNull();
     expect(queryClient.getMutationCache().getAll()).toHaveLength(0);
 
-    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    await user.click(screen.getByRole("button", { name: "Đóng" }));
 
-    expect(screen.queryByRole("status", { name: "Temporary password result" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Kết quả mật khẩu tạm thời" })).not.toBeInTheDocument();
     expect(queryClient.getMutationCache().getAll()).toHaveLength(0);
   });
 
@@ -235,16 +235,16 @@ describe("admin workspace", () => {
     await renderApiAdminAccounts(fetcher);
 
     try {
-      const resetButton = await screen.findByRole("button", { name: "Reset password for Nguyen Minh Anh" });
+      const resetButton = await screen.findByRole("button", { name: "Đặt lại mật khẩu cho Nguyen Minh Anh" });
       await user.click(resetButton);
-      expect(await screen.findByRole("status", { name: "Temporary password result" })).toHaveTextContent("temporary-password-1");
+      expect(await screen.findByRole("status", { name: "Kết quả mật khẩu tạm thời" })).toHaveTextContent("temporary-password-1");
 
       await user.click(resetButton);
       expect(await screen.findByRole("alert")).toHaveTextContent("Password reset failed.");
-      expect(screen.queryByRole("status", { name: "Temporary password result" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("status", { name: "Kết quả mật khẩu tạm thời" })).not.toBeInTheDocument();
 
       await user.click(resetButton);
-      expect(await screen.findByRole("status", { name: "Temporary password result" })).toHaveTextContent("temporary-password-3");
+      expect(await screen.findByRole("status", { name: "Kết quả mật khẩu tạm thời" })).toHaveTextContent("temporary-password-3");
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(unhandledRejection).not.toHaveBeenCalled();
     } finally {
@@ -255,44 +255,44 @@ describe("admin workspace", () => {
   it("derives the active doctor metric from mock data", () => {
     renderWithProviders(<AdminDashboard />);
 
-    expect(screen.getByText("Doctors active")).toBeInTheDocument();
-    expect(within(screen.getByText("Doctors active").closest("section")!).getByText("4")).toBeInTheDocument();
-    expect(within(screen.getByText("Doctors active").closest("section")!).getByText("Sẵn sàng tiếp nhận lịch hẹn đang hoạt động.")).toBeInTheDocument();
-    expect(within(screen.getByText("Services active").closest("section")!).getByText("8")).toBeInTheDocument();
+    expect(screen.getByText("Bác sĩ đang hoạt động")).toBeInTheDocument();
+    expect(within(screen.getByText("Bác sĩ đang hoạt động").closest("section")!).getByText("4")).toBeInTheDocument();
+    expect(within(screen.getByText("Bác sĩ đang hoạt động").closest("section")!).getByText("Sẵn sàng tiếp nhận lịch hẹn đang hoạt động.")).toBeInTheDocument();
+    expect(within(screen.getByText("Dịch vụ đang hoạt động").closest("section")!).getByText("8")).toBeInTheDocument();
     expect(within(screen.getByText("Lịch hẹn hôm nay").closest("section")!).getByText("32")).toBeInTheDocument();
-    expect(within(screen.getByText("Cancellation rate").closest("section")!).getByText("14,3%")).toBeInTheDocument();
+    expect(within(screen.getByText("Tỷ lệ hủy lịch").closest("section")!).getByText("14,3%")).toBeInTheDocument();
     expect(screen.getByText("5 dịch vụ có lịch hẹn nhiều nhất")).toBeInTheDocument();
-    expect(screen.getByText("4 bác sĩ đang active")).toBeInTheDocument();
+    expect(screen.getByText("4 bác sĩ đang hoạt động")).toBeInTheDocument();
   });
 
   it("renders the doctors management table", () => {
     renderWithProviders(<AdminDoctors />);
 
-    expect(screen.getByText("5 bác sĩ trong mock workspace")).toBeInTheDocument();
+    expect(screen.getByText("5 bác sĩ trong không gian demo")).toBeInTheDocument();
     expect(screen.getByText("Form chỉ cập nhật state frontend để kiểm thử workflow quản trị.")).toBeInTheDocument();
-    expect(screen.getByRole("table", { name: "Doctors" })).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "Bác sĩ" })).toBeInTheDocument();
   });
 
   it("filters audit events by entity type", async () => {
     const user = userEvent.setup();
     renderWithProviders(<AuditLog />);
 
-    expect(screen.getByRole("group", { name: "Bộ lọc audit log" })).toBeInTheDocument();
-    expect(screen.getByText("Đang hiển thị 20 audit events.")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Bộ lọc nhật ký kiểm toán" })).toBeInTheDocument();
+    expect(screen.getByText("Đang hiển thị 20 sự kiện kiểm toán.")).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText("Entity type"), "appointment");
+    await user.selectOptions(screen.getByLabelText("Loại đối tượng"), "appointment");
 
     expect(screen.getAllByText("appointment").length).toBeGreaterThan(0);
 
-    await user.selectOptions(screen.getByLabelText("Action"), "appointment_updated");
-    const auditTable = screen.getByRole("table", { name: "Audit events" });
+    await user.selectOptions(screen.getByLabelText("Hành động"), "appointment_updated");
+    const auditTable = screen.getByRole("table", { name: "Sự kiện kiểm toán" });
     expect(within(auditTable).getAllByText("appointment_updated").length).toBeGreaterThan(0);
     expect(within(auditTable).queryByText("appointment_status_changed")).not.toBeInTheDocument();
-    expect(screen.getByText("Đang hiển thị 10 audit events.")).toBeInTheDocument();
+    expect(screen.getByText("Đang hiển thị 10 sự kiện kiểm toán.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Xóa bộ lọc audit" }));
+    await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
 
-    expect(screen.getByText("Đang hiển thị 20 audit events.")).toBeInTheDocument();
+    expect(screen.getByText("Đang hiển thị 20 sự kiện kiểm toán.")).toBeInTheDocument();
   });
 
   it("passes entity and action filters to the API audit list", async () => {
@@ -300,11 +300,11 @@ describe("admin workspace", () => {
     const user = userEvent.setup();
     await renderApiAuditLog(fetcher);
 
-    expect(await screen.findByText("Đang hiển thị 1 audit events.")).toBeInTheDocument();
+    expect(await screen.findByText("Đang hiển thị 1 sự kiện kiểm toán.")).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText("Entity type"), "appointment");
+    await user.selectOptions(screen.getByLabelText("Loại đối tượng"), "appointment");
     await screen.findByRole("option", { name: "appointment_updated" });
-    await user.selectOptions(screen.getByLabelText("Action"), "appointment_updated");
+    await user.selectOptions(screen.getByLabelText("Hành động"), "appointment_updated");
 
     await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toContain(
       "/api/v1/audit-events?entityType=appointment&action=appointment_updated&page=1&pageSize=100",
@@ -327,7 +327,7 @@ describe("admin workspace", () => {
     mockStore.notifications[1].readAt = "2026-08-24T12:00:00+07:00";
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Admin Demo/i }));
+    await user.click(screen.getByRole("button", { name: /Quản trị demo/i }));
     await user.click(screen.getByRole("button", { name: "Thông báo" }));
 
     const notificationDialog = screen.getByRole("dialog", { name: "Thông báo" });
@@ -342,8 +342,8 @@ describe("admin workspace", () => {
     expect(screen.queryByRole("dialog", { name: "Thông báo" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Thông báo" }));
-    expect(screen.getByRole("button", { name: "Mở appointment appointment-1" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Mở appointment appointment-1" }));
-    expect(screen.getByRole("heading", { name: "Audit log" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mở lịch hẹn appointment-1" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Mở lịch hẹn appointment-1" }));
+    expect(screen.getByRole("heading", { name: "Nhật ký kiểm toán" })).toBeInTheDocument();
   });
 });

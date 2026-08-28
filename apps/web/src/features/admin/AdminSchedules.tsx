@@ -10,19 +10,19 @@ import { schedulingQueryOptions, schedulingService } from "../scheduling/schedul
 import type { ScheduleCreateInput, ScheduleListFilters, ScheduleUpdateInput } from "../scheduling/schedulingService";
 
 const dayOptions = [
-  { value: 1, label: "Monday" },
-  { value: 2, label: "Tuesday" },
-  { value: 3, label: "Wednesday" },
-  { value: 4, label: "Thursday" },
-  { value: 5, label: "Friday" },
-  { value: 6, label: "Saturday" },
-  { value: 7, label: "Sunday" },
+  { value: 1, label: "Thứ Hai" },
+  { value: 2, label: "Thứ Ba" },
+  { value: 3, label: "Thứ Tư" },
+  { value: 4, label: "Thứ Năm" },
+  { value: 5, label: "Thứ Sáu" },
+  { value: 6, label: "Thứ Bảy" },
+  { value: 7, label: "Chủ Nhật" },
 ];
 
 const scheduleTypeLabels: Record<ScheduleType, string> = {
-  working: "Working",
-  blocked: "Blocked",
-  leave: "Leave",
+  working: "Làm việc",
+  blocked: "Chặn lịch",
+  leave: "Nghỉ phép",
 };
 
 type ScheduleFormState = ScheduleCreateInput;
@@ -144,15 +144,15 @@ export function AdminSchedules() {
     event.preventDefault();
 
     if (!form.doctorId) {
-      setFormError("Please choose a doctor.");
+      setFormError("Vui lòng chọn bác sĩ.");
       return;
     }
     if (form.startTime >= form.endTime) {
-      setFormError("End time must be after start time.");
+      setFormError("Giờ kết thúc phải sau giờ bắt đầu.");
       return;
     }
     if (form.effectiveFrom > form.effectiveTo) {
-      setFormError("Effective end date must be on or after the start date.");
+      setFormError("Ngày kết thúc hiệu lực phải bằng hoặc sau ngày bắt đầu.");
       return;
     }
 
@@ -163,83 +163,83 @@ export function AdminSchedules() {
     <section className="mx-auto max-w-7xl">
       <p className="text-sm font-medium text-primary">Quản trị lịch bác sĩ</p>
       <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-2xl font-semibold text-text">Schedules</h1>
-        <p className="text-sm font-medium text-text-muted">{scheduleResponse?.meta.total ?? schedules.length} schedule entries</p>
+        <h1 className="text-2xl font-semibold text-text">Lịch làm việc</h1>
+        <p className="text-sm font-medium text-text-muted">{scheduleResponse?.meta.total ?? schedules.length} mục lịch</p>
       </div>
 
       <fieldset className="mt-5 border-y border-border py-3">
-        <legend className="sr-only">Schedule filters</legend>
+        <legend className="sr-only">Bộ lọc lịch làm việc</legend>
         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_11rem_11rem_auto]">
           <label className="text-sm font-medium text-text">
-            Filter doctor
+            Lọc bác sĩ
             <select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => setDraftFilters((current) => ({ ...current, doctorId: event.target.value }))} value={draftFilters.doctorId}>
-              <option value="">All doctors</option>
+              <option value="">Tất cả bác sĩ</option>
               {doctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.fullName}</option>)}
             </select>
           </label>
-          <ClinicDateField id="schedule-filter-from" label="Filter from" onChange={(value) => setDraftFilters((current) => ({ ...current, from: value }))} value={draftFilters.from} />
-          <ClinicDateField id="schedule-filter-to" label="Filter to" onChange={(value) => setDraftFilters((current) => ({ ...current, to: value }))} value={draftFilters.to} />
-          <button className="h-10 self-end rounded-md border border-border bg-surface px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={applyFilters} type="button">Apply filters</button>
+          <ClinicDateField id="schedule-filter-from" label="Lọc từ ngày" onChange={(value) => setDraftFilters((current) => ({ ...current, from: value }))} value={draftFilters.from} />
+          <ClinicDateField id="schedule-filter-to" label="Lọc đến ngày" onChange={(value) => setDraftFilters((current) => ({ ...current, to: value }))} value={draftFilters.to} />
+          <button className="h-10 self-end rounded-md border border-border bg-surface px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={applyFilters} type="button">Áp dụng bộ lọc</button>
         </div>
       </fieldset>
 
       <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm" onSubmit={submitSchedule}>
         <div className="flex flex-col gap-1 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-base font-semibold text-text">{editingId ? "Update schedule" : "Create schedule"}</h2>
-          {editingId ? <button className="inline-flex h-8 items-center gap-2 self-start rounded-md border border-border px-2 text-xs font-semibold text-text hover:bg-surface-muted sm:self-auto" onClick={resetForm} type="button"><RotateCcw aria-hidden="true" size={14} />Cancel edit</button> : null}
+          <h2 className="text-base font-semibold text-text">{editingId ? "Cập nhật lịch" : "Tạo lịch"}</h2>
+          {editingId ? <button className="inline-flex h-8 items-center gap-2 self-start rounded-md border border-border px-2 text-xs font-semibold text-text hover:bg-surface-muted sm:self-auto" onClick={resetForm} type="button"><RotateCcw aria-hidden="true" size={14} />Hủy chỉnh sửa</button> : null}
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-4">
           <label className="text-sm font-medium text-text">
-            Doctor
+            Bác sĩ
             <select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => updateForm("doctorId", event.target.value)} value={form.doctorId}>
-              <option value="">Choose doctor</option>
+              <option value="">Chọn bác sĩ</option>
               {doctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.fullName}</option>)}
             </select>
           </label>
           <label className="text-sm font-medium text-text">
-            Schedule type
+            Loại lịch
             <select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => updateForm("type", event.target.value as ScheduleType)} value={form.type}>
               {Object.entries(scheduleTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </label>
           <label className="text-sm font-medium text-text">
-            Day of week
+            Thứ trong tuần
             <select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => updateForm("dayOfWeek", Number(event.target.value))} value={form.dayOfWeek}>
               {dayOptions.map((day) => <option key={day.value} value={day.value}>{day.label}</option>)}
             </select>
           </label>
           <label className="text-sm font-medium text-text">
-            Start time
+            Giờ bắt đầu
             <input className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => updateForm("startTime", event.target.value)} type="time" value={form.startTime} />
           </label>
           <label className="text-sm font-medium text-text">
-            End time
+            Giờ kết thúc
             <input className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => updateForm("endTime", event.target.value)} type="time" value={form.endTime} />
           </label>
-          <ClinicDateField id="schedule-effective-from" label="Effective from" onChange={(value) => updateForm("effectiveFrom", value)} value={form.effectiveFrom} />
-          <ClinicDateField id="schedule-effective-to" label="Effective to" onChange={(value) => updateForm("effectiveTo", value)} value={form.effectiveTo} />
+          <ClinicDateField id="schedule-effective-from" label="Hiệu lực từ ngày" onChange={(value) => updateForm("effectiveFrom", value)} value={form.effectiveFrom} />
+          <ClinicDateField id="schedule-effective-to" label="Hiệu lực đến ngày" onChange={(value) => updateForm("effectiveTo", value)} value={form.effectiveTo} />
           <button className="h-10 self-end rounded-md bg-primary px-3 text-sm font-semibold text-white shadow-panel hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60" disabled={saveMutation.isPending} type="submit">
-            {editingId ? "Update schedule" : "Create schedule"}
+            {editingId ? "Cập nhật lịch" : "Tạo lịch"}
           </button>
         </div>
         {formError ? <p className="mt-3 text-sm text-danger" role="alert">{formError}</p> : null}
-        {saveMutation.error ? <p className="mt-3 text-sm text-danger" role="alert">{saveMutation.error instanceof Error ? saveMutation.error.message : "Unable to save schedule."}</p> : null}
+        {saveMutation.error ? <p className="mt-3 text-sm text-danger" role="alert">{saveMutation.error instanceof Error ? saveMutation.error.message : "Không thể lưu lịch."}</p> : null}
       </form>
 
-      {error ? <p className="mt-4 text-sm text-danger" role="alert">{error instanceof Error ? error.message : "Unable to load schedules."}</p> : null}
-      {deactivateMutation.error ? <p className="mt-4 text-sm text-danger" role="alert">{deactivateMutation.error instanceof Error ? deactivateMutation.error.message : "Unable to deactivate schedule."}</p> : null}
+      {error ? <p className="mt-4 text-sm text-danger" role="alert">{error instanceof Error ? error.message : "Không thể tải lịch."}</p> : null}
+      {deactivateMutation.error ? <p className="mt-4 text-sm text-danger" role="alert">{deactivateMutation.error instanceof Error ? deactivateMutation.error.message : "Không thể vô hiệu hóa lịch."}</p> : null}
 
       <div className="mt-5 overflow-x-auto rounded-md border border-border bg-surface shadow-sm">
-        <table aria-label="Doctor schedules" className="min-w-full text-left text-sm">
+        <table aria-label="Lịch làm việc bác sĩ" className="min-w-full text-left text-sm">
           <thead className="bg-surface-muted text-xs text-text-muted">
             <tr>
-              <th className="p-3 font-medium">Doctor</th>
-              <th className="p-3 font-medium">Type</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Day</th>
-              <th className="p-3 font-medium">Time</th>
-              <th className="p-3 font-medium">Effective range</th>
-              <th className="p-3 text-right font-medium">Actions</th>
+              <th className="p-3 font-medium">Bác sĩ</th>
+              <th className="p-3 font-medium">Loại lịch</th>
+              <th className="p-3 font-medium">Trạng thái</th>
+              <th className="p-3 font-medium">Thứ</th>
+              <th className="p-3 font-medium">Thời gian</th>
+              <th className="p-3 font-medium">Khoảng hiệu lực</th>
+              <th className="p-3 text-right font-medium">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -250,13 +250,13 @@ export function AdminSchedules() {
                 <td className="p-3"><StatusBadge status={schedule.status} /></td>
                 <td className="p-3">{dayOptions.find((day) => day.value === schedule.dayOfWeek)?.label ?? schedule.dayOfWeek}</td>
                 <td className="p-3 tabular-nums">{schedule.startTime}-{schedule.endTime}</td>
-                <td className="p-3 tabular-nums">{schedule.effectiveFrom} to {schedule.effectiveTo}</td>
+                <td className="p-3 tabular-nums">{schedule.effectiveFrom} đến {schedule.effectiveTo}</td>
                 <td className="p-3">
                   <div className="flex justify-end gap-2">
-                    <button aria-label={`Edit ${doctorName(doctors, schedule.doctorId)} ${schedule.startTime}-${schedule.endTime}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted" onClick={() => editSchedule(schedule)} title="Edit" type="button">
+                    <button aria-label={`Sửa ${doctorName(doctors, schedule.doctorId)} ${schedule.startTime}-${schedule.endTime}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted" onClick={() => editSchedule(schedule)} title="Sửa" type="button">
                       <Pencil aria-hidden="true" size={15} />
                     </button>
-                    <button aria-label={`Deactivate ${doctorName(doctors, schedule.doctorId)} ${schedule.startTime}-${schedule.endTime}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50" disabled={schedule.status === "inactive" || deactivateMutation.isPending} onClick={() => deactivateMutation.mutate(schedule.id)} title="Deactivate" type="button">
+                    <button aria-label={`Vô hiệu hóa ${doctorName(doctors, schedule.doctorId)} ${schedule.startTime}-${schedule.endTime}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50" disabled={schedule.status === "inactive" || deactivateMutation.isPending} onClick={() => deactivateMutation.mutate(schedule.id)} title="Vô hiệu hóa" type="button">
                       <XCircle aria-hidden="true" size={16} />
                     </button>
                   </div>
@@ -266,8 +266,8 @@ export function AdminSchedules() {
           </tbody>
         </table>
       </div>
-      {isLoading ? <p className="mt-3 text-sm text-text-muted">Loading schedules...</p> : null}
-      {!isLoading && !sortedSchedules.length ? <p className="mt-3 text-sm text-text-muted">No schedules match these filters.</p> : null}
+      {isLoading ? <p className="mt-3 text-sm text-text-muted">Đang tải lịch...</p> : null}
+      {!isLoading && !sortedSchedules.length ? <p className="mt-3 text-sm text-text-muted">Không có lịch nào khớp bộ lọc.</p> : null}
     </section>
   );
 }

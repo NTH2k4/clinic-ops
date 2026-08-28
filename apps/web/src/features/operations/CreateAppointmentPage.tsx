@@ -138,7 +138,7 @@ function AppointmentCreationForm() {
   return (
     <section className="mx-auto max-w-5xl">
       <p className="text-sm font-medium text-primary">Tiếp đón</p>
-      <h1 className="mt-1 text-2xl font-semibold text-text">Tạo appointment</h1>
+      <h1 className="mt-1 text-2xl font-semibold text-text">Tạo lịch hẹn</h1>
       <p className="mt-2 text-sm text-text-muted">Tạo lịch hẹn đã xác nhận cho bệnh nhân tại quầy.</p>
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="space-y-5">
@@ -177,7 +177,7 @@ function AppointmentCreationForm() {
           {selectedPatient ? <dl className="mt-4 space-y-3 text-sm"><div><dt className="text-text-muted">Bệnh nhân</dt><dd className="font-medium text-text">{selectedPatient.fullName}</dd></div><div><dt className="text-text-muted">Dịch vụ</dt><dd className="font-medium text-text">{selectedService?.name ?? "Chưa chọn"}</dd></div><div><dt className="text-text-muted">Thời gian</dt><dd className="font-medium text-text">{time ? `${formatDateInputValue(date)} ${time}` : "Chưa chọn"}</dd></div></dl> : <p className="mt-3 text-sm text-text-muted">Chọn bệnh nhân để tiếp tục.</p>}
           {error ? <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert">{error}</p> : null}
           {created ? <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-success"><CheckCircle2 aria-hidden="true" size={18} /><StatusBadge status={created.status} /></div> : null}
-          <button className="mt-5 h-11 w-full rounded-md bg-primary px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-border-strong" disabled={!canSubmit} onClick={() => void submit()} type="button">{isSubmitting ? "Đang tạo..." : "Tạo appointment"}</button>
+          <button className="mt-5 h-11 w-full rounded-md bg-primary px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-border-strong" disabled={!canSubmit} onClick={() => void submit()} type="button">{isSubmitting ? "Đang tạo..." : "Tạo lịch hẹn"}</button>
         </aside>
       </div>
     </section>

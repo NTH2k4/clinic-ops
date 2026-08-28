@@ -8,7 +8,7 @@ export type NavItem = {
 };
 
 const operationsNavigation: NavItem[] = [
-  { icon: Home, label: "Dashboard", to: "/app/operations" },
+  { icon: Home, label: "Tổng quan", to: "/app/operations" },
   { icon: ClipboardList, label: "Hàng đợi", to: "/app/operations/queue" },
   { icon: CalendarDays, label: "Lịch", to: "/app/operations/calendar" },
   { icon: CalendarDays, label: "Tạo lịch", to: "/app/operations/appointments/new" },
@@ -22,21 +22,21 @@ const navigationByRole: Record<UserRole, NavItem[]> = {
     { icon: ClipboardList, label: "Lịch của tôi", to: "/app/patient/appointments" },
   ],
   doctor: [
-    { icon: Home, label: "Dashboard", to: "/app/doctor" },
+    { icon: Home, label: "Tổng quan", to: "/app/doctor" },
     { icon: CalendarDays, label: "Lịch ngày", to: "/app/doctor/day" },
     { icon: CalendarDays, label: "Lịch tuần", to: "/app/doctor/week" },
   ],
   receptionist: operationsNavigation,
   nurse: operationsNavigation,
   admin: [
-    { icon: Home, label: "Dashboard", to: "/app/admin" },
-    { icon: Users, label: "Accounts", to: "/app/admin/accounts" },
+    { icon: Home, label: "Tổng quan", to: "/app/admin" },
+    { icon: Users, label: "Tài khoản", to: "/app/admin/accounts" },
     { icon: Users, label: "Bác sĩ", to: "/app/admin/doctors" },
-    { icon: CalendarDays, label: "Schedules", to: "/app/admin/schedules" },
+    { icon: CalendarDays, label: "Lịch làm việc", to: "/app/admin/schedules" },
     { icon: Settings, label: "Dịch vụ", to: "/app/admin/services" },
     { icon: Settings, label: "Chuyên khoa", to: "/app/admin/specialties" },
     { icon: Users, label: "Nhân sự", to: "/app/admin/staff" },
-    { icon: ClipboardList, label: "Audit log", to: "/app/admin/audit" },
+    { icon: ClipboardList, label: "Nhật ký kiểm toán", to: "/app/admin/audit" },
   ],
 };
 

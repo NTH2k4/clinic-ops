@@ -24,7 +24,7 @@ export function SidebarNav({ collapsed, onCollapsedChange }: SidebarNavProps) {
             </span>
             <div className="min-w-0">
               <span className="block truncate text-sm font-semibold text-text">CareFlow</span>
-              <span className="block truncate text-xs text-text-muted">Clinic operations</span>
+              <span className="block truncate text-xs text-text-muted">Vận hành phòng khám</span>
             </div>
           </div>
         )}

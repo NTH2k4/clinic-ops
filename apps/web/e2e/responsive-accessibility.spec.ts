@@ -46,27 +46,27 @@ async function clickVisibleLink(page: Page, name: string) {
 
 const viewportCases: ViewportCase[] = [
   {
-    expectedHeading: "Trang chính patient",
+    expectedHeading: "Trang chính bệnh nhân",
     links: ["Dịch vụ", "Lịch của tôi"],
-    roleButton: /Patient Demo/i,
+    roleButton: /Bệnh nhân demo/i,
     size: { width: 360, height: 800 },
   },
   {
-    expectedHeading: "Operations Workspace",
+    expectedHeading: "Không gian điều hành",
     links: ["Hàng đợi", "Lịch", "Tạo lịch"],
-    roleButton: /Receptionist Demo/i,
+    roleButton: /Lễ tân demo/i,
     size: { width: 768, height: 900 },
   },
   {
     expectedHeading: "Không gian bác sĩ",
     links: ["Lịch ngày", "Lịch tuần"],
-    roleButton: /Doctor Demo/i,
+    roleButton: /Bác sĩ demo/i,
     size: { width: 1280, height: 800 },
   },
   {
-    expectedHeading: "Admin dashboard",
-    links: ["Bác sĩ", "Dịch vụ", "Chuyên khoa", "Nhân sự", "Audit log"],
-    roleButton: /Admin Demo/i,
+    expectedHeading: "Bảng điều khiển quản trị",
+    links: ["Bác sĩ", "Dịch vụ", "Chuyên khoa", "Nhân sự", "Nhật ký kiểm toán"],
+    roleButton: /Quản trị demo/i,
     size: { width: 1440, height: 900 },
   },
 ];
@@ -88,12 +88,12 @@ for (const viewportCase of viewportCases) {
 
 test("keyboard users can operate the role switcher and notification panel", async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 900 });
-  await signIn(page, /Patient Demo/i);
+  await signIn(page, /Bệnh nhân demo/i);
 
   const roleSwitcher = page.getByLabel("Chuyển vai trò");
   await roleSwitcher.focus();
   await roleSwitcher.selectOption("admin");
-  await expect(page.getByRole("heading", { name: "Admin dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bảng điều khiển quản trị" })).toBeVisible();
 
   const notificationsButton = page.getByRole("button", { name: "Thông báo" });
   await notificationsButton.focus();
@@ -108,7 +108,7 @@ test("keyboard users can operate the role switcher and notification panel", asyn
 
 test("keyboard users can open and close the doctor appointment detail drawer", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await signIn(page, /Doctor Demo/i);
+  await signIn(page, /Bác sĩ demo/i);
 
   const detailButton = page.getByRole("button", { name: "Xem chi tiết", exact: true });
   await detailButton.focus();

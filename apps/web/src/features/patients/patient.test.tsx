@@ -16,7 +16,7 @@ afterEach(() => {
 async function signInAsPatient() {
   const user = userEvent.setup();
   renderWithProviders(<App />);
-  await user.click(screen.getByRole("button", { name: /Patient Demo/i }));
+  await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
   return user;
 }
 
@@ -24,7 +24,7 @@ describe("patient portal", () => {
   it("shows the patient home with a booking quick action", async () => {
     const user = await signInAsPatient();
 
-    expect(screen.getByRole("heading", { name: "Trang chính patient" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Trang chính bệnh nhân" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     expect(screen.getByRole("heading", { name: "Đặt lịch" })).toBeInTheDocument();
   });
@@ -54,7 +54,7 @@ describe("patient portal", () => {
     expect(screen.getByText("Tiến trình đặt lịch")).toBeInTheDocument();
     expect(screen.getByText("1. Dịch vụ")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
-    await user.click(screen.getByLabelText("Any available doctor"));
+    await user.click(screen.getByLabelText("Bất kỳ bác sĩ nào"));
     expect(screen.getByRole("button", { name: /08:00/i })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: /09:00/i }));
     expect(screen.getByText("26/08/2026 09:00")).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe("patient portal", () => {
 
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
-    await user.click(screen.getByLabelText("Any available doctor"));
+    await user.click(screen.getByLabelText("Bất kỳ bác sĩ nào"));
     await user.click(screen.getByRole("button", { name: /09:00/i }));
     await appointmentService.createStaffAppointment({
       patientId: "patient-2",
@@ -146,7 +146,7 @@ describe("patient portal", () => {
 
       await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
       await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
-      await user.click(screen.getByLabelText("Any available doctor"));
+      await user.click(screen.getByLabelText("Bất kỳ bác sĩ nào"));
       await setClinicDateDay(user, "Ngày khám", 31);
 
       expect(screen.getByRole("button", { name: /09:00/i })).toBeEnabled();

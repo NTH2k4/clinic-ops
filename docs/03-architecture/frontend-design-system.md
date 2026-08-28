@@ -117,6 +117,7 @@ Ràng buộc sử dụng:
 - Primary teal dùng cho action chính trong workflow, không dùng cho mọi heading hoặc icon.
 - Accent blue dành cho link, slot calendar đang chọn và nhấn mạnh phụ.
 - Action destructive phải dùng danger token và confirmation UI.
+- Đăng xuất là destructive session action nên phải mở `ConfirmDialog` trước khi gọi logout thật.
 - Text trên badge có màu phải đạt WCAG AA contrast.
 
 ### Token Cho Appointment Status
@@ -230,6 +231,8 @@ Shell desktop:
 
 - Sidebar trái cho điều hướng chính theo role.
 - Top bar cho role switcher, notifications, user identity và sign-out.
+- Nút đăng xuất trong TopBar chỉ mở xác nhận; người dùng phải chọn "Đăng xuất khỏi hệ thống" trước khi session bị xóa.
+- Notification popover phải đóng khi bấm nút đóng, chọn reference action hoặc nhấn ra ngoài popover.
 - Nội dung chính dùng width có giới hạn và responsive grid.
 - Sidebar expanded as-built dùng khoảng `256px`; collapsed dùng khoảng `80px`.
 - Active nav dùng primary filled state để dễ scan hơn prototype outline state.
@@ -506,8 +509,9 @@ Màn hình app CareFlow không cần hình ảnh marketing trang trí. Nếu dù
 
 UI copy nên dùng tiếng Việt ngắn gọn với domain term ổn định:
 
-- Dùng `appointment`, `booking`, `check-in`, `queue`, `audit log` khi các thuật ngữ đó rõ hơn dịch ép.
-- Dùng `lịch khám`, `dịch vụ`, `bác sĩ`, `bệnh nhân`, `chuyên khoa`, `trạng thái` cho label hướng người dùng.
+- Ưu tiên tiếng Việt cho navigation, heading, button, form label, empty/loading/error state và notification action.
+- Chỉ giữ tiếng Anh cho mã kỹ thuật, API enum, audit action id hoặc dữ liệu seed/backend khi đó là record nghiệp vụ đang được hiển thị nguyên văn.
+- Dùng `lịch hẹn`, `đặt lịch`, `check-in`, `hàng đợi`, `nhật ký kiểm toán`, `dịch vụ`, `bác sĩ`, `bệnh nhân`, `chuyên khoa`, `trạng thái` cho label hướng người dùng.
 - Không gợi ý rằng MVP có medical record thật, prescription, payment, insurance hoặc telemedicine.
 
 ## Checklist Kiểm Tra

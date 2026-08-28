@@ -80,15 +80,15 @@ test("admin can lock and unlock a registered patient account", async ({ page, re
 
   await signIn(page, "admin@careflow.local");
   await expect(page).toHaveURL(/\/app\/admin$/);
-  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Accounts", exact: true }).click();
-  await page.getByLabel("Search").fill(patient.email);
+  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Tài khoản", exact: true }).click();
+  await page.getByLabel("Tìm kiếm").fill(patient.email);
 
   const account = page.getByRole("row", { name: new RegExp(patient.email) });
   await expect(account).toBeVisible();
-  await account.getByRole("button", { name: `Lock ${patient.displayName}` }).click();
-  await expect(account.getByRole("button", { name: `Unlock ${patient.displayName}` })).toBeVisible();
-  await account.getByRole("button", { name: `Unlock ${patient.displayName}` }).click();
-  await expect(account.getByRole("button", { name: `Lock ${patient.displayName}` })).toBeVisible();
+  await account.getByRole("button", { name: `Khóa ${patient.displayName}` }).click();
+  await expect(account.getByRole("button", { name: `Mở khóa ${patient.displayName}` })).toBeVisible();
+  await account.getByRole("button", { name: `Mở khóa ${patient.displayName}` }).click();
+  await expect(account.getByRole("button", { name: `Khóa ${patient.displayName}` })).toBeVisible();
 });
 
 test("patient can request an appointment and sees a duplicate-slot conflict", async ({ page }) => {
@@ -126,7 +126,7 @@ test("receptionist can create an appointment and check in a confirmed appointmen
   await expect.poll(async () => doctorSelect.locator("option").allTextContents()).toContain("Dr. Hoa Le");
   await doctorSelect.selectOption({ label: "Dr. Hoa Le" });
   await page.getByLabel("Giờ khám").selectOption("10:00");
-  await page.getByRole("button", { name: "Tạo appointment" }).click();
+  await page.getByRole("button", { name: "Tạo lịch hẹn" }).click();
   await expect(page.getByLabel("Xem lại trước khi tạo")).toContainText("Đã xác nhận");
 
   await page.getByRole("link", { name: "Hàng đợi", exact: true }).click();
@@ -141,8 +141,8 @@ test("receptionist can create an appointment and check in a confirmed appointmen
 test("schedule management block disables the matching operations booking slot with a reason", async ({ page, request }) => {
   await signIn(page, "admin@careflow.local");
   await expect(page).toHaveURL(/\/app\/admin$/);
-  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Schedules", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Schedules" })).toBeVisible();
+  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Lịch làm việc", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Lịch làm việc" })).toBeVisible();
 
   const headers = await apiSessionHeaders(request, "admin@careflow.local");
   const createdSchedule = await request.post("/api/v1/doctor-schedules", {
@@ -160,6 +160,7 @@ test("schedule management block disables the matching operations booking slot wi
   expect(createdSchedule.ok()).toBe(true);
 
   await page.getByRole("button", { name: "Đăng xuất" }).click();
+  await page.getByRole("button", { name: "Đăng xuất khỏi hệ thống" }).click();
   await signIn(page, "reception@careflow.local");
   await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Tạo lịch", exact: true }).click();
   await page.getByLabel("Tìm patient").fill("Demo Patient 3");
@@ -187,25 +188,26 @@ test("doctor can start a checked-in appointment and complete it", async ({ page,
   const appointment = page.getByRole("article", { name: "Patient Demo" });
   await appointment.getByRole("button", { name: /Xem chi tiết/ }).click();
   const dialog = page.getByRole("dialog", { name: "Chi tiết lịch hẹn" });
-  const start = dialog.getByRole("button", { name: "Start appointment" });
+  const start = dialog.getByRole("button", { name: "Bắt đầu khám" });
   await expect(start).toBeVisible();
   await start.click();
   await expect(dialog.getByLabel("Trạng thái: Đang khám")).toBeVisible();
-  await dialog.getByRole("button", { name: "Complete appointment" }).click();
+  await dialog.getByRole("button", { name: "Hoàn tất khám" }).click();
   await expect(dialog.getByLabel("Trạng thái: Hoàn tất")).toBeVisible();
 });
 
 test("admin can filter audit events and a notification reference opens its target workspace", async ({ page }) => {
   await signIn(page, "admin@careflow.local");
-  await page.getByRole("link", { name: "Audit log" }).click();
-  await page.getByLabel("Entity type").selectOption("appointment");
-  await page.getByLabel("Action").selectOption("appointment_created");
-  await expect(page.getByRole("table", { name: "Audit events" })).toContainText("appointment_created");
+  await page.getByRole("link", { name: "Nhật ký kiểm toán" }).click();
+  await page.getByLabel("Loại đối tượng").selectOption("appointment");
+  await page.getByLabel("Hành động").selectOption("appointment_created");
+  await expect(page.getByRole("table", { name: "Sự kiện kiểm toán" })).toContainText("appointment_created");
 
   await page.getByRole("button", { name: "Đăng xuất" }).click();
+  await page.getByRole("button", { name: "Đăng xuất khỏi hệ thống" }).click();
   await signIn(page, "patient@careflow.local");
   await page.getByRole("button", { name: "Thông báo" }).click();
-  await page.getByRole("button", { name: /Mở appointment appointment-/ }).first().click();
+  await page.getByRole("button", { name: /Mở lịch hẹn appointment-/ }).first().click();
   await expect(page).toHaveURL(/\/app\/patient\/appointments$/);
 });
 

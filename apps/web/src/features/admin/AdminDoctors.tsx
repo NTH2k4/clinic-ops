@@ -27,8 +27,8 @@ export function AdminDoctors() {
     <section className="mx-auto max-w-6xl">
       <p className="text-sm font-medium text-primary">Quản trị nhân sự</p>
       <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-2xl font-semibold text-text">Doctors</h1>
-        <p className="text-sm font-medium text-text-muted">{doctorTotal} bác sĩ trong mock workspace</p>
+        <h1 className="text-2xl font-semibold text-text">Bác sĩ</h1>
+        <p className="text-sm font-medium text-text-muted">{doctorTotal} bác sĩ trong không gian demo</p>
       </div>
       <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm" onSubmit={(event) => { event.preventDefault(); addDoctor(); }}>
         <div className="flex flex-col gap-1 border-b border-border pb-3">
@@ -43,7 +43,7 @@ export function AdminDoctors() {
         </div>
       </form>
       <div className="mt-6 overflow-x-auto rounded-md border border-border bg-surface shadow-sm">
-        <table aria-label="Doctors" className="hidden min-w-full text-left text-sm md:table">
+        <table aria-label="Bác sĩ" className="hidden min-w-full text-left text-sm md:table">
           <thead className="bg-surface-muted text-text-muted">
             <tr><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Chuyên khoa</th><th className="p-3 font-medium">Phòng</th><th className="p-3 font-medium">Trạng thái</th></tr>
           </thead>

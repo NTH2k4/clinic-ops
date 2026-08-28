@@ -13,7 +13,7 @@ import { catalogQueryOptions } from "../catalog/catalogService";
 import { DOCTOR_PROTOTYPE_NOW, DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
 
 const statusMetrics: Array<{ label: string; status: AppointmentStatus }> = [
-  { label: "Waiting", status: "confirmed" },
+  { label: "Chờ xác nhận", status: "confirmed" },
   { label: "Đã check-in", status: "checked_in" },
   { label: "Đang khám", status: "in_progress" },
   { label: "Hoàn tất", status: "completed" },

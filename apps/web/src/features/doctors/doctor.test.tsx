@@ -17,7 +17,7 @@ afterEach(() => {
 async function signInAsDoctor() {
   const user = userEvent.setup();
   renderWithProviders(<App />);
-  await user.click(screen.getByRole("button", { name: /Doctor Demo/i }));
+  await user.click(screen.getByRole("button", { name: /Bác sĩ demo/i }));
   return user;
 }
 
@@ -62,8 +62,9 @@ describe("doctor workspace", () => {
     expect(screen.queryByRole("heading", { name: "Chưa có lịch hẹn" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(8);
     expect(within(screen.getByText("Lịch hẹn hôm nay").closest("section")!).getByText("8")).toBeInTheDocument();
-    expect(screen.getByText("Waiting")).toBeInTheDocument();
-    expect(within(screen.getByText("Waiting").closest("section")!).getByText("1")).toBeInTheDocument();
+    const waitingMetric = screen.getByText("Chờ xác nhận", { selector: "p" }).closest("section")!;
+    expect(waitingMetric).toBeInTheDocument();
+    expect(within(waitingMetric).getByText("1")).toBeInTheDocument();
     expect(screen.getAllByText("Đã check-in").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Đang khám").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Hoàn tất").length).toBeGreaterThan(0);
@@ -72,7 +73,7 @@ describe("doctor workspace", () => {
     expect(appointmentTimes).toEqual(["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"]);
 
     await user.click(screen.getByRole("button", { name: "Xem chi tiết" }));
-    expect(screen.getByRole("button", { name: /Start appointment/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Bắt đầu khám/i })).toBeInTheDocument();
   });
 
   it("wires the authenticated day and week schedule routes to stable date selectors", async () => {
@@ -145,13 +146,13 @@ describe("doctor workspace", () => {
   it("does not render an invalid action for a terminal appointment", () => {
     renderWithProviders(<TerminalAppointmentHarness />);
 
-    expect(screen.queryByRole("button", { name: /appointment/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /khám|lịch hẹn/i })).not.toBeInTheDocument();
   });
 
   it("does not offer doctors the receptionist check-in transition", () => {
     renderWithProviders(<ConfirmedAppointmentHarness />);
 
-    expect(screen.queryByRole("button", { name: /Check in appointment/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Check-in lịch hẹn/i })).not.toBeInTheDocument();
   });
 
   it("renders drawer date-time in Vietnam clinic time", () => {
@@ -164,9 +165,9 @@ describe("doctor workspace", () => {
     const user = userEvent.setup();
     renderWithProviders(<DoctorFlowHarness />);
 
-    await user.click(screen.getByRole("button", { name: /Start appointment/i }));
+    await user.click(screen.getByRole("button", { name: /Bắt đầu khám/i }));
     expect(screen.getByText("Đang khám")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /Complete appointment/i }));
+    await user.click(screen.getByRole("button", { name: /Hoàn tất khám/i }));
     expect(screen.getByText("Hoàn tất")).toBeInTheDocument();
   });
 });

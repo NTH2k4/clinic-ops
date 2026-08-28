@@ -23,11 +23,11 @@ type DrawerAction = { label: string; status: AppointmentStatus };
 
 function actionForStatus(status: AppointmentStatus, role: UserRole): DrawerAction | null {
   const candidate = status === "confirmed"
-    ? { label: "Check in appointment", status: "checked_in" as const }
+    ? { label: "Check-in lịch hẹn", status: "checked_in" as const }
     : status === "checked_in"
-      ? { label: "Start appointment", status: "in_progress" as const }
+      ? { label: "Bắt đầu khám", status: "in_progress" as const }
       : status === "in_progress"
-        ? { label: "Complete appointment", status: "completed" as const }
+        ? { label: "Hoàn tất khám", status: "completed" as const }
         : null;
   return candidate && canTransitionAppointment(status, candidate.status, role) ? candidate : null;
 }

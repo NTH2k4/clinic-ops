@@ -111,6 +111,35 @@ describe("shared UI components", () => {
     expect(fetcher.mock.calls.map(([url]) => String(url))).toContain("/api/v1/notifications/notification-api-1/read");
   });
 
+  it("closes the notifications dialog when pressing outside of it", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/auth/login")) {
+        return apiSuccess({
+          sessionToken: "api-session-token",
+          currentUser: { id: "user-admin-1", displayName: "API Admin", email: "admin@example.test", role: "admin", status: "active" },
+        });
+      }
+      if (url.includes("/notifications")) return apiListResponse([{ ...apiNotification }]);
+      if (url.includes("/audit-events")) return apiListResponse([]);
+      return apiListResponse([]);
+    });
+    const [{ renderWithProviders: renderApiWithProviders }, { App: ApiApp }] = await prepareApiMode(fetcher);
+    const user = userEvent.setup();
+
+    renderApiWithProviders(<ApiApp />);
+    await user.type(screen.getByLabelText("Email"), "admin@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "secret");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    await user.click(await screen.findByRole("button", { name: "Thông báo" }));
+
+    expect(await screen.findByRole("dialog", { name: "Thông báo" })).toBeInTheDocument();
+
+    await user.click(document.body);
+
+    expect(screen.queryByRole("dialog", { name: "Thông báo" })).not.toBeInTheDocument();
+  });
+
   it("loads appointment audit events in the detail drawer in API mode", async () => {
     const fetcher = vi.fn<typeof fetch>(async (input) => {
       const url = String(input);

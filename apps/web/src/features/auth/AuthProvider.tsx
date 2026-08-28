@@ -39,6 +39,22 @@ function userForRole(role: UserRole): User | undefined {
   return undefined;
 }
 
+function userFacingAuthError(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
+
+  if (error.message === "Email or password is incorrect.") {
+    return "Email hoặc mật khẩu không đúng.";
+  }
+
+  if (error.message === "Authentication is required." || error.message === "Session expired.") {
+    return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+  }
+
+  return error.message;
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [linkedProfile, setLinkedProfile] = useState<LinkedProfileRef>(null);
@@ -86,7 +102,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           setLinkedProfile(session.linkedProfile);
           return session.currentUser;
         } catch (error) {
-          setAuthError(error instanceof Error ? error.message : "Unable to sign in.");
+          setAuthError(userFacingAuthError(error, "Không thể đăng nhập."));
           return null;
         }
       },
@@ -97,7 +113,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           try {
             await authApi.logout();
           } catch (error) {
-            setAuthError(error instanceof Error ? error.message : "Unable to sign out.");
+            setAuthError(userFacingAuthError(error, "Không thể đăng xuất."));
           }
           clearApiSession();
           return;
@@ -120,7 +136,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           setLinkedProfile(session.linkedProfile);
           return session.currentUser;
         } catch (error) {
-          setAuthError(error instanceof Error ? error.message : "Unable to create an account.");
+          setAuthError(userFacingAuthError(error, "Không thể tạo tài khoản."));
           return null;
         }
       },
@@ -136,13 +152,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
           clearApiSession();
           return true;
         } catch (error) {
-          setAuthError(error instanceof Error ? error.message : "Unable to change password.");
+          setAuthError(userFacingAuthError(error, "Không thể đổi mật khẩu."));
           return false;
         }
       },
       switchRole(role) {
         if (isApiMode) {
-          throw new Error("Role switching is unavailable in API mode.");
+          throw new Error("Không thể chuyển vai trò trong chế độ API.");
         }
         setUser(userForRole(role) ?? null);
       },

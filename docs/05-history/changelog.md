@@ -2,6 +2,7 @@
 
 ## 2026-08-28
 
+- Việt hóa thêm UI shell và các luồng gần auth theo hướng tiếng Việt trước, thêm xác nhận trước khi xóa session lúc đăng xuất, cho popover thông báo đóng khi nhấn ra ngoài và ghi lại quy tắc tương tác trong frontend design system.
 - Prepared Phase 5 V1 Documentation And Acceptance Closure: added `v1-documentation-closure-plan.md`, `v1-traceability-matrix.md` and `v1-acceptance-package.md`; updated documentation map, readiness, acceptance checklist and release notes for final user acceptance review.
 - Verified Render deploy hook automation after setup: pushed `ac78a21d` and cleanup `05ebf87b`; API CI, Web CI and Render Deployment succeeded for both, and production smoke passed for `05ebf87b00399bbdc677a3668fa107152d10620e`.
 - Implemented Phase 4 Production Demo Operations Tasks 1-3 on branch `production-demo-operations`: added read-only `scripts/production-smoke.mjs`, optional `RENDER_DEPLOY_HOOK_URL` workflow trigger and production runbook/deployment documentation updates.

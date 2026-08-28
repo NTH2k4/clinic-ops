@@ -110,7 +110,7 @@ describe("operations workspace", () => {
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
     expectClinicDateField("Ngày khám", { day: 26, month: 8, year: 2026 });
     await user.selectOptions(screen.getByLabelText("Giờ khám"), "09:00");
-    await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
+    await user.click(screen.getByRole("button", { name: "Tạo lịch hẹn" }));
     expect(screen.getByText("Đã xác nhận")).toBeInTheDocument();
     expect(mockStore.appointments.at(-1)?.status).toBe("confirmed");
     expect(queryClient.getQueryState(staleAppointmentKey)?.isInvalidated).toBe(true);
@@ -136,8 +136,8 @@ describe("operations workspace", () => {
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
     await user.selectOptions(screen.getByLabelText("Giờ khám"), "09:00");
-    await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
-    await user.click(screen.getByRole("button", { name: "Tạo appointment" }));
+    await user.click(screen.getByRole("button", { name: "Tạo lịch hẹn" }));
+    await user.click(screen.getByRole("button", { name: "Tạo lịch hẹn" }));
 
     expect(mockStore.appointments.filter((appointment) => appointment.startAt === "2026-08-26T09:00:00+07:00")).toHaveLength(1);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -365,6 +365,6 @@ describe("operations workspace", () => {
 
     expect(screen.getByText("Lịch hẹn hôm nay")).toBeInTheDocument();
     expect(screen.getByText("Hàng đợi chờ xử lý")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Tạo appointment" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tạo lịch hẹn" })).toBeInTheDocument();
   });
 });

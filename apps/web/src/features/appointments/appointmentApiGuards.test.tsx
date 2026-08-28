@@ -85,8 +85,8 @@ describe("API appointment workflows", () => {
 
     renderWithProviders(<CreateAppointmentPage />);
 
-    expect(screen.getByRole("heading", { name: "Tạo appointment" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Tạo appointment" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tạo lịch hẹn" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tạo lịch hẹn" })).toBeInTheDocument();
   });
 
   it("exposes queue mutation controls for API appointments", async () => {
@@ -146,7 +146,7 @@ describe("API appointment workflows", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /Start appointment/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Bắt đầu khám/i })).toBeEnabled();
     expect(screen.queryByText("Cập nhật lịch hẹn qua API chưa khả dụng.")).not.toBeInTheDocument();
     await waitFor(() => expect(fetcher).toHaveBeenCalled());
     expect(fetcher.mock.calls.some(([url]) => String(url).includes("/audit-events"))).toBe(false);
