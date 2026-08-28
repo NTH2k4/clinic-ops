@@ -12,7 +12,7 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1-7 and final review fix round 3 have local implementation verification on branch `account-administration`. This round extends the bcrypt-safe UTF-8 password boundary to login, preserves hosted-demo lifecycle actions across startup, rejects password reuse, and aligns login/logout OpenAPI status codes. The branch is pending final review, merge, and deployment; it is not deployed complete.
+Status as of 2026-08-28: Tasks 1-7 and final review fix round 3 have local implementation verification on branch `account-administration`. This round extends the bcrypt-safe UTF-8 password boundary to login, preserves hosted-demo lifecycle actions across startup, rejects password reuse, and aligns login/logout OpenAPI status codes. Scoped re-review passed for the final login fix; the branch is pending merge and deployment approval, and it is not deployed complete.
 
 Completed local scope:
 
@@ -26,7 +26,7 @@ Completed local scope:
 
 Pending before merge/deploy:
 
-- Run final review/merge gate, then request explicit approval before merge, push or production deploy.
+- Request explicit approval before merge, push or production deploy.
 
 ## Global Constraints
 
