@@ -77,7 +77,7 @@ Trạng thái: **pass local verification** trên branch `account-administration`
 | `cd apps/api && npm run typecheck` | Pass | `tsc --noEmit` exited 0. |
 | `cd apps/api && npm run lint` | Pass | ESLint exited 0. |
 | `cd apps/api && npm test -- --runInBand` | Pass | `7/7` suites, `41/41` tests. |
-| `cd apps/api && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | `10/10` suites, `90/90` tests. |
+| `cd apps/api && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | `10/10` suites, `92/92` tests. |
 | `cd apps/api && npm run build` | Pass | `nest build` exited 0. |
 | `cd apps/api && npm audit --audit-level=high` | Pass | `found 0 vulnerabilities`. |
 | `cd apps/web && npm test -- --run` | Pass | `16/16` files, `141/141` tests. |
@@ -89,7 +89,7 @@ Trạng thái: **pass local verification** trên branch `account-administration`
 
 Chưa chạy production register/password/admin smoke cho branch này, nên Phase 2 chưa được đánh dấu đã deploy. Production release candidate trước đó vẫn giữ trạng thái riêng ở mục Push Và Deployment Gate.
 
-Post-review verification rerun on 2026-08-28 confirmed final local commit candidate `54b9818d fix(api): close account lifecycle race gaps` after account lifecycle race hardening: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `90/90` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
+Post-review verification rerun on 2026-08-28 confirmed final local commit candidate `10537ed9 fix(api): preserve account lifecycle on startup` after account lifecycle race hardening and final review fix round 2: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `92/92` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
 
 Final review fix round 2 on 2026-08-28: routine hosted startup now creates missing demo users only, so existing password changes and locked/deactivated states persist; password registration/change validation rejects inputs over bcrypt's 72-byte UTF-8 limit and rejects reuse; OpenAPI now declares `201` for login/logout. RED targeted E2E covered the prior lifecycle reset, overlong 72-byte-prefix collision, and password reuse; targeted GREEN passed API E2E `2/2` suites `21/21` tests and unit/contract `2/2` suites `12/12` tests. API typecheck, lint, build, and high-severity audit also passed. This branch remains pending final review, merge, and deploy.
 
