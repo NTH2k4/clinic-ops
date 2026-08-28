@@ -10,6 +10,24 @@
 
 **Spec:** `docs/04-planning/careflow-v1-delivery-roadmap.md`, `docs/04-planning/careflow-v1-subagent-execution-plan.md`, `docs/03-architecture/security-notes.md`, `docs/03-architecture/api-contract.md`.
 
+## Implementation Status
+
+Status as of 2026-08-28: Tasks 1-7 have been implemented and locally verified on branch `account-administration`. The post-review account lifecycle race hardening and documentation count updates have fresh local verification; the branch is ready for the final local completion commit and final review gate before any merge, push or production deploy.
+
+Completed local scope:
+
+- Public patient registration API and UI.
+- Authenticated password change with session revocation and re-login requirement.
+- Admin user list/detail/status/reset APIs.
+- Admin account management UI.
+- API contract, OpenAPI, security notes, acceptance checklist, changelog and release notes updates.
+- Full local verification evidence is tracked in `docs/04-planning/mvp-release-readiness.md`.
+
+Pending before merge/deploy:
+
+- Commit the post-review race hardening and docs updates.
+- Run final review/merge gate, then request explicit approval before merge, push or production deploy.
+
 ## Global Constraints
 
 - Không lưu plaintext password trong database, logs, frontend storage hoặc documentation.

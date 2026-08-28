@@ -3,7 +3,7 @@ import { z } from "zod";
 import { paginationFields } from "../common/validation";
 
 export const userIdParamSchema = z.object({
-  id: z.string().trim().min(1).max(100).regex(/^[A-Za-z0-9_-]+$/, "Must be a valid user id."),
+  id: z.string().min(1).max(100).regex(/^[A-Za-z0-9_-]+$/, "Must be a valid user id."),
 }).strict();
 
 export const userListQuerySchema = z.object({

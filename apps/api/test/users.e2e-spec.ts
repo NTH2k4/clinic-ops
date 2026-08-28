@@ -62,17 +62,30 @@ describe("User account administration", () => {
   function prismaWithUserLookupHook(afterUserLookup: (user: { id: string } | null) => Promise<void>) {
     const controlledPrisma = {} as PrismaService;
     Object.setPrototypeOf(controlledPrisma, prisma);
-    const controlledUser = {} as typeof prisma.user;
-    Object.setPrototypeOf(controlledUser, prisma.user);
-    Object.defineProperty(controlledUser, "findUnique", {
-      value: async (args: Parameters<typeof prisma.user.findUnique>[0]) => {
-        const user = await prisma.user.findUnique(args);
-        await afterUserLookup(user);
-        return user;
+    const userWithHook = (source: typeof prisma.user) => {
+      const controlledUser = {} as typeof prisma.user;
+      Object.setPrototypeOf(controlledUser, source);
+      Object.defineProperty(controlledUser, "findUnique", {
+        value: async (args: Parameters<typeof prisma.user.findUnique>[0]) => {
+          const user = await source.findUnique(args);
+          await afterUserLookup(user);
+          return user;
+        },
+      });
+      return controlledUser;
+    };
+    Object.defineProperty(controlledPrisma, "user", { value: userWithHook(prisma.user) });
+    Object.defineProperty(controlledPrisma, "$transaction", {
+      value: async (input: Parameters<typeof prisma.$transaction>[0]) => {
+        if (typeof input !== "function") return prisma.$transaction(input);
+        return prisma.$transaction(async (transaction) => {
+          const controlledTransactionClient = {} as typeof transaction;
+          Object.setPrototypeOf(controlledTransactionClient, transaction);
+          Object.defineProperty(controlledTransactionClient, "user", { value: userWithHook(transaction.user) });
+          return input(controlledTransactionClient);
+        });
       },
     });
-    Object.defineProperty(controlledPrisma, "user", { value: controlledUser });
-    Object.defineProperty(controlledPrisma, "$transaction", { value: prisma.$transaction.bind(prisma) });
     return controlledPrisma;
   }
 
@@ -243,6 +256,35 @@ describe("User account administration", () => {
         expect(errorResponseSchema.parse(response.body).error.code).toBe("INVALID_STATUS_TRANSITION");
       }
 
+      await expect(prisma.user.findUniqueOrThrow({ where: { id: user.id } })).resolves.toMatchObject({ status: "inactive" });
+    } finally {
+      await deleteTestUser(user.id);
+      await app.close();
+    }
+  });
+
+  it("does not reactivate an account when unlock races with deactivation", async () => {
+    const user = await createTestUser("unlock-deactivate-race");
+    let deactivateAfterLookup = false;
+    const { app, server } = await createApp(async (lookedUpUser) => {
+      if (!deactivateAfterLookup || lookedUpUser?.id !== user.id) return;
+      deactivateAfterLookup = false;
+      await prisma.user.update({ where: { id: user.id }, data: { status: AccountStatus.inactive } });
+    });
+
+    try {
+      const admin = await loginAdmin(server);
+      const authorization = `Bearer ${admin.sessionToken}`;
+      await request(server).post(`/api/v1/users/${user.id}/lock`).set("Authorization", authorization).expect(201);
+      deactivateAfterLookup = true;
+
+      const unlockResponse = await request(server)
+        .post(`/api/v1/users/${user.id}/unlock`)
+        .set("Authorization", authorization)
+        .expect(400);
+
+      expect(deactivateAfterLookup).toBe(false);
+      expect(errorResponseSchema.parse(unlockResponse.body).error.code).toBe("INVALID_STATUS_TRANSITION");
       await expect(prisma.user.findUniqueOrThrow({ where: { id: user.id } })).resolves.toMatchObject({ status: "inactive" });
     } finally {
       await deleteTestUser(user.id);

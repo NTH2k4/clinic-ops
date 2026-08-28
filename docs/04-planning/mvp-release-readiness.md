@@ -33,7 +33,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã tích hợp vào `main` và đã qua regression verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194`, API E2E 71/71 |
-| Phase 2 Account Administration | Hoàn thành local verification trên branch `account-administration`; chưa production smoke/deploy | Patient registration, password change/session revocation, admin account lock/unlock; API unit 41/41, API E2E 89/89, Web unit 141/141, mock Playwright 9/9, API-mode Playwright 8/8 |
+| Phase 2 Account Administration | Hoàn thành local verification trên branch `account-administration`; chưa production smoke/deploy | Patient registration, password change/session revocation, admin account lock/unlock; API unit 41/41, API E2E 90/90, Web unit 141/141, mock Playwright 9/9, API-mode Playwright 8/8 |
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
@@ -77,7 +77,7 @@ Trạng thái: **pass local verification** trên branch `account-administration`
 | `cd apps/api && npm run typecheck` | Pass | `tsc --noEmit` exited 0. |
 | `cd apps/api && npm run lint` | Pass | ESLint exited 0. |
 | `cd apps/api && npm test -- --runInBand` | Pass | `7/7` suites, `41/41` tests. |
-| `cd apps/api && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | `10/10` suites, `89/89` tests. |
+| `cd apps/api && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | `10/10` suites, `90/90` tests. |
 | `cd apps/api && npm run build` | Pass | `nest build` exited 0. |
 | `cd apps/api && npm audit --audit-level=high` | Pass | `found 0 vulnerabilities`. |
 | `cd apps/web && npm test -- --run` | Pass | `16/16` files, `141/141` tests. |
@@ -88,6 +88,8 @@ Trạng thái: **pass local verification** trên branch `account-administration`
 | `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` | Pass | API-mode Playwright `8/8`, bao gồm Phase 2 auth/account smoke. |
 
 Chưa chạy production register/password/admin smoke cho branch này, nên Phase 2 chưa được đánh dấu đã deploy. Production release candidate trước đó vẫn giữ trạng thái riêng ở mục Push Và Deployment Gate.
+
+Post-review verification rerun on 2026-08-28 confirmed the final local branch candidate after account lifecycle race hardening: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `90/90` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
 
 ## Web Verification Gate Sau Merge (Task 3)
 

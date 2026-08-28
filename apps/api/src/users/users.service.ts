@@ -98,11 +98,18 @@ export class UsersService {
       if (!allowedFrom.includes(user.status)) {
         throw new ApiError(400, "INVALID_STATUS_TRANSITION", "This account status transition is not allowed.");
       }
-      const updated = await transaction.user.update({ where: { id }, data: { status }, include: this.profiles });
+      const updatedCount = await transaction.user.updateMany({
+        where: { id, status: { in: allowedFrom } },
+        data: { status },
+      });
+      if (updatedCount.count !== 1) {
+        throw new ApiError(400, "INVALID_STATUS_TRANSITION", "This account status transition is not allowed.");
+      }
       if (revokeSessions) {
         await transaction.authSession.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
       }
       await this.audit.record(audit, transaction);
+      const updated = await transaction.user.findUniqueOrThrow({ where: { id }, include: this.profiles });
       return this.toResponse(updated);
     });
   }

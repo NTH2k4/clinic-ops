@@ -35,9 +35,10 @@
 - [x] Patient có thể đăng ký account mới và vào ngay patient workspace có quyền đặt lịch. Playwright API-mode dùng email và số điện thoại sinh duy nhất theo từng lần chạy để tránh va chạm dữ liệu; teardown reset DB về seeded baseline sau suite.
 - [x] Patient có thể đổi mật khẩu; session hiện tại bị xoá, mật khẩu cũ bị từ chối và chỉ mật khẩu mới đăng nhập lại được.
 - [x] Admin có thể tìm account patient mới tạo và smoke action lock/unlock qua `/users/:id/lock` và `/users/:id/unlock`. Test không gọi reset-password nên không đọc, log hoặc ghi temporary password.
-- [x] API verification đầy đủ: typecheck, lint, build và high-severity audit pass; unit `7/7` suites, `41/41` tests; E2E `10/10` suites, `89/89` tests.
+- [x] API verification đầy đủ: typecheck, lint, build và high-severity audit pass; unit `7/7` suites, `41/41` tests; E2E `10/10` suites, `90/90` tests.
 - [x] Web verification đầy đủ: unit `16/16` files, `141/141` tests; typecheck, lint và build pass; mock Playwright `9/9`; API-mode Playwright `8/8`.
 - [x] Không ghi session token, temporary password hoặc dữ liệu patient thật vào test output hay tài liệu. Vite vẫn cảnh báo không blocking: bundle JavaScript `634.62 kB` vượt ngưỡng `500 kB`.
+- [x] Final local rerun on 2026-08-28 confirms OpenAPI JSON parse, diff hygiene and API-mode teardown cleanup with `0` generated `@example.test` users remaining.
 
 ## Task 2 API Verification (2026-08-27)
 
