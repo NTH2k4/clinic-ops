@@ -32,6 +32,7 @@ const navigationByRole: Record<UserRole, NavItem[]> = {
     { icon: Home, label: "Dashboard", to: "/app/admin" },
     { icon: Users, label: "Accounts", to: "/app/admin/accounts" },
     { icon: Users, label: "Bác sĩ", to: "/app/admin/doctors" },
+    { icon: CalendarDays, label: "Schedules", to: "/app/admin/schedules" },
     { icon: Settings, label: "Dịch vụ", to: "/app/admin/services" },
     { icon: Settings, label: "Chuyên khoa", to: "/app/admin/specialties" },
     { icon: Users, label: "Nhân sự", to: "/app/admin/staff" },

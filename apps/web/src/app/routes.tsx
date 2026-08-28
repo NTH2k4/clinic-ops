@@ -5,6 +5,7 @@ import { RegisterPage } from "../features/auth/RegisterPage";
 import { ChangePasswordPage } from "../features/auth/ChangePasswordPage";
 import { AdminDashboard } from "../features/admin/AdminDashboard";
 import { AdminDoctors } from "../features/admin/AdminDoctors";
+import { AdminSchedules } from "../features/admin/AdminSchedules";
 import { AdminServices } from "../features/admin/AdminServices";
 import { AdminSpecialties } from "../features/admin/AdminSpecialties";
 import { AdminStaff } from "../features/admin/AdminStaff";
@@ -51,6 +52,7 @@ export function AppRoutes() {
             <Route element={<AdminDashboard />} path="admin" />
             <Route element={<AdminAccounts />} path="admin/accounts" />
             <Route element={<AdminDoctors />} path="admin/doctors" />
+            <Route element={<AdminSchedules />} path="admin/schedules" />
             <Route element={<AdminServices />} path="admin/services" />
             <Route element={<AdminSpecialties />} path="admin/specialties" />
             <Route element={<AdminStaff />} path="admin/staff" />
