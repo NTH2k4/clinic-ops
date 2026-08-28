@@ -1,12 +1,20 @@
 # Ghi Chú Phát Hành
 
+## 2026-08-28 Phase 3 Scheduling Operations Deployment Remediation
+
+- Phase 3 Scheduling Operations was merged and pushed to `main` at `49a4ff2a`; GitHub Actions API CI, Web CI, Web Pages and Render Deployment completed successfully for that commit. Render health returned `49a4ff2a6789d2677ea2fdc431d9f877cdbfd01e`, and admin login smoke passed.
+- Production scheduling smoke found a data bootstrap blocker, not a runtime deployment failure: the hosted database had no baseline specialties, services, doctors, doctor schedules or appointments, so `/availability/slots?serviceId=service-general...` returned `404 service was not found`.
+- Remediation commit `58d9ca0e fix(api): repair hosted demo scheduling baseline` extends hosted startup repair in `SERVE_WEB_APP=true` mode. It creates missing demo specialties, services, staff, doctors and doctor schedules idempotently with duplicate-safe writes and does not reset or delete user/patient data.
+- Local remediation verification passed: targeted unit RED/GREEN, API typecheck/lint/build/audit, API unit `7/7` suites `43/43`, API E2E `10/10` suites `98/98`, and local Prisma repair smoke confirmed repeated startup repair leaves `8` services, `5` doctors and `50` schedules.
+- Deployment status: remediation is committed locally and must be pushed/deployed before Phase 3 can be marked deployed complete. After deploy, production smoke must verify health commit, admin login, catalog totals and scheduling availability explanation mode.
+
 ## 2026-08-28 Phase 3 Scheduling Operations Local Candidate
 
-- Phase 3 Scheduling Operations is locally complete on branch `scheduling-operations` and awaiting final review plus user-approved merge/deploy. Scope includes backend availability explanation, frontend scheduling service boundary, admin `/app/admin/schedules`, operations booking unavailable-slot explanations and API-mode browser regression.
+- Phase 3 Scheduling Operations was locally completed on branch `scheduling-operations` before merge. Scope includes backend availability explanation, frontend scheduling service boundary, admin `/app/admin/schedules`, operations booking unavailable-slot explanations and API-mode browser regression.
 - Admin users can manage doctor schedules, including working/blocked/leave entries, filters, update and deactivate controls. Operations booking in API mode now reads backend availability explanation and shows unavailable choices such as `11:30 - Bác sĩ bị chặn lịch` as disabled options.
 - Final local verification passed: API unit `7/7` suites `42/42` tests, API E2E `10/10` suites `98/98` tests, API build and high-severity audit (`found 0 vulnerabilities`), Web unit `16/16` files `145/145` tests, Web typecheck/lint/build, mock Playwright `9/9` and API-mode Playwright `9/9`.
 - Known non-blocking warnings: Vite reports a `649.04 kB` JS chunk over the `500 kB` warning threshold; Playwright logs `NO_COLOR` ignored under `FORCE_COLOR`; API E2E logs expected internal-error/audit rollback cases.
-- Deployment status: not pushed or deployed for Phase 3 yet. Merge, push, Render deploy and production smoke require explicit user approval.
+- Deployment status: this local-candidate note was superseded by the deployment-remediation entry above after Phase 3 was merged, pushed and deployed at `49a4ff2a`.
 
 ## 2026-08-27 MVP Release Candidate
 

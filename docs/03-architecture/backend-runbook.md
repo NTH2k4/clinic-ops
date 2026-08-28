@@ -6,7 +6,7 @@
 | --- | --- |
 | Status | Baseline |
 | Primary audience | Operators, senior engineers and AI agents |
-| Last updated | 2026-08-27 |
+| Last updated | 2026-08-28 |
 | Source of truth | `apps/api`, Render service logs, PostgreSQL provider logs |
 
 ## Purpose
@@ -85,6 +85,29 @@ DATABASE_URL=<target-database-url> npm run prisma:seed
 ```
 
 Expected behavior: non-local databases require `ALLOW_DATABASE_SEED=true`. Use that override only for intentional demo seeding.
+
+## Hosted Demo Baseline Repair
+
+Symptom:
+
+- Render health and login pass, but catalog or scheduling smoke returns empty collections.
+- `/api/v1/availability/slots?serviceId=service-general...` returns `404 service was not found`.
+
+Expected hosted behavior:
+
+- When `SERVE_WEB_APP=true`, startup repair creates missing demo auth users plus baseline demo specialties, services, staff, doctors and doctor schedules.
+- The repair is idempotent and duplicate-safe; it does not reset, delete or overwrite registered user/patient data.
+- Do not run the full Prisma seed against Render to fix this case unless intentionally resetting demo data. `prisma/seed.ts` is destructive by design and is guarded for non-local databases.
+
+Checks:
+
+```bash
+curl "$RENDER_EXTERNAL_URL/api/v1/services?pageSize=1"
+curl "$RENDER_EXTERNAL_URL/api/v1/doctors?pageSize=1"
+curl "$RENDER_EXTERNAL_URL/api/v1/doctor-schedules?doctorId=doctor-4&from=2026-08-26&to=2026-08-26&pageSize=5"
+```
+
+Expected output: services/doctors/schedules return non-empty data after the deployed app has restarted on a commit containing hosted demo baseline repair.
 
 ## Auth Failures
 

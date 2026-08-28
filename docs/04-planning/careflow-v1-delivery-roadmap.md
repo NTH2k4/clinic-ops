@@ -102,7 +102,7 @@ Exit criteria:
 
 ## Phase 3: Scheduling Operations UI
 
-Trạng thái: local implementation and verification complete on branch/worktree `scheduling-operations`; awaiting final review and user-approved merge/deploy gate.
+Trạng thái: merge/push complete at `49a4ff2a`; Render deployed code and health/login smoke passed, but production scheduling smoke found missing hosted demo baseline data. Remediation commit `58d9ca0e` is awaiting push/deploy before Phase 3 can be marked deployed complete.
 
 Mục tiêu:
 

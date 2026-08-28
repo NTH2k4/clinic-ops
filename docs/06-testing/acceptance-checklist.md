@@ -77,3 +77,13 @@
 - [x] Web unit/static/build gate. `cd apps/web && npm test -- --run && npm run typecheck && npm run lint && npm run build` pass: unit `16/16` files, `145/145` tests. Vite emitted the existing non-blocking chunk-size warning for a `649.04 kB` JS chunk over `500 kB`.
 - [x] Web browser gates. `npm run e2e` pass: mock-mode Playwright `9/9`; `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` pass: API-mode Playwright `9/9`.
 - [x] Non-blocking logs reviewed. API E2E intentionally logs internal-error/audit rollback cases; Playwright logs `NO_COLOR` ignored under `FORCE_COLOR`. These did not fail commands.
+
+## Phase 3 Scheduling Operations Deployment Gate (2026-08-28)
+
+- [x] Merge and push completed. Phase 3 merged to `main` at `49a4ff2a`; push to `origin/main` succeeded.
+- [x] CI/deploy completed for `49a4ff2a`. GitHub Actions API CI, Web CI, Web Pages and Render Deployment all completed successfully.
+- [x] Render health smoke passed for `49a4ff2a6789d2677ea2fdc431d9f877cdbfd01e`.
+- [x] Render admin login smoke passed with `admin@careflow.local`; response returned `currentUser.role=admin` and a session token. Token was not logged in docs.
+- [ ] Scheduling production data smoke is blocked until remediation deploy. Production catalog/scheduling baseline was missing after `49a4ff2a`: `/services`, `/doctors`, `/specialties`, `/doctor-schedules` and `/appointments` returned total `0`; `/availability/slots?serviceId=service-general...` returned `404 service was not found`.
+- [x] Remediation committed at `58d9ca0e fix(api): repair hosted demo scheduling baseline`. Hosted startup now idempotently creates missing demo specialties, services, staff, doctors and doctor schedules without resetting user/patient data.
+- [x] Remediation verification passed locally: RED targeted unit failed before implementation; GREEN targeted unit `4/4`; API typecheck/lint/build/audit pass; API unit `7/7` suites `43/43`; API E2E `10/10` suites `98/98`; local Prisma repair smoke after two runs reported `8` services, `5` doctors, `50` schedules.

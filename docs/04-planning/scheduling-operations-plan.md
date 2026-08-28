@@ -12,8 +12,8 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1, 2, 3, 4, 5 and 6 are locally verified on branch/worktree `scheduling-operations`.
-Latest Phase 3 commit: this documentation clarification commit; use `git log -1` for the exact SHA.
+Status as of 2026-08-28: Tasks 1, 2, 3, 4, 5 and 6 are locally verified and Phase 3 was merged/pushed to `main` at `49a4ff2a`.
+Deployment remediation status: Render deployed `49a4ff2a` and health/login smoke passed, but production scheduling smoke found missing hosted demo baseline data. Remediation commit `58d9ca0e` adds idempotent startup repair for demo catalog/scheduling data and is awaiting push/deploy.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
@@ -29,7 +29,7 @@ Completed during implementation:
 - Task 3 added admin schedule management at `/app/admin/schedules`, including filters, create/update/deactivate controls and admin navigation.
 - Task 4 wired API-mode operations booking to scheduling availability explanation and fixed UTC API timestamp display back to clinic time.
 - Task 5 added API-mode Playwright coverage proving backend schedule blocks disable matching operations booking slots with reason labels.
-- Task 6 reran full local API/Web verification and recorded release evidence. Merge, push and production deploy remain gated on explicit user approval.
+- Task 6 reran full local API/Web verification and recorded release evidence. Merge, push and production deploy were later approved and completed at `49a4ff2a`; scheduling production smoke remains blocked until remediation commit `58d9ca0e` is deployed and verified.
 
 ## Global Constraints
 
@@ -326,7 +326,7 @@ Update readiness, roadmap, release notes, changelog and acceptance checklist wit
 
 Do not push or deploy without explicit user approval. After approval, merge to `main`, push, wait for GitHub Actions/Render, run production smoke, and update docs again.
 
-Prepared gate status: local verification is complete; branch is ready for final review and user-approved merge/push/deploy. No push or deployment has been performed for Phase 3.
+Prepared gate status: completed. Phase 3 was merged and pushed to `main` at `49a4ff2a`; GitHub Actions and Render Deployment passed. Deployment closure is pending the hosted demo baseline remediation deploy and production scheduling smoke.
 
 ## Self-Review
 

@@ -37,7 +37,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
-| Phase 3 Scheduling Operations | Local implementation and verification complete on branch `scheduling-operations`; awaiting final review and user-approved merge/deploy gate | `docs/04-planning/scheduling-operations-plan.md`; API unit `42/42`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9` |
+| Phase 3 Scheduling Operations | Merge/push complete and Render deployed code at `49a4ff2a`; production scheduling smoke found missing demo catalog/scheduling baseline, remediation committed at `58d9ca0e` and awaiting push/deploy | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -171,12 +171,22 @@ Trạng thái verification sau merge:
 - API gate: pass trên configured host PostgreSQL; Docker Compose access vẫn là setup limitation, xem mục `API Verification Gate Sau Merge (Task 2)`.
 - Web gate: pass; unit 130/130, mock-mode Playwright 9/9 và API-mode Playwright 5/5, xem mục `Web Verification Gate Sau Merge (Task 3)`.
 
+## Phase 3 Scheduling Operations Deployment Gate (2026-08-28)
+
+Trạng thái: **deployment remediation in progress**. Phase 3 đã merge vào `main` tại `49a4ff2a` và đã push lên GitHub. GitHub Actions pass cho `49a4ff2a`: API CI, Web CI, Web Pages và Render Deployment đều `completed/success`. Render health trả commit `49a4ff2a6789d2677ea2fdc431d9f877cdbfd01e`.
+
+Production smoke sau deploy:
+
+- Health: pass, production serve đúng `49a4ff2a6789d2677ea2fdc431d9f877cdbfd01e`.
+- Admin login: pass với `admin@careflow.local`; response có `currentUser.role=admin` và session token. Token không được ghi vào tài liệu.
+- Scheduling data smoke: blocked. Production database thiếu baseline catalog/scheduling data: `/services`, `/doctors`, `/specialties`, `/doctor-schedules`, `/appointments` đều trả total `0`; `/availability/slots?serviceId=service-general...` trả `404 service was not found`.
+
+Remediation đã commit tại `58d9ca0e fix(api): repair hosted demo scheduling baseline`: hosted startup repair trong `SERVE_WEB_APP=true` tạo thiếu demo specialties, services, staff, doctors và doctor schedules bằng thao tác idempotent, không reset hoặc xoá user/patient data hiện có. Local RED/GREEN và Prisma smoke đã pass: targeted unit `4/4`, API unit `7/7` suites `43/43`, API E2E `10/10` suites `98/98`, API typecheck/lint/build/audit pass, local repair smoke sau hai lần chạy giữ totals `8` services, `5` doctors, `50` schedules.
+
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Chạy final code review cho branch `scheduling-operations`.
-2. Nếu review sạch hoặc findings đã xử lý, xin approval rõ của người dùng để merge vào `main`, push và deploy.
-3. Sau deploy, smoke Render health/login và scheduling path, rồi cập nhật readiness/release notes lần cuối với deployed commit.
-
-Khuyến nghị: hoàn tất merge/deploy gate cho Phase 3 trước khi mở Phase 4 Production Demo Operations.
-
-Phase 3 implementation branch: `scheduling-operations`. Plan triển khai chính: `docs/04-planning/scheduling-operations-plan.md`.
+1. Push remediation commit `58d9ca0e` lên `origin/main`.
+2. Chờ GitHub Actions và Render Deployment pass cho commit mới.
+3. Chạy production smoke lại: health commit, admin login, `/services`, `/doctors`, `/doctor-schedules`, `/availability/slots` với explanation mode.
+4. Nếu smoke pass, cập nhật readiness/release notes/acceptance checklist để đánh dấu Phase 3 deployed complete.
+5. Sau khi Phase 3 deployed complete, mở kế hoạch Phase 4 Production Demo Operations.
