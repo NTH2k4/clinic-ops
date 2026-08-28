@@ -12,13 +12,19 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: plan created before Phase 3 code. Branch/worktree: `scheduling-operations`. Baseline typecheck passed for API and Web after worktree dependency install.
+Status as of 2026-08-28: Task 1 availability explanation contract is implemented on branch/worktree `scheduling-operations`.
+Latest Phase 3 commit: `d161ab76 fix(api): parse availability explanation flag explicitly`.
+Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
 
 - Phase 2 Account Administration deployed complete on Render at `a52072e1`, including runtime merge `32464b3d`.
 - Phase 2 deployment evidence committed on `main` at `951e21fd`.
 - Phase 3 scope confirmed from roadmap and existing code: backend schedule CRUD exists; frontend management/explanation UI is missing.
+
+Completed during implementation:
+
+- Task 1 added backend availability explanation mode, OpenAPI/docs coverage and regression coverage for explicit `includeUnavailable=false`.
 
 ## Global Constraints
 
@@ -68,7 +74,7 @@ Completed before implementation:
 - Consumes: existing `GET /api/v1/availability/slots?serviceId=&date=&doctorId=`.
 - Produces: optional query `includeUnavailable=true`; response item shape remains available-slot compatible and may include `availabilityStatus`, `reasonCode`, `reasonLabel` for explanation mode.
 
-- [ ] **Step 1: Write failing API E2E for blocked explanation**
+- [x] **Step 1: Write failing API E2E for blocked explanation**
 
 Add a test that creates an admin session, creates a blocked schedule for `doctor-1` on `2026-08-25`, then requests:
 
@@ -78,7 +84,7 @@ GET /api/v1/availability/slots?serviceId=service-general&date=2026-08-25&doctorI
 
 Expected RED: response currently excludes unavailable slots and does not expose `reasonCode`.
 
-- [ ] **Step 2: Write failing API E2E for appointment conflict explanation**
+- [x] **Step 2: Write failing API E2E for appointment conflict explanation**
 
 Seed or create an active appointment for `doctor-1` and assert the matching explained slot has:
 
@@ -89,11 +95,11 @@ Seed or create an active appointment for `doctor-1` and assert the matching expl
 }
 ```
 
-- [ ] **Step 3: Implement backward-compatible DTO parsing**
+- [x] **Step 3: Implement backward-compatible DTO parsing**
 
 Add `includeUnavailable: z.coerce.boolean().optional()` to `availabilityQuerySchema`. Reject explanation mode without `doctorId` with `400 VALIDATION_ERROR` so any-doctor mode does not invent ambiguous reasons.
 
-- [ ] **Step 4: Implement backend explanation mode**
+- [x] **Step 4: Implement backend explanation mode**
 
 Keep default behavior unchanged. For explanation mode:
 
@@ -104,11 +110,11 @@ Keep default behavior unchanged. For explanation mode:
 - Mark remaining available slots as `available`.
 - Return stable labels in Vietnamese: `Còn trống`, `Bác sĩ bị chặn lịch`, `Bác sĩ nghỉ phép`, `Bác sĩ đã có lịch hẹn`.
 
-- [ ] **Step 5: Update OpenAPI and contract docs**
+- [x] **Step 5: Update OpenAPI and contract docs**
 
 Document `includeUnavailable`, `availabilityStatus`, `reasonCode` and `reasonLabel`. Existing available-only examples must remain valid.
 
-- [ ] **Step 6: Verify Task 1**
+- [x] **Step 6: Verify Task 1**
 
 Run:
 
