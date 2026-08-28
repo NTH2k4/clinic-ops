@@ -144,21 +144,19 @@ Add a step before `Wait for Render health`:
 
 ```yaml
       - name: Trigger Render deploy
-        if: env.RENDER_EXTERNAL_URL != '' && env.RENDER_DEPLOY_HOOK_URL != ''
+        if: env.RENDER_EXTERNAL_URL != ''
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL"
+          if [ -z "${RENDER_DEPLOY_HOOK_URL:-}" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL is not configured; waiting for Render auto-deploy or manual deploy."
+            exit 0
+          fi
+          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL" >/dev/null
 ```
 
-Also add job env:
-
-```yaml
-      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-```
-
-Do not print the hook URL.
+Do not add `RENDER_DEPLOY_HOOK_URL` to job-level env. Keep the secret scoped to the trigger step and do not print the hook URL.
 
 - [x] **Step 3: Verify workflow text and YAML-sensitive diff**
 
