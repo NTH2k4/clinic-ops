@@ -13,7 +13,7 @@
 ## Implementation Status
 
 Status as of 2026-08-28: Tasks 1, 2, 3, 4, 5 and 6 are locally verified and Phase 3 was merged/pushed to `main` at `49a4ff2a`.
-Deployment remediation status: Render deployed `49a4ff2a` and health/login smoke passed, but production scheduling smoke found missing hosted demo baseline data. Remediation commit `58d9ca0e` adds idempotent startup repair for demo catalog/scheduling data and was pushed on `main` at `9b8e9799`; API/Web CI passed, but Render Deployment failed because production still served `49a4ff2a`.
+Deployment status: deployed complete on Render at `f6697049`. Remediation commit `58d9ca0e` adds idempotent startup repair for demo catalog/scheduling data; manual Render deploy of latest `main` closed the production smoke gate after auto-deploy did not update production.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
@@ -29,7 +29,7 @@ Completed during implementation:
 - Task 3 added admin schedule management at `/app/admin/schedules`, including filters, create/update/deactivate controls and admin navigation.
 - Task 4 wired API-mode operations booking to scheduling availability explanation and fixed UTC API timestamp display back to clinic time.
 - Task 5 added API-mode Playwright coverage proving backend schedule blocks disable matching operations booking slots with reason labels.
-- Task 6 reran full local API/Web verification and recorded release evidence. Merge, push and production deploy were later approved and completed at `49a4ff2a`; scheduling production smoke remains blocked until latest `main` is manually deployed on Render and verified.
+- Task 6 reran full local API/Web verification and recorded release evidence. Merge, push and production deploy were later approved and completed at `49a4ff2a`; remediation was deployed manually at `f6697049`, and production scheduling smoke passed.
 
 ## Global Constraints
 
@@ -326,7 +326,7 @@ Update readiness, roadmap, release notes, changelog and acceptance checklist wit
 
 Do not push or deploy without explicit user approval. After approval, merge to `main`, push, wait for GitHub Actions/Render, run production smoke, and update docs again.
 
-Prepared gate status: completed. Phase 3 was merged and pushed to `main` at `49a4ff2a`; GitHub Actions and Render Deployment passed for that commit. Hosted demo baseline remediation is pushed at `9b8e9799`, but Render auto-deploy did not update production, so deployment closure is pending manual Render deploy and production scheduling smoke.
+Prepared gate status: completed. Phase 3 was merged and pushed to `main` at `49a4ff2a`; GitHub Actions and Render Deployment passed for that commit. Hosted demo baseline remediation was pushed at `9b8e9799`; Render auto-deploy did not update production, so manual Render deploy of latest `main` closed the deployment gate at `f6697049`.
 
 ## Self-Review
 

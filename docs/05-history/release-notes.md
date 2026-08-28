@@ -2,11 +2,12 @@
 
 ## 2026-08-28 Phase 3 Scheduling Operations Deployment Remediation
 
+- Phase 3 Scheduling Operations is deployed complete on Render at `f66970492103620d021a9bd9041374b9e656d684`, including runtime remediation commit `58d9ca0e`.
 - Phase 3 Scheduling Operations was merged and pushed to `main` at `49a4ff2a`; GitHub Actions API CI, Web CI, Web Pages and Render Deployment completed successfully for that commit. Render health returned `49a4ff2a6789d2677ea2fdc431d9f877cdbfd01e`, and admin login smoke passed.
 - Production scheduling smoke found a data bootstrap blocker, not a runtime deployment failure: the hosted database had no baseline specialties, services, doctors, doctor schedules or appointments, so `/availability/slots?serviceId=service-general...` returned `404 service was not found`.
 - Remediation commit `58d9ca0e fix(api): repair hosted demo scheduling baseline` extends hosted startup repair in `SERVE_WEB_APP=true` mode. It creates missing demo specialties, services, staff, doctors and doctor schedules idempotently with duplicate-safe writes and does not reset or delete user/patient data.
 - Local remediation verification passed: targeted unit RED/GREEN, API typecheck/lint/build/audit, API unit `7/7` suites `43/43`, API E2E `10/10` suites `98/98`, and local Prisma repair smoke confirmed repeated startup repair leaves `8` services, `5` doctors and `50` schedules.
-- Deployment status: remediation was pushed on `main` at `9b8e9799`, API CI and Web CI passed, but Render Deployment failed because production continued serving `49a4ff2a` instead of `9b8e9799`. Manual Render deploy of latest `main` is required before Phase 3 can be marked deployed complete. After deploy, production smoke must verify health commit, admin login, catalog totals and scheduling availability explanation mode.
+- Deployment status: remediation was pushed on `main` at `9b8e9799`, API CI and Web CI passed, but Render Deployment failed because production continued serving `49a4ff2a` instead of `9b8e9799`. Manual Render deploy of latest `main` then succeeded at `f6697049`. Production smoke passed health, admin login, catalog totals and scheduling availability explanation mode.
 
 ## 2026-08-28 Phase 3 Scheduling Operations Local Candidate
 

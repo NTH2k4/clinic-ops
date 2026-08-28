@@ -102,7 +102,7 @@ Exit criteria:
 
 ## Phase 3: Scheduling Operations UI
 
-Trạng thái: merge/push complete at `49a4ff2a`; Render deployed code and health/login smoke passed, but production scheduling smoke found missing hosted demo baseline data. Remediation is pushed on `main` at `9b8e9799`; API/Web CI passed, Render Deployment failed because production still served `49a4ff2a`, so manual Render deploy is required before Phase 3 can be marked deployed complete.
+Trạng thái: deployed complete on Render at `f6697049`, including scheduling baseline remediation `58d9ca0e`. Health/admin login/catalog/scheduling production smoke passed after manual Render deploy of latest `main`.
 
 Mục tiêu:
 
