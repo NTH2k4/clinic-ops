@@ -2,10 +2,11 @@
 
 ## 2026-08-28 Phase 4 Production Demo Operations Candidate
 
-- Phase 4 implementation is in progress on branch `production-demo-operations` after plan approval. Scope covers read-only production smoke automation, optional Render deploy hook trigger, runbook/deployment documentation and final production operations closure.
+- Phase 4 implementation was merged/pushed to `main` at `f9902abc` after plan approval. Scope covers read-only production smoke automation, optional Render deploy hook trigger, runbook/deployment documentation and final production operations closure.
 - Added `scripts/production-smoke.mjs` to verify Render health commit, admin login, catalog totals, doctor schedules and availability explanation mode without logging session tokens. The script revokes its temporary smoke session with `/auth/logout` during cleanup.
 - Updated `Render Deployment` workflow to optionally POST `secrets.RENDER_DEPLOY_HOOK_URL` before polling health. If the secret is absent, workflow behavior remains deployment registration plus health wait.
 - Updated operations docs with manual deploy fallback, failed health wait triage, demo baseline repair guidance and rollback documentation. Render Free and Neon Free remain the deployment target.
+- GitHub Actions for `f9902abc`: API CI and Web CI passed. Render Deployment failed because production health still returned `f66970492103620d021a9bd9041374b9e656d684`; manual Render deploy of latest `main` is required before Phase 4 can be marked deployed complete.
 
 ## 2026-08-28 Phase 3 Scheduling Operations Deployment Remediation
 

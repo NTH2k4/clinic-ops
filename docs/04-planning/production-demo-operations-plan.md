@@ -22,7 +22,7 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: plan created after Phase 3 deployed complete on Render at `f6697049`.
+Status as of 2026-08-28: implementation merged/pushed to `main` at `f9902abc`; production deployment closure is pending manual Render deploy because the health wait still observed `f6697049`.
 
 Relevant production evidence:
 
@@ -249,7 +249,7 @@ git diff --check
 
 Expected: pass.
 
-- [ ] **Step 2: Push after user approval**
+- [x] **Step 2: Push after user approval**
 
 ```bash
 git push origin main
@@ -257,13 +257,13 @@ git push origin main
 
 Expected: push succeeds.
 
-- [ ] **Step 3: Verify GitHub Actions and Render**
+- [x] **Step 3: Verify GitHub Actions and Render**
 
 Check GitHub Actions for latest `main`:
 
-- API CI: success if code paths changed.
-- Web CI: success if web paths changed.
-- Render Deployment: success if workflow path changed and deploy hook/manual deploy makes Render health match latest commit.
+- API CI: success for `f9902abc`.
+- Web CI: success for `f9902abc`.
+- Render Deployment: failed for `f9902abc` because production still served `f6697049`; manual Render deploy is required.
 
 - [ ] **Step 4: Run production smoke**
 

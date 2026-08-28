@@ -38,7 +38,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 | Phase 3 Scheduling Operations | Deployed complete on Render at `f6697049`, including scheduling baseline repair `58d9ca0e` | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`; production health/login/catalog/scheduling smoke pass |
-| Phase 4 Production Demo Operations | Implementation in progress on branch `production-demo-operations`; Tasks 1-3 local docs/script/workflow work underway | `docs/04-planning/production-demo-operations-plan.md`, `scripts/production-smoke.mjs`, `.github/workflows/render-deployment.yml` |
+| Phase 4 Production Demo Operations | Merged/pushed at `f9902abc`; API/Web CI pass, Render Deployment health wait failed because production still serves `f6697049`. Manual Render deploy latest `main` is required to close production smoke. | `docs/04-planning/production-demo-operations-plan.md`, `scripts/production-smoke.mjs`, `.github/workflows/render-deployment.yml` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -188,6 +188,6 @@ GitHub Actions for `9b8e9799`: API CI and Web CI passed. Render Deployment faile
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Complete Phase 4 Task 3 docs verification and commit.
-2. Run final verification for smoke script, workflow docs and production smoke.
-3. Merge/push `production-demo-operations`, then validate GitHub Actions and Render behavior for the latest commit.
+1. Manual deploy latest `main` commit `f9902abc3156c6b54759e3897f62044673a16c3f` on Render.
+2. Run `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com EXPECTED_RENDER_COMMIT=f9902abc3156c6b54759e3897f62044673a16c3f node scripts/production-smoke.mjs`.
+3. If smoke passes, update readiness/release notes/acceptance checklist to mark Phase 4 deployed complete.

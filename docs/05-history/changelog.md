@@ -3,6 +3,7 @@
 ## 2026-08-28
 
 - Implemented Phase 4 Production Demo Operations Tasks 1-3 on branch `production-demo-operations`: added read-only `scripts/production-smoke.mjs`, optional `RENDER_DEPLOY_HOOK_URL` workflow trigger and production runbook/deployment documentation updates. Final merge/deploy closure remains pending.
+- Merged and pushed Phase 4 Production Demo Operations to `main` at `f9902abc`; API CI and Web CI passed. Render Deployment failed because production still served `f6697049`, so manual Render deploy of latest `main` is required for closure.
 - Merged and pushed Phase 3 Scheduling Operations to `main` at `49a4ff2a`; GitHub Actions and Render Deployment passed, and Render health/admin login smoke passed. Scheduling production smoke found missing hosted demo baseline data; remediation was later manually deployed on Render at `f6697049`, and health/admin login/catalog/scheduling smoke passed.
 - Added hosted demo scheduling baseline repair at `58d9ca0e`: startup repair in `SERVE_WEB_APP=true` creates missing specialties, services, staff, doctors and doctor schedules idempotently without resetting users or patients. Local RED/GREEN, API unit `43/43`, API E2E `98/98`, typecheck/lint/build/audit and local Prisma repair smoke passed.
 - Pushed remediation on `main` at `9b8e9799`; API CI and Web CI passed, but Render Deployment failed because production still served `49a4ff2a`, matching the known Render auto-deploy disconnect. Manual Render deploy of latest `main` closed the gate at `f6697049`.
