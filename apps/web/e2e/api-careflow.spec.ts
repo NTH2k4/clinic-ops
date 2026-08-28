@@ -32,7 +32,8 @@ async function registerPatient(page: Page, patient: PatientCredentials) {
   await page.getByLabel("Họ và tên").fill(patient.displayName);
   await page.getByLabel("Email").fill(patient.email);
   await page.getByLabel("Số điện thoại").fill(patient.phone);
-  await page.getByLabel("Mật khẩu").fill(patient.password);
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(patient.password);
+  await page.getByLabel("Xác nhận mật khẩu").fill(patient.password);
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
 }
 
