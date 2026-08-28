@@ -135,7 +135,7 @@ describe("Auth and RBAC", () => {
           displayName: "Nguyen Patient",
           email,
           phone,
-          password: "careflow-demo-123",
+          password: "Careflow#123",
         })
         .expect(201)
         .expect((response) => {
@@ -164,7 +164,7 @@ describe("Auth and RBAC", () => {
         role: UserRole.patient,
         status: "active",
       });
-      expect(user.passwordHash).not.toBe("careflow-demo-123");
+      expect(user.passwordHash).not.toBe("Careflow#123");
       expect(user.patient).toMatchObject({
         fullName: "Nguyen Patient",
         email,
@@ -196,7 +196,7 @@ describe("Auth and RBAC", () => {
           displayName: "Bad Role",
           email,
           phone,
-          password: "careflow-demo-123",
+          password: "Careflow#123",
           role: "admin",
         })
         .expect(400)
@@ -389,7 +389,7 @@ describe("Auth and RBAC", () => {
       await request(server)
         .post("/api/v1/auth/change-password")
         .set("Authorization", authorization)
-        .send({ newPassword: "custom-password-456" })
+        .send({ newPassword: "Custom#456" })
         .expect(400)
         .expect((response) => {
           const parsed = errorResponseSchema.parse(response.body);
@@ -400,7 +400,7 @@ describe("Auth and RBAC", () => {
       await request(server)
         .post("/api/v1/auth/change-password")
         .set("Authorization", authorization)
-        .send({ currentPassword: "custom-password", newPassword: "custom-password-456", extra: "not-allowed" })
+        .send({ currentPassword: "custom-password", newPassword: "Custom#456", extra: "not-allowed" })
         .expect(400)
         .expect((response) => {
           const parsed = errorResponseSchema.parse(response.body);
@@ -411,7 +411,7 @@ describe("Auth and RBAC", () => {
       await request(server)
         .post("/api/v1/auth/change-password")
         .set("Authorization", authorization)
-        .send({ currentPassword: "incorrect-password", newPassword: "custom-password-456" })
+        .send({ currentPassword: "incorrect-password", newPassword: "Custom#456" })
         .expect(401)
         .expect((response) => {
           const parsed = errorResponseSchema.parse(response.body);
@@ -427,27 +427,29 @@ describe("Auth and RBAC", () => {
   it("rejects a new password that reuses the current credential", async () => {
     const { app, server } = await createApp();
     const email = `password-reuse-${Date.now()}@careflow.local`;
+    const reusablePassword = "Custom#123";
+    const reusablePasswordHash = await bcrypt.hash(reusablePassword, 10);
 
     try {
       await prisma.user.create({
         data: {
           displayName: "Password Reuse User",
           email,
-          passwordHash: customPasswordHash,
+          passwordHash: reusablePasswordHash,
           role: UserRole.patient,
           status: "active",
         },
       });
       const loginResponse = await request(server)
         .post("/api/v1/auth/login")
-        .send({ email, password: "custom-password" })
+        .send({ email, password: reusablePassword })
         .expect(201);
       const login = loginResponseSchema.parse(loginResponse.body);
 
       await request(server)
         .post("/api/v1/auth/change-password")
         .set("Authorization", `Bearer ${login.data.sessionToken}`)
-        .send({ currentPassword: "custom-password", newPassword: "custom-password" })
+        .send({ currentPassword: reusablePassword, newPassword: reusablePassword })
         .expect(400)
         .expect((response) => {
           const parsed = errorResponseSchema.parse(response.body);
@@ -459,7 +461,7 @@ describe("Auth and RBAC", () => {
         .get("/api/v1/auth/me")
         .set("Authorization", `Bearer ${login.data.sessionToken}`)
         .expect(200);
-      await expect(prisma.user.findUniqueOrThrow({ where: { email } })).resolves.toMatchObject({ passwordHash: customPasswordHash });
+      await expect(prisma.user.findUniqueOrThrow({ where: { email } })).resolves.toMatchObject({ passwordHash: reusablePasswordHash });
     } finally {
       await prisma.user.deleteMany({ where: { email } });
       await app.close();
@@ -469,7 +471,7 @@ describe("Auth and RBAC", () => {
   it("changes a password, revokes active sessions, and allows login with the new password", async () => {
     const { app, server } = await createApp();
     const email = `password-change-${Date.now()}@careflow.local`;
-    const newPassword = "custom-password-456";
+    const newPassword = "Custom#456";
 
     try {
       await prisma.user.create({
@@ -557,7 +559,7 @@ describe("Auth and RBAC", () => {
       await request(server)
         .post("/api/v1/auth/change-password")
         .set("Authorization", `Bearer ${login.data.sessionToken}`)
-        .send({ currentPassword: "custom-password", newPassword: "custom-password-456" })
+        .send({ currentPassword: "custom-password", newPassword: "Custom#456" })
         .expect(401);
 
       const userAfterAttempt = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
@@ -596,12 +598,12 @@ describe("Auth and RBAC", () => {
       await request(server)
         .post("/api/v1/auth/change-password")
         .set("Authorization", `Bearer ${login.data.sessionToken}`)
-        .send({ currentPassword: "custom-password", newPassword: "custom-password-456" })
+        .send({ currentPassword: "custom-password", newPassword: "Custom#456" })
         .expect(401);
 
       const userAfterAttempt = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
       expect(userAfterAttempt.status).toBe("locked");
-      await expect(bcrypt.compare("custom-password-456", userAfterAttempt.passwordHash)).resolves.toBe(false);
+      await expect(bcrypt.compare("Custom#456", userAfterAttempt.passwordHash)).resolves.toBe(false);
     } finally {
       await prisma.user.deleteMany({ where: { email } });
       await app.close();
@@ -611,7 +613,7 @@ describe("Auth and RBAC", () => {
   it("revokes a delayed old-password login session when the password changes concurrently", async () => {
     const { app, server } = await createApp();
     const email = `password-change-race-${Date.now()}@careflow.local`;
-    const newPassword = "custom-password-456";
+    const newPassword = "Custom#456";
 
     try {
       await prisma.user.create({

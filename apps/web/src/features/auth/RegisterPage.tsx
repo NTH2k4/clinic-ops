@@ -1,4 +1,4 @@
-import { Stethoscope } from "lucide-react";
+import { Eye, EyeOff, Stethoscope } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
@@ -13,6 +13,9 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isApiMode) {
@@ -21,6 +24,13 @@ export function RegisterPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setFormError("");
+
+    if (password !== confirmPassword) {
+      setFormError("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+
     setIsSubmitting(true);
     const registeredUser = await register({ displayName, email, phone, password });
     setIsSubmitting(false);
@@ -55,11 +65,21 @@ export function RegisterPage() {
             Số điện thoại
             <input autoComplete="tel" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="register-phone" onChange={(event) => setPhone(event.target.value)} required type="tel" value={phone} />
           </label>
-          <label className="grid gap-1 text-sm font-medium text-text" htmlFor="register-password">
-            Mật khẩu
-            <input autoComplete="new-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="register-password" minLength={8} onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
-          </label>
-          {authError ? <p className="text-sm text-danger" role="alert">{authError}</p> : null}
+          <div className="grid gap-2">
+            <label className="grid gap-1 text-sm font-medium text-text" htmlFor="register-password">
+              Mật khẩu
+              <input autoComplete="new-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="register-password" minLength={10} onChange={(event) => setPassword(event.target.value)} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+" required title="Mật khẩu cần có ít nhất 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt." type={showPassword ? "text" : "password"} value={password} />
+            </label>
+            <label className="grid gap-1 text-sm font-medium text-text" htmlFor="register-confirm-password">
+              Xác nhận mật khẩu
+              <input autoComplete="new-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="register-confirm-password" minLength={10} onChange={(event) => setConfirmPassword(event.target.value)} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+" required title="Nhập lại đúng mật khẩu đã chọn." type={showPassword ? "text" : "password"} value={confirmPassword} />
+            </label>
+            <button aria-label={showPassword ? "Ẩn mật khẩu đăng ký" : "Hiện mật khẩu đăng ký"} className="inline-flex h-9 w-fit items-center gap-2 rounded-md border border-border px-3 text-sm font-semibold text-text-muted hover:border-border-strong hover:bg-surface-muted hover:text-text" onClick={() => setShowPassword((visible) => !visible)} type="button">
+              {showPassword ? <EyeOff aria-hidden="true" size={16} /> : <Eye aria-hidden="true" size={16} />}
+              {showPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
+          {formError || authError ? <p className="text-sm text-danger" role="alert">{formError || authError}</p> : null}
           <button className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
             Tạo tài khoản
           </button>

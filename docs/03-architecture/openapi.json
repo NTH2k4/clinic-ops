@@ -1159,7 +1159,7 @@
           "displayName": { "type": "string", "minLength": 1, "maxLength": 200 },
           "email": { "type": "string", "format": "email" },
           "phone": { "type": "string", "minLength": 1, "maxLength": 30 },
-          "password": { "type": "string", "minLength": 8, "maxLength": 72, "description": "Maximum 72 UTF-8 bytes." }
+          "password": { "type": "string", "minLength": 10, "maxLength": 72, "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$", "description": "Requires uppercase, lowercase, number, special character, and maximum 72 UTF-8 bytes." }
         }
       },
       "ChangePasswordRequest": {
@@ -1168,7 +1168,7 @@
         "required": ["currentPassword", "newPassword"],
         "properties": {
           "currentPassword": { "type": "string", "minLength": 1, "maxLength": 72, "description": "Maximum 72 UTF-8 bytes." },
-          "newPassword": { "type": "string", "minLength": 8, "maxLength": 72, "description": "Maximum 72 UTF-8 bytes." }
+          "newPassword": { "type": "string", "minLength": 10, "maxLength": 72, "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$", "description": "Requires uppercase, lowercase, number, special character, and maximum 72 UTF-8 bytes." }
         }
       },
       "AuthSessionEnvelope": {

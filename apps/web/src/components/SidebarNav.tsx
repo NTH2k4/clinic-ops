@@ -15,7 +15,7 @@ export function SidebarNav({ collapsed, onCollapsedChange }: SidebarNavProps) {
   const toggleLabel = collapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng";
 
   return (
-    <aside className={`hidden shrink-0 border-r border-border bg-white/90 shadow-panel backdrop-blur transition-[width] duration-200 md:flex md:flex-col ${collapsed ? "w-20" : "w-64"}`}>
+    <aside className={`sticky top-0 hidden h-screen shrink-0 border-r border-border bg-white/90 shadow-panel backdrop-blur transition-[width] duration-200 md:flex md:flex-col ${collapsed ? "w-20" : "w-64"}`}>
       <div className={`flex h-16 items-center border-b border-border px-3 text-primary ${collapsed ? "justify-center" : "justify-between gap-3"}`}>
         {collapsed ? null : (
           <div className="flex min-w-0 items-center gap-2">

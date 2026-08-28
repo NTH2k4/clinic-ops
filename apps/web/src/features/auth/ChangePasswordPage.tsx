@@ -38,7 +38,7 @@ export function ChangePasswordPage() {
         </label>
         <label className="grid gap-1 text-sm font-medium text-text" htmlFor="new-password">
           Mật khẩu mới
-          <input autoComplete="new-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="new-password" minLength={8} onChange={(event) => setNewPassword(event.target.value)} required type="password" value={newPassword} />
+          <input autoComplete="new-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="new-password" minLength={10} onChange={(event) => setNewPassword(event.target.value)} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+" required title="Mật khẩu cần có ít nhất 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt." type="password" value={newPassword} />
         </label>
         {authError ? <p className="text-sm text-danger" role="alert">{authError}</p> : null}
         <button className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">

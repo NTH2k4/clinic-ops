@@ -103,8 +103,8 @@ The API uses stored password hashes and bearer sessions:
 - `SessionGuard` attaches `currentUser` and `linkedProfile` to the request.
 - `POST /auth/logout` revokes the token by setting `revokedAt`.
 - `GET /auth/me` returns the current user and linked profile.
-- `POST /auth/register` accepts only patient registration fields, creates an `active` user and patient profile transactionally, then returns a new bearer session.
-- `POST /auth/change-password` verifies the current password, updates its bcrypt hash and revokes every active session for that user, including the calling session.
+- `POST /auth/register` accepts only patient registration fields, enforces the new-password policy, creates an `active` user and patient profile transactionally, then returns a new bearer session.
+- `POST /auth/change-password` verifies the current password, enforces the new-password policy, updates its bcrypt hash and revokes every active session for that user, including the calling session.
 
 This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. External email reset and SSO remain outside v1.
 

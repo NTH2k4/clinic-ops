@@ -18,13 +18,22 @@ CareFlow v1 is a Render-hosted clinic operations demo with React/Vite frontend, 
 | Item | Value |
 | --- | --- |
 | Production URL | `https://clinic-ops.onrender.com` |
-| Demo admin email | `admin@careflow.local` |
-| Demo admin password | `careflow-demo` |
+| Demo password | `careflow-demo` |
 | Hosted infrastructure | Render Free Web Service + Neon PostgreSQL |
 | Deployed smoke commit | `05ebf87b00399bbdc677a3668fa107152d10620e` |
 | Initial Phase 5 docs package commit | `8157b224f81e7910f0f404d7711d9e60f17ef404` |
 
 Do not enter real patient data in this environment.
+
+Seeded demo accounts:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Patient | `patient@careflow.local` | `careflow-demo` |
+| Doctor | `minh.nguyen@careflow.local` | `careflow-demo` |
+| Receptionist | `reception@careflow.local` | `careflow-demo` |
+| Nurse | `nurse@careflow.local` | `careflow-demo` |
+| Admin | `admin@careflow.local` | `careflow-demo` |
 
 ## Verification Evidence
 

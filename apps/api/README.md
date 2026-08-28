@@ -142,13 +142,14 @@ The current auth flow uses stored password hashes and durable API sessions:
 
 - `POST /auth/login` verifies the submitted password against `User.passwordHash` with bcrypt.
 - Seeded demo users still use password `careflow-demo`.
+- New passwords submitted through registration or password change must contain at least 10 characters, uppercase, lowercase, number and special character, and must stay within bcrypt's 72-byte UTF-8 limit.
 - The API creates a random bearer session token and stores only its SHA-256 hash in PostgreSQL in `AuthSession`.
 - Sessions expire after 12 hours.
 - Protected endpoints require `Authorization: Bearer <sessionToken>`.
 - `POST /auth/logout` revokes the persisted session by setting `revokedAt`.
 - Restarting the API process does not invalidate unexpired, unrevoked sessions.
 
-This model is sufficient for the v1 production-like demo. The next account slice is patient registration, authenticated password change, admin reset and admin lock/unlock flows; external email reset and SSO remain outside v1.
+This model is sufficient for the v1 production-like demo. Patient registration, authenticated password change, admin reset and admin lock/unlock flows are implemented; external email reset and SSO remain outside v1.
 
 ## Browser CORS
 

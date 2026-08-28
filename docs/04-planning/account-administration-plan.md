@@ -93,7 +93,7 @@ await request(server)
     displayName: "Nguyen Patient",
     email: "new.patient@example.test",
     phone: "+84919990001",
-    password: "careflow-demo-123",
+    password: "Careflow#123",
   })
   .expect(201);
 
@@ -103,7 +103,7 @@ await request(server)
     displayName: "Bad Role",
     email: "bad.role@example.test",
     phone: "+84919990002",
-    password: "careflow-demo-123",
+    password: "Careflow#123",
     role: "admin",
   })
   .expect(400);
@@ -167,7 +167,7 @@ Request shape:
 ```json
 {
   "currentPassword": "careflow-demo",
-  "newPassword": "careflow-demo-456"
+  "newPassword": "Careflow#124"
 }
 ```
 

@@ -135,9 +135,9 @@ describe("auth API", () => {
       displayName: "New Patient",
       email: "new.patient@example.test",
       phone: "+84919990001",
-      password: "new-password",
+      password: "Careflow#123",
     })).resolves.toMatchObject({ sessionToken: "session-1", currentUser });
-    await expect(authApi.changePassword({ currentPassword: "secret", newPassword: "new-password" })).resolves.toBeUndefined();
+    await expect(authApi.changePassword({ currentPassword: "secret", newPassword: "Careflow#124" })).resolves.toBeUndefined();
     await expect(authApi.logout()).resolves.toBeUndefined();
     await expect(authApi.me()).resolves.toEqual(session);
 
@@ -151,12 +151,12 @@ describe("auth API", () => {
         displayName: "New Patient",
         email: "new.patient@example.test",
         phone: "+84919990001",
-        password: "new-password",
+        password: "Careflow#123",
       }),
     });
     expect(request).toHaveBeenNthCalledWith(3, "/auth/change-password", {
       method: "POST",
-      body: JSON.stringify({ currentPassword: "secret", newPassword: "new-password" }),
+      body: JSON.stringify({ currentPassword: "secret", newPassword: "Careflow#124" }),
     });
     expect(request).toHaveBeenNthCalledWith(4, "/auth/logout", { method: "POST" });
     expect(request).toHaveBeenNthCalledWith(5, "/auth/me");

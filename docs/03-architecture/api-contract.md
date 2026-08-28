@@ -100,19 +100,19 @@ Common error codes:
   "displayName": "Nguyen Patient",
   "email": "patient@example.test",
   "phone": "+84919990001",
-  "password": "mat-khau-it-nhat-8-ky-tu"
+  "password": "Careflow#123"
 }
 ```
 
 Response `201` có cùng `data` shape với login, bao gồm `sessionToken`, `currentUser` và patient `linkedProfile`.
-Password cho login, registration và password change phải dài tối đa 72 byte UTF-8 do bcrypt; password mới cũng phải khác credential hiện tại.
+Password mới cho registration và password change phải có ít nhất 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt, đồng thời dài tối đa 72 byte UTF-8 do bcrypt. Password login của tài khoản demo seed vẫn là `careflow-demo`. Password mới cũng phải khác credential hiện tại.
 
 `POST /auth/change-password` request:
 
 ```json
 {
   "currentPassword": "mat-khau-cu",
-  "newPassword": "mat-khau-moi-it-nhat-8-ky-tu"
+  "newPassword": "Careflow#124"
 }
 ```
 
