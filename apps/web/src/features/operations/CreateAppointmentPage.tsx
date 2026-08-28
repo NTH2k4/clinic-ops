@@ -11,9 +11,26 @@ import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
 import { patientQueryOptions, patientService } from "../patients/patientService";
+import { schedulingQueryOptions } from "../scheduling/schedulingService";
+import type { AvailabilitySlot } from "../scheduling/schedulingService";
 
 const OPERATIONS_DATE = "2026-08-26";
 const appointmentTimes = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
+const availabilityReasonLabels = {
+  appointment_conflict: "Bác sĩ đã có lịch hẹn",
+  blocked: "Bác sĩ bị chặn lịch",
+  leave: "Bác sĩ nghỉ phép",
+} as const;
+
+function timeFromSlot(slot: AvailabilitySlot): string {
+  return slot.startAt.match(/T(\d{2}:\d{2})/)?.[1] ?? slot.startAt;
+}
+
+function unavailableReason(slot: AvailabilitySlot): string {
+  if (slot.reasonLabel) return slot.reasonLabel;
+  if (slot.reasonCode && slot.reasonCode !== "available") return availabilityReasonLabels[slot.reasonCode] ?? "Không khả dụng";
+  return "Không khả dụng";
+}
 
 export function CreateAppointmentPage() {
   return <AppointmentCreationForm />;
@@ -44,10 +61,32 @@ function AppointmentCreationForm() {
   const matches = useMemo(() => search.trim() ? patientResponse?.data ?? [] : [], [patientResponse?.data, search]);
   const selectedService = services.find((service) => service.id === serviceId);
   const doctors = doctorResponse?.data ?? [];
+  const availabilityQueryEnabled = Boolean(isApiMode && selectedService && doctorId && date);
+  const { data: availabilityResponse, isError: isAvailabilityError, isLoading: isAvailabilityLoading } = useQuery({
+    ...schedulingQueryOptions.availability({
+      serviceId: serviceId || "__pending-service__",
+      doctorId: doctorId || "__pending-doctor__",
+      date,
+      includeUnavailable: true,
+      page: 1,
+      pageSize: 100,
+    }),
+    enabled: availabilityQueryEnabled,
+  });
   const actorUserId = user?.id ?? "user-receptionist-1";
+  const apiTimeOptions = useMemo(() => (availabilityResponse?.data ?? []).map((slot) => {
+    const slotTime = timeFromSlot(slot);
+    const isUnavailable = slot.availabilityStatus === "unavailable";
+    return {
+      disabled: isUnavailable,
+      label: isUnavailable ? `${slotTime} - ${unavailableReason(slot)}` : slotTime,
+      time: slotTime,
+    };
+  }), [availabilityResponse?.data]);
+  const selectedApiTimeOption = apiTimeOptions.find((option) => option.time === time);
   const isSelectedSlotAvailable = Boolean(selectedService && doctorId && time
-    && (isApiMode || isDoctorAvailableForSlot(doctorId, date, time, selectedService.durationMinutes)));
-  const canSubmit = Boolean(selectedPatient && serviceId && doctorId && date && time && isSelectedSlotAvailable && !created && !isSubmitting);
+    && (isApiMode ? selectedApiTimeOption && !selectedApiTimeOption.disabled : isDoctorAvailableForSlot(doctorId, date, time, selectedService.durationMinutes)));
+  const canSubmit = Boolean(selectedPatient && serviceId && doctorId && date && time && isSelectedSlotAvailable && !created && !isSubmitting && !isAvailabilityLoading);
 
   function selectPatient(patient: Patient) {
     setSelectedPatient(patient);
@@ -68,6 +107,10 @@ function AppointmentCreationForm() {
 
   async function submit() {
     if (!selectedPatient || !selectedService || !doctorId || !date || !time || created || isSubmitting) return;
+    if (isApiMode && (!selectedApiTimeOption || selectedApiTimeOption.disabled)) {
+      setError("Khung giờ đã chọn không khả dụng.");
+      return;
+    }
     if (!isApiMode && !isDoctorAvailableForSlot(doctorId, date, time, selectedService.durationMinutes)) {
       setError("Khung giờ đã chọn không khả dụng.");
       return;
@@ -122,8 +165,10 @@ function AppointmentCreationForm() {
             <legend className="px-1 text-base font-semibold text-text">3. Chọn thời gian</legend>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <ClinicDateField id="operations-create-date" label="Ngày khám" labelClassName="text-sm font-medium text-text" onChange={(nextDate) => { setDate(nextDate); setTime(""); setCreated(null); }} value={date} />
-              <label className="text-sm font-medium text-text">Giờ khám<select className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" disabled={!selectedService || !doctorId} onChange={(event) => { setTime(event.target.value); setCreated(null); }} value={time}><option value="">Chọn giờ</option>{appointmentTimes.map((appointmentTime) => <option disabled={!selectedService || !doctorId || (!isApiMode && !isDoctorAvailableForSlot(doctorId, date, appointmentTime, selectedService.durationMinutes))} key={appointmentTime} value={appointmentTime}>{appointmentTime}</option>)}</select></label>
+              <label className="text-sm font-medium text-text">Giờ khám<select className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" disabled={!selectedService || !doctorId || (isApiMode && isAvailabilityLoading)} onChange={(event) => { setTime(event.target.value); setCreated(null); }} value={time}><option value="">Chọn giờ</option>{isApiMode ? apiTimeOptions.map((option) => <option disabled={option.disabled} key={option.time} value={option.time}>{option.label}</option>) : appointmentTimes.map((appointmentTime) => <option disabled={!selectedService || !doctorId || !isDoctorAvailableForSlot(doctorId, date, appointmentTime, selectedService.durationMinutes)} key={appointmentTime} value={appointmentTime}>{appointmentTime}</option>)}</select></label>
             </div>
+            {isApiMode && isAvailabilityLoading ? <p className="mt-3 text-sm text-text-muted">Đang tải khung giờ khả dụng...</p> : null}
+            {isApiMode && isAvailabilityError ? <p className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert">Không thể tải khung giờ khả dụng.</p> : null}
             <p className="mt-3 text-sm text-text-muted">Chỉ các khung giờ còn khả dụng theo lịch làm việc và lịch hẹn hiện có mới được chọn.</p>
           </fieldset>
         </div>

@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CreateAppointmentPage } from "./CreateAppointmentPage";
 import { OperationsCalendar } from "./OperationsCalendar";
@@ -153,6 +153,107 @@ describe("operations workspace", () => {
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
     await setClinicDateDay(user, "Ngày khám", 25);
     expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "08:00" })).toBeDisabled();
+  });
+
+  it("shows API-mode unavailable staff booking slots disabled with their scheduling reason", async () => {
+    const user = userEvent.setup();
+    const availabilityQueryOptions = vi.fn(() => ({
+      queryKey: ["scheduling", "availability", "test"],
+      queryFn: vi.fn().mockResolvedValue({
+        data: [
+          {
+            doctorId: "doctor-1",
+            serviceId: "service-general",
+            startAt: "2026-08-26T09:00:00+07:00",
+            endAt: "2026-08-26T09:30:00+07:00",
+            availabilityStatus: "unavailable",
+            reasonCode: "blocked",
+            reasonLabel: "Bác sĩ bị chặn lịch",
+          },
+          {
+            doctorId: "doctor-1",
+            serviceId: "service-general",
+            startAt: "2026-08-26T09:30:00+07:00",
+            endAt: "2026-08-26T10:00:00+07:00",
+            availabilityStatus: "available",
+            reasonCode: "available",
+            reasonLabel: "Còn trống",
+          },
+        ],
+        meta: { requestId: "test", page: 1, pageSize: 100, total: 2 },
+      }),
+    }));
+    vi.resetModules();
+    vi.doMock("../../lib/dataSource", () => ({
+      apiBaseUrl: "/api/v1",
+      dataSource: "api",
+      isApiMode: true,
+    }));
+    vi.doMock("../catalog/catalogService", () => ({
+      catalogQueryOptions: {
+        allServices: vi.fn(() => ({
+          queryKey: ["catalog", "services", "test"],
+          queryFn: vi.fn(),
+          initialData: {
+            data: [{ id: "service-general", name: "Khám tổng quát", durationMinutes: 30 }],
+            meta: { requestId: "test", page: 1, pageSize: 20, total: 1 },
+          },
+        })),
+        allDoctors: vi.fn(() => ({
+          queryKey: ["catalog", "doctors", "test"],
+          queryFn: vi.fn(),
+          initialData: {
+            data: [{ id: "doctor-1", fullName: "BS. Tran Quang Huy", status: "active", serviceIds: ["service-general"] }],
+            meta: { requestId: "test", page: 1, pageSize: 20, total: 1 },
+          },
+        })),
+      },
+    }));
+    vi.doMock("../patients/patientService", () => ({
+      patientQueryOptions: {
+        list: vi.fn(() => ({
+          queryKey: ["patients", "test"],
+          queryFn: vi.fn(),
+          initialData: {
+            data: [],
+            meta: { requestId: "test", page: 1, pageSize: 100, total: 0 },
+          },
+        })),
+      },
+      patientService: { createPatient: vi.fn() },
+    }));
+    vi.doMock("../scheduling/schedulingService", () => ({
+      schedulingQueryOptions: {
+        availability: availabilityQueryOptions,
+      },
+    }));
+    try {
+      const [{ CreateAppointmentPage: ApiCreateAppointmentPage }, { renderWithProviders: renderApiWithProviders }] = await Promise.all([
+        import("./CreateAppointmentPage"),
+        import("../../test/render"),
+      ]);
+
+      renderApiWithProviders(<ApiCreateAppointmentPage />);
+      await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-general");
+      await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-1");
+
+      const timeSelect = screen.getByLabelText("Giờ khám");
+      expect(availabilityQueryOptions).toHaveBeenLastCalledWith({
+        serviceId: "service-general",
+        doctorId: "doctor-1",
+        date: "2026-08-26",
+        includeUnavailable: true,
+        page: 1,
+        pageSize: 100,
+      });
+      await waitFor(() => expect(within(timeSelect).getByRole("option", { name: "09:00 - Bác sĩ bị chặn lịch" })).toBeDisabled());
+      expect(within(timeSelect).getByRole("option", { name: "09:30" })).toBeEnabled();
+    } finally {
+      vi.doUnmock("../../lib/dataSource");
+      vi.doUnmock("../catalog/catalogService");
+      vi.doUnmock("../patients/patientService");
+      vi.doUnmock("../scheduling/schedulingService");
+    }
   });
 
   it("surfaces API-mode unavailable slot reasons from the scheduling boundary", async () => {
