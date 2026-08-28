@@ -34,8 +34,12 @@ export const availabilityQuerySchema = z.object({
   serviceId: identifier,
   date: dateOnlySchema,
   doctorId: identifier.optional(),
+  includeUnavailable: z.coerce.boolean().optional(),
   ...paginationFields,
-}).strict();
+}).strict().refine((query) => !query.includeUnavailable || Boolean(query.doctorId), {
+  message: "doctorId is required when includeUnavailable is true.",
+  path: ["doctorId"],
+});
 
 export const scheduleCreateSchema = z.object(scheduleFields).strict().refine(validScheduleRange, {
   message: "schedule start/end range is invalid.",

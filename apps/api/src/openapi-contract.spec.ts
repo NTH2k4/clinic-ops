@@ -181,6 +181,23 @@ describe("OpenAPI contract", () => {
     expect(spec.paths?.["/api/v1/doctor-schedules/{id}/deactivate"]?.post?.responses).toHaveProperty("201");
   });
 
+  it("documents availability explanation mode", () => {
+    const parameterRefs = spec.paths?.["/api/v1/availability/slots"]?.get?.parameters?.map((parameter) => parameter.$ref ?? parameter.name);
+    expect(parameterRefs).toEqual(expect.arrayContaining(["#/components/parameters/IncludeUnavailable"]));
+    expect(spec.components?.parameters?.IncludeUnavailable?.schema).toEqual({ type: "boolean", default: false });
+    expect(spec.paths?.["/api/v1/availability/slots"]?.get?.responses?.["200"]?.$ref).toBe("#/components/responses/AvailabilitySlotList");
+
+    const slot = spec.components?.schemas?.AvailabilitySlot;
+    expect(slot?.required).toEqual(["doctorId", "serviceId", "startAt", "endAt"]);
+    expect(slot?.properties?.availabilityStatus).toEqual({ enum: ["available", "unavailable"] });
+    expect(slot?.properties?.reasonCode).toEqual({ enum: ["available", "blocked", "leave", "appointment_conflict"] });
+    expect(slot?.properties?.reasonLabel).toEqual({ type: "string" });
+    expect(spec.components?.schemas?.AvailabilitySlotListEnvelope?.properties?.data).toEqual({
+      type: "array",
+      items: { $ref: "#/components/schemas/AvailabilitySlot" },
+    });
+  });
+
   it("matches patient DTO constraints", () => {
     const patientCreate = spec.components?.schemas?.PatientCreateRequest;
     expect(patientCreate?.required).toEqual(["fullName", "phone"]);

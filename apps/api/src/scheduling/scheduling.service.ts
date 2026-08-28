@@ -14,6 +14,23 @@ const activeAppointmentStatuses = [
   "checked_in",
   "in_progress",
 ] as const;
+const availabilityReasonLabels = {
+  available: "Còn trống",
+  blocked: "Bác sĩ bị chặn lịch",
+  leave: "Bác sĩ nghỉ phép",
+  appointment_conflict: "Bác sĩ đã có lịch hẹn",
+} as const;
+
+type AvailabilityReasonCode = keyof typeof availabilityReasonLabels;
+type AvailabilitySlot = {
+  doctorId: string;
+  serviceId: string;
+  startAt: Date;
+  endAt: Date;
+  availabilityStatus?: "available" | "unavailable";
+  reasonCode?: AvailabilityReasonCode;
+  reasonLabel?: (typeof availabilityReasonLabels)[AvailabilityReasonCode];
+};
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: clinicTimeZone,
@@ -112,10 +129,12 @@ export class SchedulingService {
     });
   }
 
-  async availability(query: AvailabilityQuery) {
+  async availability(query: AvailabilityQuery): Promise<{ items: AvailabilitySlot[]; total: number }> {
     const service = await this.prisma.service.findUnique({ where: { id: query.serviceId } });
     if (!service) throw new ApiError(404, "NOT_FOUND", "service was not found.");
     if (service.status !== ServiceStatus.active) throw new ApiError(409, "SERVICE_INACTIVE", "service is not active.");
+
+    if (query.includeUnavailable) return this.explainedAvailability(query, service.durationMinutes);
 
     const date = this.date(query.date);
     const schedules = await this.prisma.doctorSchedule.findMany({
@@ -132,7 +151,7 @@ export class SchedulingService {
     });
 
     const candidateStarts = [...new Set(schedules.flatMap((schedule) => this.starts(query.date, schedule.startTime, schedule.endTime, service.durationMinutes)))].sort();
-    const slots: Array<{ doctorId: string; serviceId: string; startAt: Date; endAt: Date }> = [];
+    const slots: AvailabilitySlot[] = [];
     for (const startAtIso of candidateStarts) {
       try {
         const slot = await this.conflicts.assertSlotAvailable({
@@ -148,6 +167,73 @@ export class SchedulingService {
 
     const start = (query.page - 1) * query.pageSize;
     return { items: slots.slice(start, start + query.pageSize), total: slots.length };
+  }
+
+  private async explainedAvailability(query: AvailabilityQuery, durationMinutes: number): Promise<{ items: AvailabilitySlot[]; total: number }> {
+    if (!query.doctorId) throw new ApiError(400, "VALIDATION_ERROR", "doctorId is required when includeUnavailable is true.", { doctorId: "Required" });
+    const doctorId = query.doctorId;
+
+    const date = this.date(query.date);
+    const dayOfWeek = this.dayOfWeek(query.date);
+    const schedules = await this.prisma.doctorSchedule.findMany({
+      where: {
+        doctorId,
+        status: AccountStatus.active,
+        dayOfWeek,
+        effectiveFrom: { lte: date },
+        effectiveTo: { gte: date },
+        doctor: { status: DoctorStatus.active, services: { some: { id: query.serviceId } } },
+      },
+      orderBy: [{ startTime: "asc" }, { type: "asc" }, { id: "asc" }],
+    });
+    const workingSchedules = schedules.filter((schedule) => schedule.type === ScheduleType.working);
+    const unavailableSchedules = schedules.filter((schedule) => schedule.type === ScheduleType.blocked || schedule.type === ScheduleType.leave);
+    const candidateStarts = [...new Set(workingSchedules.flatMap((schedule) => this.starts(query.date, schedule.startTime, schedule.endTime, durationMinutes)))].sort();
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        doctorId,
+        status: { in: [...activeAppointmentStatuses] },
+        startAt: { lt: new Date(`${query.date}T23:59:59.999+07:00`) },
+        endAt: { gt: new Date(`${query.date}T00:00:00.000+07:00`) },
+      },
+      select: { startAt: true, endAt: true },
+    });
+
+    const slots = candidateStarts.map((startAtIso) => {
+      const startAt = new Date(startAtIso);
+      const endAt = new Date(startAt.getTime() + durationMinutes * 60 * 1000);
+      const localStart = this.localDateTime(startAt);
+      const localEnd = this.localDateTime(endAt);
+      const reasonCode = this.availabilityReason(localStart.minutes, localEnd.minutes, unavailableSchedules, appointments, startAt, endAt);
+      return {
+        doctorId,
+        serviceId: query.serviceId,
+        startAt,
+        endAt,
+        availabilityStatus: reasonCode === "available" ? "available" as const : "unavailable" as const,
+        reasonCode,
+        reasonLabel: availabilityReasonLabels[reasonCode],
+      };
+    });
+    const start = (query.page - 1) * query.pageSize;
+    return { items: slots.slice(start, start + query.pageSize), total: slots.length };
+  }
+
+  private availabilityReason(
+    startMinutes: number,
+    endMinutes: number,
+    unavailableSchedules: Array<{ startTime: string; endTime: string; type: ScheduleType }>,
+    appointments: Array<{ startAt: Date; endAt: Date }>,
+    startAt: Date,
+    endAt: Date,
+  ): AvailabilityReasonCode {
+    const schedule = unavailableSchedules.find((candidate) =>
+      startMinutes < this.minutes(candidate.endTime) && endMinutes > this.minutes(candidate.startTime),
+    );
+    if (schedule?.type === ScheduleType.blocked) return "blocked";
+    if (schedule?.type === ScheduleType.leave) return "leave";
+    const hasAppointmentConflict = appointments.some((appointment) => startAt < appointment.endAt && endAt > appointment.startAt);
+    return hasAppointmentConflict ? "appointment_conflict" : "available";
   }
 
   private starts(date: string, startTime: string, endTime: string, durationMinutes: number) {
