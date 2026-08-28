@@ -33,7 +33,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã tích hợp vào `main` và đã qua regression verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194`, API E2E 71/71 |
-| Phase 2 Account Administration | Local implementation verification trên branch `account-administration`; pending final review/merge/deploy, chưa deployed complete | Patient registration, password change/session revocation, admin account lock/unlock; final review round 2 adds hosted-demo lifecycle, bcrypt password-boundary, and login/logout OpenAPI regressions |
+| Phase 2 Account Administration | Local implementation verification trên branch `account-administration`; pending final review/merge/deploy, chưa deployed complete | Patient registration, password change/session revocation, admin account lock/unlock; final review round 3 extends the bcrypt password boundary to login |
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
@@ -89,9 +89,11 @@ Trạng thái: **pass local verification** trên branch `account-administration`
 
 Chưa chạy production register/password/admin smoke cho branch này, nên Phase 2 chưa được đánh dấu đã deploy. Production release candidate trước đó vẫn giữ trạng thái riêng ở mục Push Và Deployment Gate.
 
-Post-review verification rerun on 2026-08-28 confirmed final local commit candidate `10537ed9 fix(api): preserve account lifecycle on startup` after account lifecycle race hardening and final review fix round 2: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `92/92` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
+Pre-round-3 verification rerun on 2026-08-28 confirmed local commit `10537ed9 fix(api): preserve account lifecycle on startup`: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `92/92` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
 
 Final review fix round 2 on 2026-08-28: routine hosted startup now creates missing demo users only, so existing password changes and locked/deactivated states persist; password registration/change validation rejects inputs over bcrypt's 72-byte UTF-8 limit and rejects reuse; OpenAPI now declares `201` for login/logout. RED targeted E2E covered the prior lifecycle reset, overlong 72-byte-prefix collision, and password reuse; targeted GREEN passed API E2E `2/2` suites `21/21` tests and unit/contract `2/2` suites `12/12` tests. API typecheck, lint, build, and high-severity audit also passed. This branch remains pending final review, merge, and deploy.
+
+Final review fix round 3 on 2026-08-28: login now rejects passwords over bcrypt's 72-byte UTF-8 limit with the existing generic `401 UNAUTHENTICATED` response before bcrypt comparison. RED reproduced a `201` login for a password whose first 72 bytes matched the stored hash; targeted GREEN passed `auth.e2e-spec.ts` `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, API typecheck, and lint. The full API E2E inventory is now `93` tests; the full suite was not rerun in this scoped fix.
 
 ## Web Verification Gate Sau Merge (Task 3)
 

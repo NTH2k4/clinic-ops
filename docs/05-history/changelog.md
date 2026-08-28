@@ -2,6 +2,7 @@
 
 ## 2026-08-28
 
+- Final review fix round 3: login now rejects passwords over bcrypt's 72-byte UTF-8 input limit before comparison, preserving the established generic `401 UNAUTHENTICATED` response. Added an E2E prefix-collision regression using a stored 72-byte password hash; targeted auth E2E passed `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, typecheck, and lint. Full API E2E inventory is now `93` tests; the full suite was not rerun in this scoped fix.
 - Final review fix round 2 on `account-administration`: hosted startup and the demo-auth utility now create only missing demo users, while Render no longer runs demo-auth seeding in `startCommand`; existing password hashes, roles, locked/inactive states, and lifecycle actions are preserved.
 - Added bcrypt-safe password validation for registration and password change (maximum 72 UTF-8 bytes), rejected password reuse with a stable non-secret validation response, and corrected OpenAPI login/logout success responses to `201`.
 - Recorded targeted RED/GREEN evidence: E2E `2/2` suites `21/21` tests, unit/contract `2/2` suites `12/12` tests; API typecheck, lint, build, and high-severity audit passed. Phase 2 remains pending final review, merge, and deploy. Admin Accounts pagination page upper-bound remains deferred.

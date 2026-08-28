@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const MAX_BCRYPT_PASSWORD_BYTES = 72;
 
-function hasBcryptSafeByteLength(value: string) {
+export function hasBcryptSafeByteLength(value: string) {
   return Buffer.byteLength(value, "utf8") <= MAX_BCRYPT_PASSWORD_BYTES;
 }
 

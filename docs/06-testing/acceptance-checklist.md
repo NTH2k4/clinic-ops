@@ -40,6 +40,7 @@
 - [x] Không ghi session token, temporary password hoặc dữ liệu patient thật vào test output hay tài liệu. Vite vẫn cảnh báo không blocking: bundle JavaScript `634.62 kB` vượt ngưỡng `500 kB`.
 - [x] Final local rerun on 2026-08-28 for commit `54b9818d` confirms OpenAPI JSON parse, diff hygiene and API-mode teardown cleanup with `0` generated `@example.test` users remaining.
 - [x] Final review fix round 2 targeted regression: hosted startup preserves an existing stale/locked demo user while creating a missing user; registration/change reject a 72-byte-prefix collision input; password reuse returns stable `400` validation; OpenAPI asserts login/logout `201`. GREEN: API E2E `2/2` suites `21/21` tests, unit/contract `2/2` suites `12/12` tests, typecheck/lint/build/audit pass.
+- [x] Final review fix round 3 targeted regression: a login password longer than 72 UTF-8 bytes is rejected with `401 UNAUTHENTICATED` even when its first 72 bytes match the stored bcrypt hash. GREEN: auth E2E `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, typecheck and lint pass. Full API E2E inventory is `93` tests; full rerun remains outside this scoped verification.
 - [ ] Phase 2 final review, merge, and deployment verification remain pending. Deferred minor: Admin Accounts pagination has no page upper bound.
 
 ## Task 2 API Verification (2026-08-27)

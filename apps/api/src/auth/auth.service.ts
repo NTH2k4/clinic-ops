@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { createHash, randomUUID } from "node:crypto";
 import { ApiError } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
-import type { ChangePasswordInput, PatientRegistrationInput } from "./auth.dto";
+import { hasBcryptSafeByteLength, type ChangePasswordInput, type PatientRegistrationInput } from "./auth.dto";
 
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 
@@ -46,6 +46,10 @@ export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
   async login(email: string, password: string): Promise<AuthLoginResult> {
+    if (!hasBcryptSafeByteLength(password)) {
+      throw this.unauthenticated();
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { patient: true, staff: true, doctor: true },

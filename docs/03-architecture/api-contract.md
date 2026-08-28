@@ -105,7 +105,7 @@ Common error codes:
 ```
 
 Response `201` có cùng `data` shape với login, bao gồm `sessionToken`, `currentUser` và patient `linkedProfile`.
-Password cho registration và password change phải dài tối đa 72 byte UTF-8 do bcrypt; password mới cũng phải khác credential hiện tại.
+Password cho login, registration và password change phải dài tối đa 72 byte UTF-8 do bcrypt; password mới cũng phải khác credential hiện tại.
 
 `POST /auth/change-password` request:
 

@@ -336,6 +336,35 @@ describe("Auth and RBAC", () => {
     }
   });
 
+  it("rejects an overlong login password even when its first 72 bytes match the stored credential", async () => {
+    const { app, server } = await createApp();
+    const email = `login-bcrypt-limit-${Date.now()}@careflow.local`;
+    const bcryptSafePassword = "a".repeat(72);
+    const truncatedCollision = `${bcryptSafePassword}different-suffix`;
+
+    try {
+      const user = await prisma.user.create({
+        data: {
+          displayName: "Login Bcrypt Limit User",
+          email,
+          passwordHash: await bcrypt.hash(bcryptSafePassword, 10),
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+
+      await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: truncatedCollision })
+        .expect(401)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("UNAUTHENTICATED"));
+      await expect(prisma.authSession.count({ where: { userId: user.id } })).resolves.toBe(0);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
   it("requires the current password and rejects an incorrect current password", async () => {
     const { app, server } = await createApp();
     const email = `password-change-validation-${Date.now()}@careflow.local`;
