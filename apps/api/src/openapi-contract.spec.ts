@@ -128,12 +128,14 @@ describe("OpenAPI contract", () => {
 
     const registration = spec.components?.schemas?.PatientRegistrationRequest;
     expect(registration?.required).toEqual(["displayName", "email", "phone", "password"]);
-    expect(registration?.properties?.password).toMatchObject({ type: "string", minLength: 8, maxLength: 72 });
+    expect(registration?.properties?.password).toMatchObject({ type: "string", minLength: 10, maxLength: 72 });
+    expect(registration?.properties?.password).toHaveProperty("pattern");
 
     const changePassword = spec.components?.schemas?.ChangePasswordRequest;
     expect(changePassword?.required).toEqual(["currentPassword", "newPassword"]);
     expect(changePassword?.properties?.currentPassword).toMatchObject({ type: "string", minLength: 1, maxLength: 72 });
-    expect(changePassword?.properties?.newPassword).toMatchObject({ type: "string", minLength: 8, maxLength: 72 });
+    expect(changePassword?.properties?.newPassword).toMatchObject({ type: "string", minLength: 10, maxLength: 72 });
+    expect(changePassword?.properties?.newPassword).toHaveProperty("pattern");
 
     const user = spec.components?.schemas?.User;
     expect(user?.required).toEqual(["id", "displayName", "email", "phone", "role", "status", "createdAt", "updatedAt", "linkedProfile"]);
