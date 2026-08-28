@@ -52,6 +52,22 @@ Set this after Render creates the service:
 
 The `Render Deployment` workflow uses this variable to create a GitHub Deployment record and attach the Render URL to the `render-free` environment. It polls `/api/v1/health` until the response `data.commit` matches the current GitHub SHA. Render provides this value through `RENDER_GIT_COMMIT`.
 
+## Optional GitHub Repository Secret
+
+Set this when Render auto-deploy does not reliably receive GitHub push events:
+
+| Secret                   | Value                                                                 |
+| ------------------------ | --------------------------------------------------------------------- |
+| `RENDER_DEPLOY_HOOK_URL` | Render service deploy hook URL. Store only as a GitHub secret.        |
+
+When `RENDER_DEPLOY_HOOK_URL` exists, the `Render Deployment` workflow sends a POST request to the hook before polling `/api/v1/health`. The workflow does not print the hook URL. If the secret is missing, the workflow keeps the previous behavior: it records the GitHub Deployment and waits for Render to serve the pushed commit.
+
+Use manual deploy as fallback when the hook is not configured or Render still serves an older commit:
+
+```text
+Render Dashboard -> clinic-ops -> Manual Deploy -> Deploy latest commit
+```
+
 ## First Deploy Steps
 
 1. Create a Neon Free Postgres database.
@@ -61,7 +77,8 @@ The `Render Deployment` workflow uses this variable to create a GitHub Deploymen
 5. Wait for the first deploy; Render runs migrations during build, seeds the full demo dataset once after the first successful deploy, and hosted API startup creates only any missing demo users before serving traffic.
 6. Copy the Render service URL.
 7. In GitHub, set repository variable `RENDER_EXTERNAL_URL` to the Render service URL.
-8. Run the `Render Deployment` workflow manually once if needed to register the URL in GitHub Deployments.
+8. Optional but recommended: copy the Render deploy hook URL into GitHub repository secret `RENDER_DEPLOY_HOOK_URL`.
+9. Run the `Render Deployment` workflow manually once if needed to register the URL in GitHub Deployments.
 
 ## Verification
 
@@ -77,6 +94,12 @@ curl -X POST "$RENDER_EXTERNAL_URL/api/v1/auth/login" \
 ```
 
 Then open the Render root URL and verify the app logs in with demo accounts.
+
+For the full production smoke gate, run:
+
+```bash
+RENDER_EXTERNAL_URL=https://your-render-service.onrender.com node scripts/production-smoke.mjs
+```
 
 ## Known Free-Tier Constraints
 

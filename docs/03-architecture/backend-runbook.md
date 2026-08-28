@@ -127,6 +127,25 @@ node scripts/production-smoke.mjs
 
 Expected output: JSON evidence with health commit, login role, catalog totals, doctor schedule count and availability slot count. The script logs only non-secret evidence and never prints the bearer session token.
 
+## Render Deploy Trigger
+
+The GitHub `Render Deployment` workflow records a GitHub Deployment and waits for `/api/v1/health` to return the pushed commit. It can also trigger Render directly when GitHub repository secret `RENDER_DEPLOY_HOOK_URL` is configured.
+
+Routine deploy path:
+
+1. Push to `main`.
+2. The workflow sends a POST request to the deploy hook when `RENDER_DEPLOY_HOOK_URL` exists.
+3. The workflow polls `$RENDER_EXTERNAL_URL/api/v1/health` until `data.commit` matches the pushed SHA.
+4. Run `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs`.
+
+Manual fallback:
+
+```text
+Render Dashboard -> clinic-ops -> Manual Deploy -> Deploy latest commit
+```
+
+Use the fallback when the workflow reports that Render is healthy but still serving an older commit. Do not paste the deploy hook URL into logs or documentation; rotate it in Render if it is exposed.
+
 ## Auth Failures
 
 Symptoms:

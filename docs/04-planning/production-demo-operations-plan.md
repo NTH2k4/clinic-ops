@@ -119,7 +119,7 @@ git commit -m "test: add production smoke script"
 - Consumes: optional repository secret `RENDER_DEPLOY_HOOK_URL`.
 - Produces: workflow behavior that triggers Render via deploy hook when the secret exists, then polls `/api/v1/health` for `GITHUB_SHA`.
 
-- [ ] **Step 1: Add a local workflow assertion**
+- [x] **Step 1: Add a local workflow assertion**
 
 Use a shell check that fails before the workflow contains deploy hook support:
 
@@ -129,7 +129,7 @@ rg -n 'RENDER_DEPLOY_HOOK_URL|Trigger Render deploy' .github/workflows/render-de
 
 Expected: FAIL before implementation.
 
-- [ ] **Step 2: Add optional deploy hook trigger**
+- [x] **Step 2: Add optional deploy hook trigger**
 
 Add a step before `Wait for Render health`:
 
@@ -151,7 +151,7 @@ Also add job env:
 
 Do not print the hook URL.
 
-- [ ] **Step 3: Verify workflow text and YAML-sensitive diff**
+- [x] **Step 3: Verify workflow text and YAML-sensitive diff**
 
 ```bash
 rg -n 'RENDER_DEPLOY_HOOK_URL|Trigger Render deploy' .github/workflows/render-deployment.yml
@@ -160,7 +160,7 @@ git diff --check
 
 Expected: grep finds the hook support and diff hygiene passes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github/workflows/render-deployment.yml docs/04-planning/render-deployment-plan.md docs/03-architecture/backend-runbook.md
