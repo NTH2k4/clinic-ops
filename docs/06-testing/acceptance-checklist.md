@@ -61,3 +61,10 @@
 - [x] Mock-mode Playwright. `npm run e2e` pass: 9/9 browser tests.
 - [x] API-mode Playwright. `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` pass: 5/5 browser tests.
 - [x] Không có failed command hoặc actionable error trong Web gate. Warning `NO_COLOR` của Node trong Playwright không làm test suite thất bại.
+
+## Phase 3 Scheduling Operations Task 5 (2026-08-28)
+
+- [x] API-mode browser regression covers schedule management affecting booking availability. Test logs in as admin, visits `/app/admin/schedules`, creates a `doctor-4` blocked schedule for `2026-08-26 11:30-12:00` through the authenticated API, then logs in as receptionist and verifies operations appointment creation shows `11:30 - Bác sĩ bị chặn lịch` as a disabled time option.
+- [x] Targeted GREEN: `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api -- --grep "schedule management"` pass: 1/1 browser test.
+- [x] Full API-mode GREEN: `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` pass: 9/9 browser tests. Teardown reseeded the local API database after the suite.
+- [x] RED note: initial targeted run failed on the disabled-option assertion while the failure log showed `<option disabled value="11:30">11:30 - Bác sĩ bị chặn lịch</option>`; the test assertion was corrected to verify the `disabled` attribute directly.

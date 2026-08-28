@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type APIRequestContext, type Page, test } from "@playwright/test";
 
 const password = "careflow-demo";
 
@@ -34,6 +34,13 @@ async function registerPatient(page: Page, patient: PatientCredentials) {
   await page.getByLabel("Số điện thoại").fill(patient.phone);
   await page.getByLabel("Mật khẩu").fill(patient.password);
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
+}
+
+async function apiSessionHeaders(request: APIRequestContext, email: string) {
+  const login = await request.post("/api/v1/auth/login", { data: { email, password } });
+  expect(login.ok()).toBe(true);
+  const { data } = await login.json() as { data: { sessionToken: string } };
+  return { Authorization: `Bearer ${data.sessionToken}` };
 }
 
 test("patient registration creates an authenticated booking workspace", async ({ page }) => {
@@ -130,10 +137,46 @@ test("receptionist can create an appointment and check in a confirmed appointmen
   await expect(checkedInQueue.getByRole("button", { name: "Bắt đầu khám" })).toHaveCount(0);
 });
 
+test("schedule management block disables the matching operations booking slot with a reason", async ({ page, request }) => {
+  await signIn(page, "admin@careflow.local");
+  await expect(page).toHaveURL(/\/app\/admin$/);
+  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Schedules", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Schedules" })).toBeVisible();
+
+  const headers = await apiSessionHeaders(request, "admin@careflow.local");
+  const createdSchedule = await request.post("/api/v1/doctor-schedules", {
+    headers,
+    data: {
+      doctorId: "doctor-4",
+      type: "blocked",
+      dayOfWeek: 3,
+      startTime: "11:30",
+      endTime: "12:00",
+      effectiveFrom: "2026-08-26",
+      effectiveTo: "2026-08-26",
+    },
+  });
+  expect(createdSchedule.ok()).toBe(true);
+
+  await page.getByRole("button", { name: "Đăng xuất" }).click();
+  await signIn(page, "reception@careflow.local");
+  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Tạo lịch", exact: true }).click();
+  await page.getByLabel("Tìm patient").fill("Demo Patient 3");
+  await page.getByRole("button", { name: /Demo Patient 3/ }).click();
+  await page.getByLabel("Dịch vụ").selectOption("service-general");
+  const schedulingGroup = page.getByRole("group", { name: "2. Chọn dịch vụ và bác sĩ" });
+  const doctorSelect = schedulingGroup.getByRole("combobox").nth(1);
+  await expect(doctorSelect).toBeEnabled();
+  await expect.poll(async () => doctorSelect.locator("option").allTextContents()).toContain("Dr. Hoa Le");
+  await doctorSelect.selectOption({ label: "Dr. Hoa Le" });
+
+  const timeSelect = page.getByLabel("Giờ khám");
+  await expect.poll(async () => timeSelect.locator("option").allTextContents()).toContain("11:30 - Bác sĩ bị chặn lịch");
+  await expect(timeSelect.locator("option", { hasText: "11:30 - Bác sĩ bị chặn lịch" })).toHaveAttribute("disabled", "");
+});
+
 test("doctor can start a checked-in appointment and complete it", async ({ page, request }) => {
-  const login = await request.post("/api/v1/auth/login", { data: { email: "reception@careflow.local", password } });
-  const { data } = await login.json() as { data: { sessionToken: string } };
-  const headers = { Authorization: `Bearer ${data.sessionToken}` };
+  const headers = await apiSessionHeaders(request, "reception@careflow.local");
   expect((await request.post("/api/v1/appointments/appointment-1/confirm", { headers })).ok()).toBe(true);
   expect((await request.post("/api/v1/appointments/appointment-1/check-in", { headers })).ok()).toBe(true);
 
