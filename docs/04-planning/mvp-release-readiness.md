@@ -37,7 +37,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
-| Phase 3 Scheduling Operations | Đang triển khai trên branch `scheduling-operations` | `docs/04-planning/scheduling-operations-plan.md`; scope: schedule management UI, blocked/leave intervals, availability explanation |
+| Phase 3 Scheduling Operations | Đang triển khai trên branch `scheduling-operations`; Tasks 1-3 complete | `docs/04-planning/scheduling-operations-plan.md`; latest Task 3 commit `ef39d1e4` adds admin schedule management UI |
 
 ## Trạng Thái Branch Hiện Tại
 

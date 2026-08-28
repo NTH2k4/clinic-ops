@@ -12,8 +12,8 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1 and 2 are implemented on branch/worktree `scheduling-operations`.
-Latest Phase 3 commit: `755d06b6 fix(web): align mock availability explanation contract`.
+Status as of 2026-08-28: Tasks 1, 2 and 3 are implemented on branch/worktree `scheduling-operations`.
+Latest Phase 3 commit: `ef39d1e4 feat(web): add admin schedule management`.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
@@ -26,6 +26,7 @@ Completed during implementation:
 
 - Task 1 added backend availability explanation mode, OpenAPI/docs coverage and regression coverage for explicit `includeUnavailable=false`.
 - Task 2 added the frontend scheduling API/service boundary and aligned mock availability explanation validation with the backend contract.
+- Task 3 added admin schedule management at `/app/admin/schedules`, including filters, create/update/deactivate controls and admin navigation.
 
 ## Global Constraints
 
@@ -177,19 +178,19 @@ Expected: operations unit tests and static checks pass.
 - Consumes: `schedulingQueryOptions.schedules`, `schedulingService.createSchedule`, `updateSchedule`, `deactivateSchedule`.
 - Produces: route `/app/admin/schedules`.
 
-- [ ] **Step 1: Write failing UI test**
+- [x] **Step 1: Write failing UI test**
 
 Assert admin can open schedule management, filter by doctor/date range, create a blocked interval, and see it in the list.
 
-- [ ] **Step 2: Build schedule list and filters**
+- [x] **Step 2: Build schedule list and filters**
 
 Use existing form/table/card conventions. Include doctor, type, status, day of week, start/end time, effective range and actions.
 
-- [ ] **Step 3: Build create/update/deactivate controls**
+- [x] **Step 3: Build create/update/deactivate controls**
 
 Use controlled form inputs, `ClinicDateField`, select menus for doctor/day/type, and icon buttons where existing UI patterns support them. Show API errors with existing alert styling.
 
-- [ ] **Step 4: Verify Task 3**
+- [x] **Step 4: Verify Task 3**
 
 Run:
 
