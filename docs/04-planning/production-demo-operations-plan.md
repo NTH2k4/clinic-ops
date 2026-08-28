@@ -22,14 +22,14 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: implementation merged/pushed to `main` at `f9902abc`; production deployment closure is pending manual Render deploy because the health wait still observed `f6697049`.
+Status as of 2026-08-28: deployed complete on Render at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2` after manual deploy of latest `main`. The implementation merge `f9902abc` and docs wait commit `ca0fe505` are both present in the deployed revision.
 
 Relevant production evidence:
 
-- Render health returned `f66970492103620d021a9bd9041374b9e656d684`.
+- Render health returned `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2` after manual deploy latest.
 - Admin login smoke passed with `admin@careflow.local`; token was not recorded.
 - Catalog/scheduling smoke passed after hosted demo baseline repair: services total `8`, doctors total `5`, specialties total `3`, doctor-4 schedule total `1` on `2026-08-26`, availability explanation mode returned `5` slots with `availabilityStatus`.
-- Render auto-deploy is still unreliable because production did not move from `49a4ff2a` to `9b8e9799` until manual deploy. The current `Render Deployment` workflow records GitHub Deployment status and polls health; it does not trigger Render.
+- Render auto-deploy remains unreliable unless the deploy hook secret is configured and verified. Manual deploy latest closed this production gate.
 
 Render official docs note that each service has a secret deploy hook URL and a GET or POST request can trigger a deploy. Their GitHub Actions guidance stores this value as a repository secret named `RENDER_DEPLOY_HOOK_URL`.
 
@@ -240,7 +240,7 @@ git commit -m "docs: document production demo operations"
 - Consumes: GitHub Actions results after push.
 - Produces: Phase 4 deployed-complete evidence.
 
-- [ ] **Step 1: Run local static checks**
+- [x] **Step 1: Run local static checks**
 
 ```bash
 node --check scripts/production-smoke.mjs
@@ -263,9 +263,9 @@ Check GitHub Actions for latest `main`:
 
 - API CI: success for `f9902abc`.
 - Web CI: success for `f9902abc`.
-- Render Deployment: failed for `f9902abc` because production still served `f6697049`; manual Render deploy is required.
+- Render Deployment: failed for `f9902abc` because production still served `f6697049`; this was later closed by manual Render deploy latest `main`.
 
-- [ ] **Step 4: Run production smoke**
+- [x] **Step 4: Run production smoke**
 
 ```bash
 RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs
@@ -273,7 +273,9 @@ RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smok
 
 Expected: pass with health commit, admin role, catalog totals and scheduling availability evidence. Output must not include session token.
 
-- [ ] **Step 5: Commit deployment evidence**
+Actual: pass after manual Render deploy latest `main`; health returned `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`, login role `admin`, catalog totals `8/5/3`, doctor-4 schedule total `1`, and availability explanation returned `5` slots with first status `available`.
+
+- [x] **Step 5: Commit deployment evidence**
 
 ```bash
 git add docs/06-testing/acceptance-checklist.md docs/05-history/release-notes.md docs/04-planning/mvp-release-readiness.md

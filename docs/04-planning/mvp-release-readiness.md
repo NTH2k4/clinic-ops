@@ -38,7 +38,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 | Phase 3 Scheduling Operations | Deployed complete on Render at `f6697049`, including scheduling baseline repair `58d9ca0e` | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`; production health/login/catalog/scheduling smoke pass |
-| Phase 4 Production Demo Operations | Merged/pushed at `f9902abc`; API/Web CI pass, Render Deployment health wait failed because production still serves `f6697049`. Manual Render deploy latest `main` is required to close production smoke. | `docs/04-planning/production-demo-operations-plan.md`, `scripts/production-smoke.mjs`, `.github/workflows/render-deployment.yml` |
+| Phase 4 Production Demo Operations | Deployed complete on Render at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2` after manual deploy latest `main`; API/Web CI pass for implementation merge `f9902abc`; production smoke pass. | `docs/04-planning/production-demo-operations-plan.md`, `scripts/production-smoke.mjs`, `.github/workflows/render-deployment.yml` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -186,8 +186,21 @@ Remediation đã commit tại `58d9ca0e fix(api): repair hosted demo scheduling 
 
 GitHub Actions for `9b8e9799`: API CI and Web CI passed. Render Deployment failed because the health wait still observed production serving `49a4ff2a6789d2677ea2fdc431d9f877cdbfd01e` instead of `9b8e9799199660aa5331ed3dedf84510c9770c10`; this matched the known Render auto-deploy disconnect. Manual deploy latest `main` then closed the production smoke gate at `f6697049`.
 
+## Phase 4 Production Demo Operations Deployment Gate
+
+Trạng thái: **deployed complete**. Phase 4 đã merge vào `main` tại `f9902abc3156c6b54759e3897f62044673a16c3f`; docs wait commit `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2` được manual deploy latest trên Render và đã pass production smoke.
+
+Production smoke sau deploy:
+
+- Health: pass, production serve đúng `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`.
+- Admin login: pass với `admin@careflow.local`; response có `currentUser.role=admin`. Session token không được ghi vào tài liệu.
+- Catalog smoke: pass. `/services?pageSize=1` total `8`, `/doctors?pageSize=1` total `5`, `/specialties?pageSize=1` total `3`.
+- Scheduling smoke: pass. `/doctor-schedules?doctorId=doctor-4&from=2026-08-26&to=2026-08-26&pageSize=5` total `1`; `/availability/slots?serviceId=service-general&date=2026-08-26&doctorId=doctor-4&includeUnavailable=true&pageSize=5` returned `5` slots with first status `available`.
+
+Render Deployment workflow for `f9902abc` failed before manual deploy because production still served `f6697049`; this confirms the known auto-deploy disconnect when `RENDER_DEPLOY_HOOK_URL` is absent or not verified. Manual Render deploy remains the documented fallback.
+
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Manual deploy latest `main` commit `f9902abc3156c6b54759e3897f62044673a16c3f` on Render.
-2. Run `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com EXPECTED_RENDER_COMMIT=f9902abc3156c6b54759e3897f62044673a16c3f node scripts/production-smoke.mjs`.
-3. If smoke passes, update readiness/release notes/acceptance checklist to mark Phase 4 deployed complete.
+1. Create `docs/04-planning/v1-documentation-closure-plan.md`.
+2. Reconcile release scope, acceptance checks, architecture docs, product workflows and deployment smoke evidence.
+3. Prepare the final CareFlow v1 acceptance package for user review before additional feature work.

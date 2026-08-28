@@ -130,7 +130,7 @@ Exit criteria:
 
 ## Phase 4: Production Demo Operations
 
-Trạng thái: plan created tại `docs/04-planning/production-demo-operations-plan.md`; awaiting implementation approval.
+Trạng thái: deployed complete on Render at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`. Production smoke script, optional deploy hook workflow support and runbook/deployment docs are merged on `main`; manual Render deploy latest closed the production gate.
 
 Mục tiêu:
 

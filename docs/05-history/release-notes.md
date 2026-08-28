@@ -1,12 +1,13 @@
 # Ghi Chú Phát Hành
 
-## 2026-08-28 Phase 4 Production Demo Operations Candidate
+## 2026-08-28 Phase 4 Production Demo Operations
 
 - Phase 4 implementation was merged/pushed to `main` at `f9902abc` after plan approval. Scope covers read-only production smoke automation, optional Render deploy hook trigger, runbook/deployment documentation and final production operations closure.
 - Added `scripts/production-smoke.mjs` to verify Render health commit, admin login, catalog totals, doctor schedules and availability explanation mode without logging session tokens. The script revokes its temporary smoke session with `/auth/logout` during cleanup.
 - Updated `Render Deployment` workflow to optionally POST `secrets.RENDER_DEPLOY_HOOK_URL` before polling health. If the secret is absent, workflow behavior remains deployment registration plus health wait.
 - Updated operations docs with manual deploy fallback, failed health wait triage, demo baseline repair guidance and rollback documentation. Render Free and Neon Free remain the deployment target.
-- GitHub Actions for `f9902abc`: API CI and Web CI passed. Render Deployment failed because production health still returned `f66970492103620d021a9bd9041374b9e656d684`; manual Render deploy of latest `main` is required before Phase 4 can be marked deployed complete.
+- GitHub Actions for `f9902abc`: API CI and Web CI passed. Render Deployment failed before manual deploy because production health still returned `f66970492103620d021a9bd9041374b9e656d684`, matching the known auto-deploy disconnect when deploy hook triggering is absent or not verified.
+- Manual Render deploy latest `main` closed Phase 4 at `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`. Production smoke passed: health commit matched `ca0fe5052e63e8a76e58ec34a2782f5e6c7ecaf2`, admin login returned role `admin`, catalog totals were services `8`, doctors `5`, specialties `3`, doctor-4 schedule total was `1`, and availability explanation returned `5` slots with first status `available`. Session token was not logged.
 
 ## 2026-08-28 Phase 3 Scheduling Operations Deployment Remediation
 
