@@ -12,7 +12,7 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1-7 and final review fix round 3 have local implementation verification on branch `account-administration`. This round extends the bcrypt-safe UTF-8 password boundary to login, preserves hosted-demo lifecycle actions across startup, rejects password reuse, and aligns login/logout OpenAPI status codes. Scoped re-review passed for the final login fix; the branch is pending merge and deployment approval, and it is not deployed complete.
+Status as of 2026-08-28: Tasks 1-7 and final review fix round 3 have local implementation verification and are merged/pushed to `main` at merge commit `32464b3d`. This round extends the bcrypt-safe UTF-8 password boundary to login, preserves hosted-demo lifecycle actions across startup, rejects password reuse, and aligns login/logout OpenAPI status codes. Scoped re-review passed for the final login fix; production CI/Render smoke is still pending, so it is not deployed complete.
 
 Completed local scope:
 
@@ -24,9 +24,10 @@ Completed local scope:
 - Regression coverage for hosted demo lifecycle preservation, bcrypt-safe UTF-8 limits across login/registration/password change, password reuse rejection, and login/logout `201` contract codes.
 - Full local verification evidence is tracked in `docs/04-planning/mvp-release-readiness.md`.
 
-Pending before merge/deploy:
+Pending before deploy:
 
-- Request explicit approval before merge, push or production deploy.
+- Monitor CI/Render for pushed commit `32464b3d`.
+- Run production smoke for health, login, registration/password and admin account flows after Render serves `32464b3d`.
 
 ## Global Constraints
 

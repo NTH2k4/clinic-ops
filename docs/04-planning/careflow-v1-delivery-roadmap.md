@@ -73,7 +73,7 @@ Exit criteria:
 
 ## Phase 2: Account Administration Foundation
 
-Trạng thái: implementation đã được local verification trên branch `account-administration`, gồm final review fix round 2. Đang chờ final review, merge và deploy; chưa được đánh dấu deployed complete.
+Trạng thái: đã merge và push lên `main` tại merge commit `32464b3d` sau local verification và scoped final review. Đang chờ CI/Render production smoke cho commit này; chưa được đánh dấu deployed complete.
 
 Mục tiêu:
 
