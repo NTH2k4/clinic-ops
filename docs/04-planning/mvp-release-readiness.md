@@ -38,6 +38,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 | Phase 3 Scheduling Operations | Deployed complete on Render at `f6697049`, including scheduling baseline repair `58d9ca0e` | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`; production health/login/catalog/scheduling smoke pass |
+| Phase 4 Production Demo Operations | Plan created; awaiting implementation approval | `docs/04-planning/production-demo-operations-plan.md` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -187,5 +188,6 @@ GitHub Actions for `9b8e9799`: API CI and Web CI passed. Render Deployment faile
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Push docs closure commit for Phase 3 deployed-complete evidence.
-2. Open Phase 4 Production Demo Operations plan before code, focusing on deployment automation reliability, demo data operations, monitoring smoke scripts and admin-safe production demo workflows.
+1. Review and approve `docs/04-planning/production-demo-operations-plan.md`.
+2. Implement Phase 4 Task 1 first: add read-only production smoke script and runbook references.
+3. Then implement optional Render deploy hook support using repository secret `RENDER_DEPLOY_HOOK_URL`, without committing any secret value.

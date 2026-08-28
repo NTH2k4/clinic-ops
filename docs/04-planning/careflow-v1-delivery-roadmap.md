@@ -130,7 +130,7 @@ Exit criteria:
 
 ## Phase 4: Production Demo Operations
 
-Trạng thái: baseline đã có, cần xác nhận sau khi MVP release candidate được push/deploy.
+Trạng thái: plan created tại `docs/04-planning/production-demo-operations-plan.md`; awaiting implementation approval.
 
 Mục tiêu:
 
