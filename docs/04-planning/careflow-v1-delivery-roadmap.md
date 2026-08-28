@@ -6,7 +6,7 @@
 | --- | --- |
 | Trạng thái | `approved-direction` |
 | Đối tượng đọc chính | Người dùng, senior engineer, agent điều phối và subagent |
-| Cập nhật lần cuối | 2026-08-27 |
+| Cập nhật lần cuối | 2026-08-28 |
 | Nguồn | `docs/00-project/scope.md`, `docs/01-requirements/mvp-requirements.md`, `docs/04-planning/mvp-release-readiness.md`, `docs/04-planning/backend-next-steps.md` |
 
 ## Mục Đích
@@ -73,7 +73,7 @@ Exit criteria:
 
 ## Phase 2: Account Administration Foundation
 
-Trạng thái: plan đã soạn, chờ người dùng duyệt trước khi triển khai code.
+Trạng thái: implementation đã được local verification trên branch `account-administration`, gồm final review fix round 2. Đang chờ final review, merge và deploy; chưa được đánh dấu deployed complete.
 
 Mục tiêu:
 

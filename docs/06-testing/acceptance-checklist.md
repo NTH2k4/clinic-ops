@@ -30,6 +30,20 @@
 - [x] Docs trong `docs/04-planning/` và release notes phản ánh branch, commit, verification, known constraints và demo safety.
 - [x] Render health/login smoke. Production `https://clinic-ops.onrender.com` trả health commit `91fd347fe479a174026a69f0e2b782316e39944d`; login smoke với `admin@careflow.local` và `careflow-demo` trả user role `admin` và session token. Token không được ghi vào tài liệu.
 
+## Phase 2 Account Administration (2026-08-27)
+
+- [x] Patient có thể đăng ký account mới và vào ngay patient workspace có quyền đặt lịch. Playwright API-mode dùng email và số điện thoại sinh duy nhất theo từng lần chạy để tránh va chạm dữ liệu; teardown reset DB về seeded baseline sau suite.
+- [x] Patient có thể đổi mật khẩu; session hiện tại bị xoá, mật khẩu cũ bị từ chối và chỉ mật khẩu mới đăng nhập lại được.
+- [x] Admin có thể tìm account patient mới tạo và smoke action lock/unlock qua `/users/:id/lock` và `/users/:id/unlock`. Test không gọi reset-password nên không đọc, log hoặc ghi temporary password.
+- [x] API verification đầy đủ: typecheck, lint, build và high-severity audit pass; unit `7/7` suites, `41/41` tests; E2E `10/10` suites, `93/93` tests.
+- [x] Web verification đầy đủ: unit `16/16` files, `141/141` tests; typecheck, lint và build pass; mock Playwright `9/9`; API-mode Playwright `8/8`.
+- [x] Không ghi session token, temporary password hoặc dữ liệu patient thật vào test output hay tài liệu. Vite vẫn cảnh báo không blocking: bundle JavaScript `634.62 kB` vượt ngưỡng `500 kB`.
+- [x] Final local rerun on 2026-08-28 for commit `54b9818d` confirms OpenAPI JSON parse, diff hygiene and API-mode teardown cleanup with `0` generated `@example.test` users remaining.
+- [x] Final review fix round 2 targeted regression: hosted startup preserves an existing stale/locked demo user while creating a missing user; registration/change reject a 72-byte-prefix collision input; password reuse returns stable `400` validation; OpenAPI asserts login/logout `201`. GREEN: API E2E `2/2` suites `21/21` tests, unit/contract `2/2` suites `12/12` tests, typecheck/lint/build/audit pass.
+- [x] Final review fix round 3 targeted regression: a login password longer than 72 UTF-8 bytes is rejected with `401 UNAUTHENTICATED` even when its first 72 bytes match the stored bcrypt hash. GREEN: auth E2E `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, typecheck and lint pass. Coordinator rerun confirmed full API E2E `10/10` suites `93/93` tests.
+- [x] Scoped re-review for final review fix round 3 passed with the login bcrypt boundary finding addressed and no new breakage in the fix diff.
+- [ ] Phase 2 final review, merge, and deployment verification remain pending. Deferred minor: Admin Accounts pagination has no page upper bound.
+
 ## Task 2 API Verification (2026-08-27)
 
 - [x] API verification gate sau merge. Pass trên configured host PostgreSQL `postgresql://careflow:careflow@localhost:5432/careflow`; `pg_isready` báo accepting connections. Docker Compose failure vẫn được ghi nhận là setup limitation: current user không có quyền truy cập `/var/run/docker.sock`.

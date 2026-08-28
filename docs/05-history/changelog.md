@@ -1,7 +1,18 @@
 # Changelog
 
+## 2026-08-28
+
+- Final review fix round 3: login now rejects passwords over bcrypt's 72-byte UTF-8 input limit before comparison, preserving the established generic `401 UNAUTHENTICATED` response. Added an E2E prefix-collision regression using a stored 72-byte password hash; targeted auth E2E passed `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, typecheck, and lint. Coordinator rerun confirmed full API E2E `10/10` suites `93/93` tests.
+- Scoped re-review for final review fix round 3 passed: the login bcrypt boundary finding is addressed and no new breakage was found in the fix diff.
+- Final review fix round 2 on `account-administration`: hosted startup and the demo-auth utility now create only missing demo users, while Render no longer runs demo-auth seeding in `startCommand`; existing password hashes, roles, locked/inactive states, and lifecycle actions are preserved.
+- Added bcrypt-safe password validation for registration and password change (maximum 72 UTF-8 bytes), rejected password reuse with a stable non-secret validation response, and corrected OpenAPI login/logout success responses to `201`.
+- Recorded targeted RED/GREEN evidence: E2E `2/2` suites `21/21` tests, unit/contract `2/2` suites `12/12` tests; API typecheck, lint, build, and high-severity audit passed. Phase 2 remains pending final review, merge, and deploy. Admin Accounts pagination page upper-bound remains deferred.
+
 ## 2026-08-27
 
+- Hoàn thiện Phase 2 Account Administration verification: bổ sung Playwright API-mode cho patient registration vào booking workspace, password change bắt buộc đăng nhập lại và admin lock/unlock account smoke; dữ liệu patient dùng email/số điện thoại sinh duy nhất, API-mode teardown reset DB về seeded baseline sau suite, không ghi session token hay mật khẩu vào test/docs. Full API gate pass (`7/7` unit suites, `41/41` tests; `10/10` E2E suites, `93/93` tests); full Web gate pass (`16/16` files, `141/141` tests; mock Playwright `9/9`; API-mode Playwright `8/8`).
+- Rerun final local verification cho Phase 2 commit `54b9818d` sau account lifecycle race hardening: API/Web gates pass, OpenAPI JSON parse pass, `git diff --check` pass và API-mode teardown để lại `0` generated `@example.test` users.
+- Hardened account administration review findings: password change dùng conditional update theo password hash và account active status, account status transitions chặn reactivation từ inactive, lifecycle mutation/audit nằm trong cùng transaction, user id params dùng Zod validation và Accounts UI hiển thị lỗi status action.
 - Ghi nhận Render manual deploy latest commit `91fd347f` và production health/login smoke pass sau API-startup demo auth repair.
 - Đưa demo auth repair vào API startup hosted-demo mode (`SERVE_WEB_APP=true`) để production runtime tự upsert demo login users/password hashes khi Render service start command chưa được sync từ blueprint.
 - Thêm `prisma:seed:demo-auth` và gọi trong Render `startCommand` trước khi start API để repair demo login users/password hashes idempotently trên runtime database; bug này được phát hiện khi Render health pass nhưng login smoke trả `401`.

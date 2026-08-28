@@ -10,6 +10,24 @@
 
 **Spec:** `docs/04-planning/careflow-v1-delivery-roadmap.md`, `docs/04-planning/careflow-v1-subagent-execution-plan.md`, `docs/03-architecture/security-notes.md`, `docs/03-architecture/api-contract.md`.
 
+## Implementation Status
+
+Status as of 2026-08-28: Tasks 1-7 and final review fix round 3 have local implementation verification on branch `account-administration`. This round extends the bcrypt-safe UTF-8 password boundary to login, preserves hosted-demo lifecycle actions across startup, rejects password reuse, and aligns login/logout OpenAPI status codes. Scoped re-review passed for the final login fix; the branch is pending merge and deployment approval, and it is not deployed complete.
+
+Completed local scope:
+
+- Public patient registration API and UI.
+- Authenticated password change with session revocation and re-login requirement.
+- Admin user list/detail/status/reset APIs.
+- Admin account management UI.
+- API contract, OpenAPI, security notes, acceptance checklist, changelog and release notes updates.
+- Regression coverage for hosted demo lifecycle preservation, bcrypt-safe UTF-8 limits across login/registration/password change, password reuse rejection, and login/logout `201` contract codes.
+- Full local verification evidence is tracked in `docs/04-planning/mvp-release-readiness.md`.
+
+Pending before merge/deploy:
+
+- Request explicit approval before merge, push or production deploy.
+
 ## Global Constraints
 
 - Không lưu plaintext password trong database, logs, frontend storage hoặc documentation.

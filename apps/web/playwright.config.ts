@@ -4,6 +4,7 @@ const apiMode = process.env.PLAYWRIGHT_API_MODE === "true";
 
 export default defineConfig({
   testDir: "./e2e",
+  globalTeardown: apiMode ? "./e2e/api-global-teardown.ts" : undefined,
   testIgnore: apiMode ? undefined : "api-careflow.spec.ts",
   testMatch: apiMode ? "api-careflow.spec.ts" : undefined,
   use: {

@@ -195,6 +195,13 @@ describe("shared UI components", () => {
     expect(screen.getByLabelText("Trạng thái: Chờ xác nhận")).toBeInTheDocument();
   });
 
+  it("renders locked account status with text and an accessible label", () => {
+    renderWithProviders(<StatusBadge status={"locked" as never} />);
+
+    expect(screen.getByText("Đã khóa")).toBeInTheDocument();
+    expect(screen.getByLabelText("Trạng thái: Đã khóa")).toBeInTheDocument();
+  });
+
   it("renders metric, empty, loading and error states", () => {
     renderWithProviders(
       <>

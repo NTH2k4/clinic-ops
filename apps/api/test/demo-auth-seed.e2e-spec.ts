@@ -1,71 +1,48 @@
-import { Test } from "@nestjs/testing";
-import { PrismaClient, UserRole } from "@prisma/client";
-import request from "supertest";
-import type { App } from "supertest/types";
-import { z } from "zod";
-import { AppModule } from "../src/app.module";
+import { AccountStatus, PrismaClient, UserRole } from "@prisma/client";
 import { ensureDemoAuthUsers } from "../src/config/demo-auth-repair";
 
-const loginResponseSchema = z.object({
-  data: z.object({
-    currentUser: z.object({
-      email: z.string(),
-      role: z.string(),
-      status: z.string(),
-    }),
-    sessionToken: z.string().min(1),
-  }),
-});
-
-describe("Demo auth seed repair", () => {
+describe("Demo auth seed", () => {
   const prisma = new PrismaClient();
 
   afterAll(async () => {
     await prisma.$disconnect();
   });
 
-  async function createApp() {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    const app = moduleRef.createNestApplication();
-    app.setGlobalPrefix("api/v1");
-    await app.init();
-    return { app, server: app.getHttpServer() as App };
-  }
+  it("preserves existing demo account credentials and lifecycle while creating missing users", async () => {
+    const originalAdmin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@careflow.local" } });
+    const originalNurse = await prisma.user.findUniqueOrThrow({ where: { email: "nurse@careflow.local" } });
+    const nurseStaff = await prisma.staff.findUniqueOrThrow({ where: { userId: originalNurse.id } });
 
-  it("repairs the admin demo login without resetting existing data", async () => {
-    await prisma.user.upsert({
-      where: { email: "admin@careflow.local" },
-      update: { passwordHash: "stale-hash", status: "locked" },
-      create: {
-        id: "user-admin-1",
-        displayName: "Admin Demo",
-        email: "admin@careflow.local",
-        passwordHash: "stale-hash",
-        role: UserRole.admin,
-        status: "locked",
-      },
-    });
-
-    await ensureDemoAuthUsers(prisma);
-
-    const { app, server } = await createApp();
     try {
-      await request(server)
-        .post("/api/v1/auth/login")
-        .send({ email: "admin@careflow.local", password: "careflow-demo" })
-        .expect(201)
-        .expect((response) => {
-          const body: unknown = response.body;
-          const parsed = loginResponseSchema.parse(body);
-          expect(parsed.data.currentUser).toMatchObject({
-            email: "admin@careflow.local",
-            role: "admin",
-            status: "active",
-          });
-          expect(parsed.data.sessionToken).toEqual(expect.any(String));
-        });
+      await prisma.user.update({
+        where: { id: originalAdmin.id },
+        data: { passwordHash: "stale-hash", role: UserRole.receptionist, status: AccountStatus.locked },
+      });
+      await prisma.staff.update({ where: { id: nurseStaff.id }, data: { userId: null } });
+      await prisma.user.delete({ where: { id: originalNurse.id } });
+
+      await ensureDemoAuthUsers(prisma);
+
+      await expect(prisma.user.findUniqueOrThrow({ where: { id: originalAdmin.id } })).resolves.toMatchObject({
+        passwordHash: "stale-hash",
+        role: UserRole.receptionist,
+        status: AccountStatus.locked,
+      });
+      await expect(prisma.user.findUniqueOrThrow({ where: { id: originalNurse.id } })).resolves.toMatchObject({
+        email: "nurse@careflow.local",
+        role: UserRole.nurse,
+        status: AccountStatus.active,
+      });
     } finally {
-      await app.close();
+      await prisma.user.update({
+        where: { id: originalAdmin.id },
+        data: {
+          passwordHash: originalAdmin.passwordHash,
+          role: originalAdmin.role,
+          status: originalAdmin.status,
+        },
+      });
+      await prisma.staff.update({ where: { id: nurseStaff.id }, data: { userId: originalNurse.id } });
     }
   });
 });

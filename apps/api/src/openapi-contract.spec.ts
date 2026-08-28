@@ -7,7 +7,9 @@ type OpenApiDocument = {
   paths?: Record<string, Record<string, OperationObject>>;
   components?: {
     securitySchemes?: Record<string, { type?: string; scheme?: string }>;
+    parameters?: Record<string, { schema?: Record<string, unknown> }>;
     requestBodies?: Record<string, { content?: { "application/json"?: { schema?: { $ref?: string } } } }>;
+    responses?: Record<string, { content?: { "application/json"?: { schema?: { $ref?: string } } } }>;
     schemas?: Record<string, { required?: string[]; properties?: Record<string, unknown> }>;
   };
 };
@@ -15,7 +17,7 @@ type OpenApiDocument = {
 type OperationObject = {
   parameters?: Array<{ $ref?: string; name?: string }>;
   requestBody?: { $ref?: string };
-  responses?: Record<string, unknown>;
+  responses?: Record<string, { $ref?: string }>;
 };
 
 const specPath = resolve(__dirname, "../../../docs/03-architecture/openapi.json");
@@ -42,8 +44,16 @@ describe("OpenAPI contract", () => {
     const requiredOperations = [
       ["get", "/api/v1/health"],
       ["post", "/api/v1/auth/login"],
+      ["post", "/api/v1/auth/register"],
+      ["post", "/api/v1/auth/change-password"],
       ["post", "/api/v1/auth/logout"],
       ["get", "/api/v1/auth/me"],
+      ["get", "/api/v1/users"],
+      ["get", "/api/v1/users/{id}"],
+      ["post", "/api/v1/users/{id}/lock"],
+      ["post", "/api/v1/users/{id}/unlock"],
+      ["post", "/api/v1/users/{id}/deactivate"],
+      ["post", "/api/v1/users/{id}/reset-password"],
       ["get", "/api/v1/doctors"],
       ["post", "/api/v1/doctors"],
       ["get", "/api/v1/doctors/{id}"],
@@ -93,6 +103,62 @@ describe("OpenAPI contract", () => {
       Object.keys(methods).map((method) => [method, path] as const),
     );
     expect(documentedOperations.sort()).toEqual([...requiredOperations].sort());
+    expect(spec.paths?.["/api/v1/users"]?.post).toBeUndefined();
+    expect(spec.paths?.["/api/v1/users/{id}"]?.patch).toBeUndefined();
+  });
+
+  it("matches account lifecycle request and response schemas", () => {
+    expect(spec.paths?.["/api/v1/auth/register"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/PatientRegistration");
+    expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/ChangePassword");
+
+    const responseSchemaRef = (path: string, method: string, status: string) => {
+      const responseRef = spec.paths?.[path]?.[method]?.responses?.[status]?.$ref;
+      const responseName = responseRef?.replace("#/components/responses/", "");
+      return responseName ? spec.components?.responses?.[responseName]?.content?.["application/json"]?.schema?.$ref : undefined;
+    };
+
+    expect(spec.paths?.["/api/v1/auth/register"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/AuthSession");
+    expect(responseSchemaRef("/api/v1/auth/register", "post", "201")).toBe("#/components/schemas/AuthSessionEnvelope");
+    expect(spec.paths?.["/api/v1/auth/login"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/AuthSession");
+    expect(spec.paths?.["/api/v1/auth/login"]?.post?.responses?.["200"]).toBeUndefined();
+    expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/Success");
+    expect(responseSchemaRef("/api/v1/auth/change-password", "post", "201")).toBe("#/components/schemas/SuccessEnvelope");
+    expect(spec.paths?.["/api/v1/auth/logout"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/Success");
+    expect(spec.paths?.["/api/v1/auth/logout"]?.post?.responses?.["200"]).toBeUndefined();
+
+    const registration = spec.components?.schemas?.PatientRegistrationRequest;
+    expect(registration?.required).toEqual(["displayName", "email", "phone", "password"]);
+    expect(registration?.properties?.password).toMatchObject({ type: "string", minLength: 8, maxLength: 72 });
+
+    const changePassword = spec.components?.schemas?.ChangePasswordRequest;
+    expect(changePassword?.required).toEqual(["currentPassword", "newPassword"]);
+    expect(changePassword?.properties?.currentPassword).toMatchObject({ type: "string", minLength: 1, maxLength: 72 });
+    expect(changePassword?.properties?.newPassword).toMatchObject({ type: "string", minLength: 8, maxLength: 72 });
+
+    const user = spec.components?.schemas?.User;
+    expect(user?.required).toEqual(["id", "displayName", "email", "phone", "role", "status", "createdAt", "updatedAt", "linkedProfile"]);
+    expect(user?.properties?.status).toEqual({ enum: ["active", "inactive", "locked"] });
+    expect(user?.properties?.linkedProfile).toEqual({ $ref: "#/components/schemas/LinkedProfile" });
+
+    expect(spec.paths?.["/api/v1/users"]?.get?.parameters?.map((parameter) => parameter.$ref ?? parameter.name)).toEqual(
+      expect.arrayContaining(["#/components/parameters/Q", "#/components/parameters/UserRole", "#/components/parameters/AccountStatus", "#/components/parameters/Page", "#/components/parameters/PageSize"]),
+    );
+    expect(spec.paths?.["/api/v1/users"]?.get?.responses?.["400"]?.$ref).toBe("#/components/responses/Error");
+    expect(spec.components?.parameters?.Id?.schema).toMatchObject({ type: "string", minLength: 1, maxLength: 100, pattern: "^[A-Za-z0-9_-]+$" });
+
+    expect(spec.paths?.["/api/v1/users"]?.get?.responses?.["200"]?.$ref).toBe("#/components/responses/UserList");
+    expect(responseSchemaRef("/api/v1/users", "get", "200")).toBe("#/components/schemas/UserListEnvelope");
+
+    for (const path of ["/api/v1/users/{id}", "/api/v1/users/{id}/lock", "/api/v1/users/{id}/unlock", "/api/v1/users/{id}/deactivate"]) {
+      const method = path === "/api/v1/users/{id}" ? "get" : "post";
+      const status = path === "/api/v1/users/{id}" ? "200" : "201";
+      expect(spec.paths?.[path]?.[method]?.responses?.[status]?.$ref).toBe("#/components/responses/User");
+      expect(responseSchemaRef(path, method, status)).toBe("#/components/schemas/UserEnvelope");
+    }
+
+    expect(spec.paths?.["/api/v1/users/{id}/reset-password"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/PasswordReset");
+    expect(responseSchemaRef("/api/v1/users/{id}/reset-password", "post", "201")).toBe("#/components/schemas/PasswordResetEnvelope");
+    expect(spec.components?.schemas?.PasswordResetResponse?.required).toEqual(["temporaryPassword"]);
   });
 
   it("documents partial update bodies separately from create bodies", () => {

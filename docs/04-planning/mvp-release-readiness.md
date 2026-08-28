@@ -33,6 +33,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | Render single-service deployment path | Hoàn thành baseline | `render.yaml`, `docs/04-planning/render-deployment-plan.md`, `docs/04-planning/backend-next-steps.md` |
 | Auth/session hardening | Hoàn thành baseline trên `main` | `docs/04-planning/backend-next-steps.md`, commit history trên `main` |
 | Authorization matrix hardening | Đã tích hợp vào `main` và đã qua regression verification sau merge | `docs/superpowers/plans/2026-08-27-authorization-hardening.md`, commit `e6ed2c18`, merge commit `7d5a5194`, API E2E 71/71 |
+| Phase 2 Account Administration | Local implementation verification trên branch `account-administration`; pending final review/merge/deploy, chưa deployed complete | Patient registration, password change/session revocation, admin account lock/unlock; final review round 3 extends the bcrypt password boundary to login |
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
@@ -67,6 +68,33 @@ Trạng thái: **pass** đối với API gate sau merge, dùng PostgreSQL host l
 
 API verification sau merge đạt đầy đủ trên configured host PostgreSQL target. Docker Compose access là setup limitation còn lại, không phải release-gate blocker khi endpoint đã được kiểm tra và các commands database-dependent pass.
 
+## Phase 2 Account Administration Verification (Task 7)
+
+Trạng thái: **pass local verification** trên branch `account-administration`. Task 7 commit: `848cafa23ba99f169450f8de0fa7fbaa81d37582`. Tasks 1-6 cung cấp public patient registration, password change với session revocation, admin user list/status/reset APIs và frontend auth/admin workspace. Task 7 bổ sung browser regression cho registration vào patient booking workspace, password change bắt buộc re-login và admin lock/unlock account action. Test tạo email/số điện thoại duy nhất; API-mode teardown reset database về seeded baseline sau suite; không ghi session token, mật khẩu hoặc temporary password vào output/tài liệu.
+
+| Command | Kết quả | Chi tiết |
+| --- | --- | --- |
+| `cd apps/api && npm run typecheck` | Pass | `tsc --noEmit` exited 0. |
+| `cd apps/api && npm run lint` | Pass | ESLint exited 0. |
+| `cd apps/api && npm test -- --runInBand` | Pass | `7/7` suites, `41/41` tests. |
+| `cd apps/api && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | `10/10` suites, `93/93` tests. |
+| `cd apps/api && npm run build` | Pass | `nest build` exited 0. |
+| `cd apps/api && npm audit --audit-level=high` | Pass | `found 0 vulnerabilities`. |
+| `cd apps/web && npm test -- --run` | Pass | `16/16` files, `141/141` tests. |
+| `cd apps/web && npm run typecheck` | Pass | `tsc -b --pretty false` exited 0. |
+| `cd apps/web && npm run lint` | Pass | ESLint exited 0. |
+| `cd apps/web && npm run build` | Pass | Build exited 0; Vite cảnh báo không blocking bundle `634.62 kB` vượt `500 kB`. |
+| `cd apps/web && npm run e2e` | Pass | Mock-mode Playwright `9/9`. |
+| `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` | Pass | API-mode Playwright `8/8`, bao gồm Phase 2 auth/account smoke. |
+
+Chưa chạy production register/password/admin smoke cho branch này, nên Phase 2 chưa được đánh dấu đã deploy. Production release candidate trước đó vẫn giữ trạng thái riêng ở mục Push Và Deployment Gate.
+
+Pre-round-3 verification rerun on 2026-08-28 confirmed local commit `10537ed9 fix(api): preserve account lifecycle on startup`: API typecheck/lint/unit/build/audit, API E2E `10/10` suites `92/92` tests, Web unit `16/16` files `141/141` tests, Web typecheck/lint/build, mock Playwright `9/9`, API-mode Playwright `8/8`, `jq empty docs/03-architecture/openapi.json`, `git diff --check`, and generated test user count `0` after API-mode teardown.
+
+Final review fix round 2 on 2026-08-28: routine hosted startup now creates missing demo users only, so existing password changes and locked/deactivated states persist; password registration/change validation rejects inputs over bcrypt's 72-byte UTF-8 limit and rejects reuse; OpenAPI now declares `201` for login/logout. RED targeted E2E covered the prior lifecycle reset, overlong 72-byte-prefix collision, and password reuse; targeted GREEN passed API E2E `2/2` suites `21/21` tests and unit/contract `2/2` suites `12/12` tests. API typecheck, lint, build, and high-severity audit also passed. This branch remains pending final review, merge, and deploy.
+
+Final review fix round 3 on 2026-08-28: login now rejects passwords over bcrypt's 72-byte UTF-8 limit with the existing generic `401 UNAUTHENTICATED` response before bcrypt comparison. RED reproduced a `201` login for a password whose first 72 bytes matched the stored hash; targeted GREEN passed `auth.e2e-spec.ts` `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, API typecheck, and lint. Coordinator rerun confirmed API unit `7/7` suites `41/41` tests, API build/audit pass, and full API E2E `10/10` suites `93/93` tests. Scoped re-review marked the login finding addressed with no new breakage in the fix diff.
+
 ## Web Verification Gate Sau Merge (Task 3)
 
 Trạng thái: **pass** cho toàn bộ Web gate sau merge. API-mode Playwright dùng đúng configured host PostgreSQL target `postgresql://careflow:careflow@localhost:5432/careflow`.
@@ -86,7 +114,7 @@ Không có failure command hoặc actionable error trong Web gate. Các warning 
 
 ## Push Và Deployment Gate (Task 5)
 
-Trạng thái: **pass sau manual deploy latest commit**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng. Production `https://clinic-ops.onrender.com` đang serve commit `91fd347fe479a174026a69f0e2b782316e39944d`; health smoke pass và login smoke với demo admin pass sau khi `DemoAuthRepairService` chạy trong API startup hosted-demo mode (`SERVE_WEB_APP=true`).
+Trạng thái: **historical production verification**. Push `main` đã được thực hiện sau approval tiếp theo của người dùng. Production `https://clinic-ops.onrender.com` đang serve commit `91fd347fe479a174026a69f0e2b782316e39944d`; final review fix round 2 on branch `account-administration` has not been merged or deployed.
 
 | Check | Kết quả | Chi tiết |
 | --- | --- | --- |
@@ -97,7 +125,7 @@ Trạng thái: **pass sau manual deploy latest commit**. Push `main` đã đư�
 | Render health smoke | Pass | `/api/v1/health` trả commit `91fd347fe479a174026a69f0e2b782316e39944d`. |
 | Render login smoke | Pass | `POST /api/v1/auth/login` với `admin@careflow.local` và `careflow-demo` trả user role `admin` và session token. Token không được ghi vào docs. |
 
-Fix đã được Render serve: `DemoAuthRepairService` chạy khi Nest bootstrap trong hosted demo mode (`SERVE_WEB_APP=true`) và gọi cùng logic với `npm run prisma:seed:demo-auth`. Script/service này chỉ upsert demo login users/password hashes và không reset database.
+The historical deployed fix used startup demo-auth repair. Final review fix round 2 supersedes that behavior on `account-administration`: Render starts the API directly, and hosted startup creates only missing demo users without changing existing credentials, roles, or statuses.
 
 Local verification cho fix:
 

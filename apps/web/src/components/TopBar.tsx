@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, Check, LogOut, X } from "lucide-react";
+import { Bell, Check, KeyRound, LogOut, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthProvider";
 import { notificationQueryOptions, notificationService } from "../features/notifications/notificationService";
 import { formatDateTime } from "../lib/dateTime";
+import { isApiMode } from "../lib/dataSource";
 import type { ReferenceType, UserRole } from "../types/models";
 import { RoleSwitcher } from "./RoleSwitcher";
 
@@ -50,6 +51,17 @@ export function TopBar() {
           <p className="text-xs text-text-muted">{user?.role}</p>
         </div>
         <RoleSwitcher />
+        {isApiMode ? (
+          <button
+            aria-label="Bảo mật tài khoản"
+            className="flex size-11 items-center justify-center rounded-md border border-border bg-surface text-text-muted transition-colors hover:border-border-strong hover:bg-surface-muted hover:text-text"
+            onClick={() => navigate("/app/account/security")}
+            title="Bảo mật tài khoản"
+            type="button"
+          >
+            <KeyRound aria-hidden="true" size={18} />
+          </button>
+        ) : null}
         <div className="relative">
           <button
             aria-label="Thông báo"

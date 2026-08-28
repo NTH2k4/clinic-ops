@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Do not redesign authentication; persisted bearer sessions, bcrypt password hashes, expiry and logout revocation already exist.
-- Do not implement `/users` admin management in this slice; document it as planned and not implemented.
+- Historical constraint, superseded by Account Administration Task 3: do not implement `/users` admin management in this authorization-hardening slice. The endpoints were implemented later in the dedicated account-administration slice.
 - Preserve API envelope and error codes: `UNAUTHENTICATED`, `FORBIDDEN`, `VALIDATION_ERROR`, `NOT_FOUND`.
 - Write failing tests before production code changes.
 - Keep source changes scoped to authorization guard wiring, focused E2E coverage and docs drift cleanup.
@@ -137,11 +137,11 @@ Expected: authorization tests pass.
 
 **Interfaces:**
 - Consumes: implemented source under `apps/api/src`.
-- Produces: docs that distinguish implemented authorization hardening from planned `/users` administration.
+- Produces: docs that distinguish implemented authorization hardening from the then-future `/users` administration surface.
 
-- [x] **Step 1: Mark `/users` endpoints as planned**
+- [x] **Step 1: Mark `/users` endpoints as planned (historical, superseded)**
 
-In `api-contract.md`, keep the future contract but state that `/users` is not implemented in the current backend.
+At the time of this plan, `api-contract.md` stated that `/users` was not implemented. Account Administration Task 3 subsequently implemented the supported list/detail/status/reset subset; see the current API contract for the active endpoint surface.
 
 - [x] **Step 2: Fix OpenAPI known-limit drift**
 

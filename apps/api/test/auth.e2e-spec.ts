@@ -1,12 +1,14 @@
 import { Controller, Get, HttpException, UseGuards } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { PrismaClient, UserRole } from "@prisma/client";
+import { AccountStatus, PrismaClient, UserRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { z } from "zod";
 import { AppModule } from "../src/app.module";
 import { Roles, RolesGuard } from "../src/common/roles";
 import { SessionGuard } from "../src/auth/session.guard";
+import { PrismaService } from "../src/prisma/prisma.service";
 
 @Controller("admin-only")
 class AdminOnlyController {
@@ -49,7 +51,12 @@ const loginResponseSchema = z.object({
 });
 
 const errorResponseSchema = z.object({
-  error: z.object({ code: z.string() }),
+  error: z.object({ code: z.string(), message: z.string() }),
+  meta: z.object({ requestId: z.string().min(1) }),
+});
+
+const emptySuccessResponseSchema = z.object({
+  data: z.object({}),
   meta: z.object({ requestId: z.string().min(1) }),
 });
 
@@ -73,6 +80,37 @@ describe("Auth and RBAC", () => {
     return { app, server: app.getHttpServer() as App };
   }
 
+  function prismaWithUserLookupHook(afterUserLookup: (user: { id: string } | null) => Promise<void>) {
+    const controlledPrisma = {} as PrismaClient;
+    Object.setPrototypeOf(controlledPrisma, prisma);
+    const controlledUser = {} as typeof prisma.user;
+    Object.setPrototypeOf(controlledUser, prisma.user);
+    Object.defineProperty(controlledUser, "findUnique", {
+      value: async (args: Parameters<typeof prisma.user.findUnique>[0]) => {
+        const user = await prisma.user.findUnique(args);
+        await afterUserLookup(user);
+        return user;
+      },
+    });
+    Object.defineProperty(controlledPrisma, "user", { value: controlledUser });
+    Object.defineProperty(controlledPrisma, "$transaction", { value: prisma.$transaction.bind(prisma) });
+    return controlledPrisma;
+  }
+
+  async function createAppWithUserLookupHook(afterUserLookup: (user: { id: string } | null) => Promise<void>) {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+      controllers: [AdminOnlyController],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(prismaWithUserLookupHook(afterUserLookup))
+      .compile();
+    const app = moduleRef.createNestApplication();
+    app.setGlobalPrefix("api/v1");
+    await app.init();
+    return { app, server: app.getHttpServer() as App };
+  }
+
   async function findLatestAdminSession(sessionToken: string) {
     const session = await prisma.authSession.findFirstOrThrow({
       where: { user: { email: "admin@careflow.local" } },
@@ -81,6 +119,135 @@ describe("Auth and RBAC", () => {
     expect(session.tokenHash).not.toBe(sessionToken);
     return session;
   }
+
+  it("registers a public patient account and returns an auth session", async () => {
+    const { app, server } = await createApp();
+    const email = "new.patient@example.test";
+    const phone = "+84919990001";
+
+    try {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+
+      const registerResponse = await request(server)
+        .post("/api/v1/auth/register")
+        .send({
+          displayName: "Nguyen Patient",
+          email,
+          phone,
+          password: "careflow-demo-123",
+        })
+        .expect(201)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = loginResponseSchema.parse(body);
+          expect(parsed.data.currentUser).toMatchObject({
+            email,
+            role: "patient",
+            status: "active",
+          });
+          expect(parsed.data.linkedProfile).toMatchObject({ type: "patient" });
+          expect(parsed.data.sessionToken).toEqual(expect.any(String));
+        });
+
+      const registerBody: unknown = registerResponse.body;
+      const registered = loginResponseSchema.parse(registerBody);
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { email },
+        include: { patient: true, authSessions: { orderBy: { createdAt: "desc" }, take: 1 } },
+      });
+
+      expect(user).toMatchObject({
+        displayName: "Nguyen Patient",
+        email,
+        phone,
+        role: UserRole.patient,
+        status: "active",
+      });
+      expect(user.passwordHash).not.toBe("careflow-demo-123");
+      expect(user.patient).toMatchObject({
+        fullName: "Nguyen Patient",
+        email,
+        phone,
+        status: "active",
+      });
+      expect(registered.data.linkedProfile).toEqual({ type: "patient", id: user.patient?.id });
+      expect(user.authSessions).toHaveLength(1);
+      expect(user.authSessions[0].tokenHash).not.toBe(registered.data.sessionToken);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+      await app.close();
+    }
+  });
+
+  it("rejects role injection during public patient registration", async () => {
+    const { app, server } = await createApp();
+    const email = "bad.role@example.test";
+    const phone = "+84919990002";
+
+    try {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+
+      await request(server)
+        .post("/api/v1/auth/register")
+        .send({
+          displayName: "Bad Role",
+          email,
+          phone,
+          password: "careflow-demo-123",
+          role: "admin",
+        })
+        .expect(400)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = errorResponseSchema.parse(body);
+          expect(parsed.error.code).toBe("VALIDATION_ERROR");
+        });
+
+      await expect(prisma.user.findUnique({ where: { email } })).resolves.toBeNull();
+      await expect(prisma.patient.findUnique({ where: { phone } })).resolves.toBeNull();
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+      await app.close();
+    }
+  });
+
+  it("rejects passwords over bcrypt's 72-byte UTF-8 limit during registration and password change", async () => {
+    const { app, server } = await createApp();
+    const email = `bcrypt-limit-${Date.now()}@careflow.local`;
+    const phone = "+84919990003";
+    const bcryptSafePrefix = "a".repeat(72);
+    const truncatedCollision = `${bcryptSafePrefix}different-suffix`;
+
+    try {
+      await request(server)
+        .post("/api/v1/auth/register")
+        .send({ displayName: "Bcrypt Limit User", email, phone, password: truncatedCollision })
+        .expect(400)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+      await expect(prisma.user.findUnique({ where: { email } })).resolves.toBeNull();
+
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email: "admin@careflow.local", password: "careflow-demo" })
+        .expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ currentPassword: "careflow-demo", newPassword: truncatedCollision })
+        .expect(400)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await prisma.patient.deleteMany({ where: { phone } });
+      await app.close();
+    }
+  });
 
   it("logs in and returns the current user", async () => {
     const { app, server } = await createApp();
@@ -164,6 +331,406 @@ describe("Auth and RBAC", () => {
           expect(parsed.data.currentUser.email).toBe(email);
         });
     } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("rejects an overlong login password even when its first 72 bytes match the stored credential", async () => {
+    const { app, server } = await createApp();
+    const email = `login-bcrypt-limit-${Date.now()}@careflow.local`;
+    const bcryptSafePassword = "a".repeat(72);
+    const truncatedCollision = `${bcryptSafePassword}different-suffix`;
+
+    try {
+      const user = await prisma.user.create({
+        data: {
+          displayName: "Login Bcrypt Limit User",
+          email,
+          passwordHash: await bcrypt.hash(bcryptSafePassword, 10),
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+
+      await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: truncatedCollision })
+        .expect(401)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("UNAUTHENTICATED"));
+      await expect(prisma.authSession.count({ where: { userId: user.id } })).resolves.toBe(0);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("requires the current password and rejects an incorrect current password", async () => {
+    const { app, server } = await createApp();
+    const email = `password-change-validation-${Date.now()}@careflow.local`;
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: "Password Change Validation User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+      const authorization = `Bearer ${login.data.sessionToken}`;
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", authorization)
+        .send({ newPassword: "custom-password-456" })
+        .expect(400)
+        .expect((response) => {
+          const parsed = errorResponseSchema.parse(response.body);
+          expect(parsed.error.code).toBe("VALIDATION_ERROR");
+          expect(parsed.error.message).toBe("Request validation failed.");
+        });
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", authorization)
+        .send({ currentPassword: "custom-password", newPassword: "custom-password-456", extra: "not-allowed" })
+        .expect(400)
+        .expect((response) => {
+          const parsed = errorResponseSchema.parse(response.body);
+          expect(parsed.error.code).toBe("VALIDATION_ERROR");
+          expect(parsed.error.message).toBe("Request validation failed.");
+        });
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", authorization)
+        .send({ currentPassword: "incorrect-password", newPassword: "custom-password-456" })
+        .expect(401)
+        .expect((response) => {
+          const parsed = errorResponseSchema.parse(response.body);
+          expect(parsed.error.code).toBe("UNAUTHENTICATED");
+          expect(parsed.error.message).toBe("Current password is incorrect.");
+        });
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("rejects a new password that reuses the current credential", async () => {
+    const { app, server } = await createApp();
+    const email = `password-reuse-${Date.now()}@careflow.local`;
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: "Password Reuse User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ currentPassword: "custom-password", newPassword: "custom-password" })
+        .expect(400)
+        .expect((response) => {
+          const parsed = errorResponseSchema.parse(response.body);
+          expect(parsed.error.code).toBe("VALIDATION_ERROR");
+          expect(parsed.error.message).toBe("New password must be different from the current password.");
+        });
+
+      await request(server)
+        .get("/api/v1/auth/me")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .expect(200);
+      await expect(prisma.user.findUniqueOrThrow({ where: { email } })).resolves.toMatchObject({ passwordHash: customPasswordHash });
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("changes a password, revokes active sessions, and allows login with the new password", async () => {
+    const { app, server } = await createApp();
+    const email = `password-change-${Date.now()}@careflow.local`;
+    const newPassword = "custom-password-456";
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: "Password Change User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+      const authorization = `Bearer ${login.data.sessionToken}`;
+      const secondLoginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201);
+      const secondLogin = loginResponseSchema.parse(secondLoginResponse.body);
+      const secondAuthorization = `Bearer ${secondLogin.data.sessionToken}`;
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", authorization)
+        .send({ currentPassword: "custom-password", newPassword })
+        .expect(201)
+        .expect((response) => expect(emptySuccessResponseSchema.parse(response.body).data).toEqual({}));
+
+      const userAfterChange = await prisma.user.findUniqueOrThrow({
+        where: { email },
+        include: { authSessions: true },
+      });
+      expect(userAfterChange.passwordHash).not.toBe(customPasswordHash);
+      await expect(bcrypt.compare(newPassword, userAfterChange.passwordHash)).resolves.toBe(true);
+      await expect(bcrypt.compare("custom-password", userAfterChange.passwordHash)).resolves.toBe(false);
+      expect(userAfterChange.authSessions).not.toHaveLength(0);
+      expect(userAfterChange.authSessions.every((session) => session.revokedAt !== null)).toBe(true);
+
+      await request(server).get("/api/v1/auth/me").set("Authorization", authorization).expect(401);
+      await request(server).get("/api/v1/auth/me").set("Authorization", secondAuthorization).expect(401);
+      await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(401);
+      await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: newPassword })
+        .expect(201)
+        .expect((response) => expect(loginResponseSchema.parse(response.body).data.currentUser.email).toBe(email));
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("rejects password change when an administrative reset changes the hash after lookup", async () => {
+    const email = `password-reset-race-${Date.now()}@careflow.local`;
+    const resetPasswordHash = await bcrypt.hash("temporary-reset-password", 10);
+    let targetUserId = "";
+    let armReset = false;
+    const { app, server } = await createAppWithUserLookupHook(async (user) => {
+      if (!armReset || user?.id !== targetUserId) return;
+      armReset = false;
+      await prisma.user.update({ where: { id: user.id }, data: { passwordHash: resetPasswordHash } });
+    });
+
+    try {
+      const user = await prisma.user.create({
+        data: {
+          displayName: "Password Reset Race User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      targetUserId = user.id;
+      const loginResponse = await request(server).post("/api/v1/auth/login").send({ email, password: "custom-password" }).expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+      armReset = true;
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ currentPassword: "custom-password", newPassword: "custom-password-456" })
+        .expect(401);
+
+      const userAfterAttempt = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+      expect(userAfterAttempt.passwordHash).toBe(resetPasswordHash);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("rejects password change when the account is locked after password lookup", async () => {
+    const email = `password-lock-race-${Date.now()}@careflow.local`;
+    let targetUserId = "";
+    let armLock = false;
+    const { app, server } = await createAppWithUserLookupHook(async (user) => {
+      if (!armLock || user?.id !== targetUserId) return;
+      armLock = false;
+      await prisma.user.update({ where: { id: user.id }, data: { status: AccountStatus.locked } });
+    });
+
+    try {
+      const user = await prisma.user.create({
+        data: {
+          displayName: "Password Lock Race User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      targetUserId = user.id;
+      const loginResponse = await request(server).post("/api/v1/auth/login").send({ email, password: "custom-password" }).expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+      armLock = true;
+
+      await request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ currentPassword: "custom-password", newPassword: "custom-password-456" })
+        .expect(401);
+
+      const userAfterAttempt = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+      expect(userAfterAttempt.status).toBe("locked");
+      await expect(bcrypt.compare("custom-password-456", userAfterAttempt.passwordHash)).resolves.toBe(false);
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("revokes a delayed old-password login session when the password changes concurrently", async () => {
+    const { app, server } = await createApp();
+    const email = `password-change-race-${Date.now()}@careflow.local`;
+    const newPassword = "custom-password-456";
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: "Password Change Race User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      const initialLoginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201);
+      const initialLogin = loginResponseSchema.parse(initialLoginResponse.body);
+      const user = await prisma.user.findUniqueOrThrow({ where: { email } });
+      const loginGateLockNamespace = 82461;
+      const loginGateLockKey = Number.parseInt(user.id.slice(0, 8), 16) % 2_147_483_647;
+      await prisma.$executeRawUnsafe('CREATE TABLE careflow_test_login_gate ("userId" TEXT PRIMARY KEY, "release" BOOLEAN NOT NULL DEFAULT FALSE)');
+      await prisma.$executeRawUnsafe('INSERT INTO careflow_test_login_gate ("userId") VALUES ($1)', user.id);
+      await prisma.$executeRawUnsafe(`
+        CREATE OR REPLACE FUNCTION careflow_test_pause_auth_session_insert()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          IF NEW."userId" = '${user.id}' THEN
+            PERFORM pg_advisory_xact_lock(${loginGateLockNamespace}, ${loginGateLockKey});
+            WHILE NOT (SELECT "release" FROM careflow_test_login_gate WHERE "userId" = NEW."userId") LOOP
+              PERFORM pg_sleep(0.01);
+            END LOOP;
+          END IF;
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql
+      `);
+      await prisma.$executeRawUnsafe(`
+        CREATE TRIGGER careflow_test_pause_auth_session_insert
+        BEFORE INSERT ON "AuthSession"
+        FOR EACH ROW EXECUTE FUNCTION careflow_test_pause_auth_session_insert()
+      `);
+      const delayedLoginPromise = request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201)
+        .then((response) => response);
+      let delayedLoginBackendPid: number | undefined;
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        const lockHolders = await prisma.$queryRaw<Array<{ pid: number }>>`
+          SELECT pid
+          FROM pg_locks
+          WHERE locktype = 'advisory'
+            AND classid::bigint = ${loginGateLockNamespace}
+            AND objid::bigint = ${loginGateLockKey}
+            AND objsubid = 2
+            AND granted
+        `;
+        delayedLoginBackendPid = lockHolders[0]?.pid;
+        if (delayedLoginBackendPid !== undefined) break;
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      expect(delayedLoginBackendPid).toEqual(expect.any(Number));
+      if (delayedLoginBackendPid === undefined) throw new Error("Delayed login did not reach the test gate.");
+
+      const passwordChangePromise = request(server)
+        .post("/api/v1/auth/change-password")
+        .set("Authorization", `Bearer ${initialLogin.data.sessionToken}`)
+        .send({ currentPassword: "custom-password", newPassword })
+        .expect(201)
+        .then((response) => response);
+      let changeReachedSecondSyncPoint = false;
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        const currentUser = await prisma.user.findUniqueOrThrow({
+          where: { id: user.id },
+          include: { authSessions: true },
+        });
+        if (currentUser.passwordHash !== customPasswordHash && currentUser.authSessions.some((session) => session.revokedAt !== null)) {
+          changeReachedSecondSyncPoint = true;
+          break;
+        }
+        const waitingChange = await prisma.$queryRaw<Array<{ waiting: boolean }>>`
+          SELECT EXISTS (
+            SELECT 1
+            FROM pg_stat_activity activity
+            WHERE activity.datname = current_database()
+              AND activity.wait_event_type = 'Lock'
+              AND activity.query LIKE 'UPDATE %"User"%passwordHash%'
+              AND ${delayedLoginBackendPid}::integer = ANY(pg_blocking_pids(activity.pid))
+          ) AS "waiting"
+        `;
+        if (waitingChange[0]?.waiting) {
+          changeReachedSecondSyncPoint = true;
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      expect(changeReachedSecondSyncPoint).toBe(true);
+      await prisma.$executeRawUnsafe('UPDATE careflow_test_login_gate SET "release" = TRUE WHERE "userId" = $1', user.id);
+
+      await passwordChangePromise;
+      const delayedLoginResponse = await delayedLoginPromise;
+      const delayedLogin = loginResponseSchema.parse(delayedLoginResponse.body);
+
+      await request(server)
+        .get("/api/v1/auth/me")
+        .set("Authorization", `Bearer ${delayedLogin.data.sessionToken}`)
+        .expect(401);
+    } finally {
+      await prisma.$executeRawUnsafe(`
+        DO $$
+        BEGIN
+          IF to_regclass('careflow_test_login_gate') IS NOT NULL THEN
+            UPDATE careflow_test_login_gate SET "release" = TRUE;
+          END IF;
+        END;
+        $$
+      `);
+      await prisma.$executeRawUnsafe('DROP TRIGGER IF EXISTS careflow_test_pause_auth_session_insert ON "AuthSession"');
+      await prisma.$executeRawUnsafe('DROP FUNCTION IF EXISTS careflow_test_pause_auth_session_insert()');
+      await prisma.$executeRawUnsafe('DROP TABLE IF EXISTS careflow_test_login_gate');
       await prisma.user.deleteMany({ where: { email } });
       await app.close();
     }

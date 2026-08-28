@@ -6,7 +6,7 @@
 | --- | --- |
 | Status | Baseline |
 | Primary audience | Human contributors, AI agents and subagents |
-| Last updated | 2026-08-26 |
+| Last updated | 2026-08-27 |
 | Source of truth | `apps/api/src`, `apps/api/prisma/schema.prisma`, `docs/03-architecture/api-contract.md` |
 
 ## Purpose
@@ -28,7 +28,8 @@ This document describes the implemented backend architecture for CareFlow. It is
 | --- | --- | --- |
 | `AppModule` | `apps/api/src/app.module.ts` | Wires shared modules, domain modules and the global exception filter. |
 | `PrismaModule` | `apps/api/src/prisma` | Provides one `PrismaService` for database access and lifecycle hooks. |
-| `AuthModule` | `apps/api/src/auth` | Demo login, persisted bearer session lookup, logout revocation and `/auth/me`. |
+| `AuthModule` | `apps/api/src/auth` | Login, public patient registration, password change, persisted bearer session lookup, logout revocation and `/auth/me`. |
+| `UsersModule` | `apps/api/src/users` | Admin-only user list/detail, lock/unlock, deactivate and password reset. |
 | `CatalogModule` | `apps/api/src/catalog` | Doctors, specialties and services, including admin create/update/deactivate flows. |
 | `PatientsModule` | `apps/api/src/patients` | Patient search, detail, create, update and deactivate flows. |
 | `SchedulingModule` | `apps/api/src/scheduling` | Doctor schedule reads and availability slot calculation. |
@@ -102,8 +103,10 @@ The API uses stored password hashes and bearer sessions:
 - `SessionGuard` attaches `currentUser` and `linkedProfile` to the request.
 - `POST /auth/logout` revokes the token by setting `revokedAt`.
 - `GET /auth/me` returns the current user and linked profile.
+- `POST /auth/register` accepts only patient registration fields, creates an `active` user and patient profile transactionally, then returns a new bearer session.
+- `POST /auth/change-password` verifies the current password, updates its bcrypt hash and revokes every active session for that user, including the calling session.
 
-This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. The next auth slice should add patient registration, authenticated password change, admin reset and admin lock/unlock flows without adding external email reset or SSO.
+This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. External email reset and SSO remain outside v1.
 
 Authorization uses two layers:
 
@@ -111,6 +114,16 @@ Authorization uses two layers:
 - Domain-level ownership gates inside services for patient and doctor scoped reads/actions.
 
 Patient-facing appointment responses omit `internalNote`, and patient status history omits staff notes. That projection rule is part of the privacy boundary and should not be removed without a product/security decision.
+
+## Account Lifecycle
+
+`UsersController` is protected by both `SessionGuard` and `RolesGuard` with the `admin` role. Its implemented surface is `GET /users`, `GET /users/:id`, `POST /users/:id/lock`, `POST /users/:id/unlock`, `POST /users/:id/deactivate` and `POST /users/:id/reset-password`.
+
+- List accepts optional `q`, `role`, `status`, `page` and `pageSize`; detail and list omit password hashes.
+- Lock and deactivate reject self-targeting, update the target status and revoke all non-revoked sessions in the same transaction. Login and session lookup both require `active` status, including the guarded login transaction.
+- Unlock changes status back to `active` but does not create a session.
+- Reset password creates a cryptographically random temporary password, persists only its bcrypt hash, revokes all active sessions and returns the temporary password once. It is excluded from audit metadata.
+- Each admin action writes an audit event. `POST /users` and `PATCH /users/:id` are intentionally not implemented in this slice.
 
 ## Validation Boundary
 
@@ -177,7 +190,7 @@ Creating or updating `blocked` and `leave` schedules is rejected when the interv
 
 ## Audit And Notification Boundaries
 
-Audit events are currently written for appointment lifecycle actions and admin-managed catalog/patient changes. The audit log is admin-only through `/audit-events`.
+Audit events are currently written for appointment lifecycle actions, admin-managed catalog/patient changes and user account lifecycle actions. The audit log is admin-only through `/audit-events`.
 
 Notifications are modeled as persisted inbox rows. Users can list their own notifications, mark one notification as read, or mark all notifications as read. The MVP does not send email, SMS or push notifications.
 
@@ -186,7 +199,8 @@ Notifications are modeled as persisted inbox rows. Users can list their own noti
 | Resource | Endpoints |
 | --- | --- |
 | Health | `GET /health` |
-| Auth | `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` |
+| Auth | `POST /auth/login`, `POST /auth/register`, `POST /auth/change-password`, `POST /auth/logout`, `GET /auth/me` |
+| Users | `GET /users`, `GET /users/:id`, `POST /users/:id/lock`, `POST /users/:id/unlock`, `POST /users/:id/deactivate`, `POST /users/:id/reset-password` |
 | Catalog | `GET /doctors`, `GET /doctors/:id`, `POST /doctors`, `PATCH /doctors/:id`, `POST /doctors/:id/deactivate` |
 | Catalog | `GET /specialties`, `POST /specialties`, `PATCH /specialties/:id`, `POST /specialties/:id/deactivate` |
 | Catalog | `GET /services`, `GET /services/:id`, `POST /services`, `PATCH /services/:id`, `POST /services/:id/deactivate` |

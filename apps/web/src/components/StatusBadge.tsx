@@ -10,7 +10,7 @@ import {
 import type { ComponentType, SVGProps } from "react";
 import type { AppointmentStatus } from "../types/models";
 
-type Status = AppointmentStatus | "active" | "inactive" | "on_leave";
+type Status = AppointmentStatus | "active" | "inactive" | "locked" | "on_leave";
 
 const labels = {
   requested: "Chờ xác nhận",
@@ -22,6 +22,7 @@ const labels = {
   no_show: "Không đến",
   active: "Đang hoạt động",
   inactive: "Không hoạt động",
+  locked: "Đã khóa",
   on_leave: "Nghỉ phép",
 } as const satisfies Record<Status, string>;
 
@@ -35,6 +36,7 @@ const styles = {
   no_show: "border-slate-200 bg-slate-100 text-slate-700",
   active: "border-emerald-200 bg-emerald-50 text-success",
   inactive: "border-slate-200 bg-slate-100 text-slate-700",
+  locked: "border-amber-200 bg-amber-50 text-warning",
   on_leave: "border-amber-200 bg-amber-50 text-warning",
 } as const satisfies Record<Status, string>;
 
@@ -48,6 +50,7 @@ const icons = {
   no_show: AlertCircle,
   active: CheckCircle2,
   inactive: AlertCircle,
+  locked: AlertCircle,
   on_leave: Clock3,
 } as const satisfies Record<Status, ComponentType<SVGProps<SVGSVGElement>>>;
 

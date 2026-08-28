@@ -2,7 +2,7 @@ import { DemoAuthRepairService, shouldRepairDemoAuthUsers } from "./demo-auth-re
 
 type UpsertCall = {
   where: { email: string };
-  update: { status: string };
+  update: Record<string, never>;
 };
 
 describe("demo auth repair", () => {
@@ -23,7 +23,7 @@ describe("demo auth repair", () => {
     expect(shouldRepairDemoAuthUsers({})).toBe(false);
   });
 
-  it("repairs demo users when the API starts in hosted demo mode", async () => {
+  it("creates missing demo users without resetting existing users in hosted demo mode", async () => {
     process.env.SERVE_WEB_APP = "true";
     const prisma = { user: { upsert: jest.fn().mockResolvedValue({}) } };
     const service = new DemoAuthRepairService(prisma as never);
@@ -32,8 +32,8 @@ describe("demo auth repair", () => {
 
     expect(prisma.user.upsert).toHaveBeenCalledTimes(5);
     const calls = prisma.user.upsert.mock.calls as Array<[UpsertCall]>;
-    const adminRepair = calls.find(([call]) => call.where.email === "admin@careflow.local")?.[0];
-    expect(adminRepair?.update.status).toBe("active");
+    const adminUpsert = calls.find(([call]) => call.where.email === "admin@careflow.local")?.[0];
+    expect(adminUpsert?.update).toEqual({});
   });
 
   it("does not touch users outside hosted demo mode", async () => {

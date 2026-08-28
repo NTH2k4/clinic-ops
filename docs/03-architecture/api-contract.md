@@ -77,6 +77,8 @@ Common error codes:
 | Method | Path | Role | Mục đích |
 | --- | --- | --- | --- |
 | POST | `/auth/login` | public | Đăng nhập bằng email/password. |
+| POST | `/auth/register` | public | Đăng ký tài khoản bệnh nhân và tạo session mới. |
+| POST | `/auth/change-password` | authenticated | Đổi mật khẩu của tài khoản hiện tại, rồi hủy các session đang hoạt động. |
 | POST | `/auth/logout` | authenticated | Hủy session/token hiện tại. |
 | GET | `/auth/me` | authenticated | Lấy current user và linked profile. |
 
@@ -88,6 +90,33 @@ Common error codes:
   "password": "example-password"
 }
 ```
+
+`POST /auth/login` trả `201` với auth session. `POST /auth/logout` trả `201` với `data: {}`.
+
+`POST /auth/register` chỉ tạo `patient` account đang `active`; request không chấp nhận `role` hoặc `status`:
+
+```json
+{
+  "displayName": "Nguyen Patient",
+  "email": "patient@example.test",
+  "phone": "+84919990001",
+  "password": "mat-khau-it-nhat-8-ky-tu"
+}
+```
+
+Response `201` có cùng `data` shape với login, bao gồm `sessionToken`, `currentUser` và patient `linkedProfile`.
+Password cho login, registration và password change phải dài tối đa 72 byte UTF-8 do bcrypt; password mới cũng phải khác credential hiện tại.
+
+`POST /auth/change-password` request:
+
+```json
+{
+  "currentPassword": "mat-khau-cu",
+  "newPassword": "mat-khau-moi-it-nhat-8-ky-tu"
+}
+```
+
+Response `201` trả `data: {}`. Khi thành công, backend thay password hash và revoke mọi session chưa bị revoke của user, kể cả session đã gọi endpoint.
 
 `GET /auth/me` response `data`:
 
@@ -111,15 +140,22 @@ Common error codes:
 
 ### Users
 
-Status: planned, not implemented in the current backend. The current admin workspace still uses mock staff data for this surface.
+Trạng thái: đã triển khai list/detail, lock/unlock, deactivate và reset password. `POST /users` và `PATCH /users/{id}` vẫn deferred; không phải endpoint đã triển khai trong slice này.
 
 | Method | Path | Role | Mục đích |
 | --- | --- | --- | --- |
 | GET | `/users` | admin | List users với filter `role`, `status`, `q`. |
 | GET | `/users/{id}` | admin | Lấy chi tiết user. |
-| POST | `/users` | admin | Tạo user cho staff/doctor/admin. |
-| PATCH | `/users/{id}` | admin | Sửa displayName, phone, role hoặc status hợp lệ. |
-| POST | `/users/{id}/deactivate` | admin | Vô hiệu hóa user, giữ audit history. |
+| POST | `/users/{id}/lock` | admin | Khóa user khác, revoke các session đang hoạt động và ghi audit event. |
+| POST | `/users/{id}/unlock` | admin | Mở khóa user và ghi audit event. |
+| POST | `/users/{id}/deactivate` | admin | Vô hiệu hóa user khác, revoke các session đang hoạt động và giữ audit history. |
+| POST | `/users/{id}/reset-password` | admin | Đặt temporary password, revoke mọi session và ghi audit event. |
+
+User list dùng pagination chuẩn và các filter tùy chọn `q`, `role` (`patient`, `doctor`, `receptionist`, `nurse`, `admin`) và `status` (`active`, `inactive`, `locked`). User detail và status action trả object `data` gồm `id`, `displayName`, `email`, `phone`, `role`, `status`, `createdAt`, `updatedAt` và `linkedProfile`.
+
+Path parameter `id` của user endpoints được validate bằng Zod: không rỗng, tối đa 100 ký tự, chỉ gồm chữ, số, `_` hoặc `-`.
+
+Admin không thể tự khóa hoặc tự vô hiệu hóa tài khoản của mình. Status transition hợp lệ là `active -> locked`, `locked -> active` và `active|locked -> inactive`; không có reactivation từ `inactive` trong slice này. Lock/deactivate khiến session hiện tại của target không còn dùng được; unlock không tạo session mới. Reset password trả `data.temporaryPassword` duy nhất trong response, nên client quản trị phải chuyển cho người dùng bằng kênh phù hợp và không ghi giá trị này vào log/audit. Account lifecycle mutation và audit event được ghi trong cùng database transaction.
 
 ### Patients
 
@@ -301,6 +337,6 @@ Phase backend đầu tiên nên triển khai theo thứ tự:
 5. Operations/admin management endpoints.
 6. Audit events và notifications.
 
-Implemented authorization boundaries use `SessionGuard` for bearer-session authentication, `RolesGuard` with `@Roles(...)` for route-level role gates, and domain-level ownership checks for patient and doctor scoped actions. `/users` administration remains a later admin-management slice.
+Implemented authorization boundaries use `SessionGuard` for bearer-session authentication, `RolesGuard` with `@Roles(...)` for route-level role gates, domain-level ownership checks for patient and doctor scoped actions, and the implemented `/users` account lifecycle endpoints for admin-only list/detail/status/reset operations. Full staff/doctor/admin account creation through `/users` remains deferred to a later provisioning slice.
 
 Không tích hợp payment, insurance, prescription, telemedicine hoặc external SMS/email/push trong API v1.
