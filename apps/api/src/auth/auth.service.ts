@@ -199,6 +199,6 @@ export class AuthService {
   }
 
   private unauthenticated() {
-    return new ApiError(401, "UNAUTHENTICATED", "Authentication is required.");
+    return new ApiError(401, "UNAUTHENTICATED", "Email or password is incorrect.");
   }
 }

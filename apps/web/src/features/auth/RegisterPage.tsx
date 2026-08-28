@@ -1,10 +1,14 @@
-import { Eye, EyeOff, Stethoscope } from "lucide-react";
+import { Stethoscope } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { isApiMode } from "../../lib/dataSource";
 import { roleHomePath } from "../../routes/RoleHomeRedirect";
 import { useAuth } from "./AuthProvider";
+import { PasswordField } from "./PasswordField";
+
+const PASSWORD_PATTERN = "(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+";
+const PASSWORD_POLICY_TITLE = "Mật khẩu cần có ít nhất 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.";
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -14,7 +18,6 @@ export function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -65,20 +68,28 @@ export function RegisterPage() {
             Số điện thoại
             <input autoComplete="tel" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="register-phone" onChange={(event) => setPhone(event.target.value)} required type="tel" value={phone} />
           </label>
-          <div className="grid gap-2">
-            <label className="grid gap-1 text-sm font-medium text-text" htmlFor="register-password">
-              Mật khẩu
-              <input autoComplete="new-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="register-password" minLength={10} onChange={(event) => setPassword(event.target.value)} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+" required title="Mật khẩu cần có ít nhất 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt." type={showPassword ? "text" : "password"} value={password} />
-            </label>
-            <label className="grid gap-1 text-sm font-medium text-text" htmlFor="register-confirm-password">
-              Xác nhận mật khẩu
-              <input autoComplete="new-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="register-confirm-password" minLength={10} onChange={(event) => setConfirmPassword(event.target.value)} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+" required title="Nhập lại đúng mật khẩu đã chọn." type={showPassword ? "text" : "password"} value={confirmPassword} />
-            </label>
-            <button aria-label={showPassword ? "Ẩn mật khẩu đăng ký" : "Hiện mật khẩu đăng ký"} className="inline-flex h-9 w-fit items-center gap-2 rounded-md border border-border px-3 text-sm font-semibold text-text-muted hover:border-border-strong hover:bg-surface-muted hover:text-text" onClick={() => setShowPassword((visible) => !visible)} type="button">
-              {showPassword ? <EyeOff aria-hidden="true" size={16} /> : <Eye aria-hidden="true" size={16} />}
-              {showPassword ? "Ẩn" : "Hiện"}
-            </button>
-          </div>
+          <PasswordField
+            autoComplete="new-password"
+            id="register-password"
+            label="Mật khẩu"
+            minLength={10}
+            onChange={setPassword}
+            pattern={PASSWORD_PATTERN}
+            required
+            title={PASSWORD_POLICY_TITLE}
+            value={password}
+          />
+          <PasswordField
+            autoComplete="new-password"
+            id="register-confirm-password"
+            label="Xác nhận mật khẩu"
+            minLength={10}
+            onChange={setConfirmPassword}
+            pattern={PASSWORD_PATTERN}
+            required
+            title="Nhập lại đúng mật khẩu đã chọn."
+            value={confirmPassword}
+          />
           {formError || authError ? <p className="text-sm text-danger" role="alert">{formError || authError}</p> : null}
           <button className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
             Tạo tài khoản

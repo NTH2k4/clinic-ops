@@ -6,6 +6,7 @@ import { isApiMode } from "../../lib/dataSource";
 import { mockStore } from "../../mocks/mockStore";
 import { roleHomePath } from "../../routes/RoleHomeRedirect";
 import { useAuth } from "./AuthProvider";
+import { PasswordField } from "./PasswordField";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ export function LoginPage() {
               Email
               <input
                 autoComplete="email"
-              className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent"
+                className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent"
                 id="login-email"
                 onChange={(event) => setEmail(event.target.value)}
                 required
@@ -62,18 +63,14 @@ export function LoginPage() {
                 value={email}
               />
             </label>
-            <label className="grid gap-1 text-sm font-medium text-text" htmlFor="login-password">
-              Mật khẩu
-              <input
-                autoComplete="current-password"
-              className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent"
-                id="login-password"
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                type="password"
-                value={password}
-              />
-            </label>
+            <PasswordField
+              autoComplete="current-password"
+              id="login-password"
+              label="Mật khẩu"
+              onChange={setPassword}
+              required
+              value={password}
+            />
             {authError ? <p className="text-sm text-danger" role="alert">{authError}</p> : null}
             <button
               className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"

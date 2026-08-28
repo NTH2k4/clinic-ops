@@ -400,6 +400,7 @@ Quy tắc:
 - Mock user có thể hiển thị dưới dạng row/card có thể chọn.
 - Role và user identity phải nhìn thấy trước khi submit.
 - API-mode error state không được tiết lộ password rule, token hoặc thông tin tồn tại tài khoản; mock-mode chỉ dùng demo role selection cho local prototype.
+- Password fields trên login, registration và change-password dùng icon reveal/hide nằm trong chính textbox. Mỗi textbox giữ trạng thái hiển thị riêng để người dùng có thể kiểm tra từng ô nhập mà không làm thay đổi ô còn lại.
 
 ### Màn Hình Patient
 

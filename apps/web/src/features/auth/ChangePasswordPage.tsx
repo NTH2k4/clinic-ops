@@ -4,6 +4,9 @@ import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { isApiMode } from "../../lib/dataSource";
 import { useAuth } from "./AuthProvider";
+import { PasswordField } from "./PasswordField";
+
+const PASSWORD_PATTERN = "(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+";
 
 export function ChangePasswordPage() {
   const { authError, changePassword } = useAuth();
@@ -32,14 +35,25 @@ export function ChangePasswordPage() {
         </div>
       </div>
       <form className="mt-5 grid gap-4" onSubmit={handleSubmit}>
-        <label className="grid gap-1 text-sm font-medium text-text" htmlFor="current-password">
-          Mật khẩu hiện tại
-          <input autoComplete="current-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="current-password" onChange={(event) => setCurrentPassword(event.target.value)} required type="password" value={currentPassword} />
-        </label>
-        <label className="grid gap-1 text-sm font-medium text-text" htmlFor="new-password">
-          Mật khẩu mới
-          <input autoComplete="new-password" className="h-11 rounded-md border border-border bg-surface px-3 text-text transition-colors hover:border-border-strong focus:border-accent" id="new-password" minLength={10} onChange={(event) => setNewPassword(event.target.value)} pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+" required title="Mật khẩu cần có ít nhất 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt." type="password" value={newPassword} />
-        </label>
+        <PasswordField
+          autoComplete="current-password"
+          id="current-password"
+          label="Mật khẩu hiện tại"
+          onChange={setCurrentPassword}
+          required
+          value={currentPassword}
+        />
+        <PasswordField
+          autoComplete="new-password"
+          id="new-password"
+          label="Mật khẩu mới"
+          minLength={10}
+          onChange={setNewPassword}
+          pattern={PASSWORD_PATTERN}
+          required
+          title="Mật khẩu cần có ít nhất 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
+          value={newPassword}
+        />
         {authError ? <p className="text-sm text-danger" role="alert">{authError}</p> : null}
         <button className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
           Đổi mật khẩu

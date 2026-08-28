@@ -91,7 +91,7 @@ Common error codes:
 }
 ```
 
-`POST /auth/login` trả `201` với auth session. `POST /auth/logout` trả `201` với `data: {}`.
+`POST /auth/login` trả `201` với auth session. Khi email/password sai, account không active hoặc password vượt giới hạn bcrypt-safe, endpoint trả `401 UNAUTHENTICATED` với message public `Email or password is incorrect.`. Message `Authentication is required.` chỉ dùng cho request protected thiếu hoặc hết hạn session. `POST /auth/logout` trả `201` với `data: {}`.
 
 `POST /auth/register` chỉ tạo `patient` account đang `active`; request không chấp nhận `role` hoặc `status`:
 

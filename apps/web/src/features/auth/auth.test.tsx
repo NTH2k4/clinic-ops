@@ -243,6 +243,24 @@ describe("authentication and role routing", () => {
 });
 
 describe("API authentication", () => {
+  it("toggles API login password visibility from inside the password field", async () => {
+    const user = userEvent.setup();
+
+    await renderApiApp();
+
+    const passwordInput = screen.getByLabelText("Mật khẩu", { selector: "input" });
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    await user.click(screen.getByRole("button", { name: "Hiện mật khẩu" }));
+
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(screen.getByRole("button", { name: "Ẩn mật khẩu" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Ẩn mật khẩu" }));
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+  });
+
   it("links API-mode login to patient registration", async () => {
     const user = userEvent.setup();
 
@@ -326,28 +344,36 @@ describe("API authentication", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  it("toggles registration password visibility without changing the entered value", async () => {
+  it("toggles registration password fields independently without changing entered values", async () => {
     const user = userEvent.setup();
 
     await renderApiApp();
     await user.click(screen.getByRole("link", { name: "Đăng ký tài khoản" }));
-    await user.type(screen.getByLabelText("Mật khẩu"), "Careflow#123");
-    await user.type(screen.getByLabelText("Xác nhận mật khẩu"), "Careflow#123");
+    const passwordInput = screen.getByLabelText("Mật khẩu", { selector: "input" });
+    const confirmPasswordInput = screen.getByLabelText("Xác nhận mật khẩu", { selector: "input" });
 
-    expect(screen.getByLabelText("Mật khẩu")).toHaveAttribute("type", "password");
-    expect(screen.getByLabelText("Xác nhận mật khẩu")).toHaveAttribute("type", "password");
+    await user.type(passwordInput, "Careflow#123");
+    await user.type(confirmPasswordInput, "Careflow#123");
 
-    await user.click(screen.getByRole("button", { name: "Hiện mật khẩu đăng ký" }));
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(confirmPasswordInput).toHaveAttribute("type", "password");
 
-    expect(screen.getByLabelText("Mật khẩu")).toHaveAttribute("type", "text");
-    expect(screen.getByLabelText("Xác nhận mật khẩu")).toHaveAttribute("type", "text");
-    expect(screen.getByLabelText("Mật khẩu")).toHaveValue("Careflow#123");
-    expect(screen.getByLabelText("Xác nhận mật khẩu")).toHaveValue("Careflow#123");
+    await user.click(screen.getByRole("button", { name: "Hiện mật khẩu" }));
 
-    await user.click(screen.getByRole("button", { name: "Ẩn mật khẩu đăng ký" }));
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(confirmPasswordInput).toHaveAttribute("type", "password");
+    expect(passwordInput).toHaveValue("Careflow#123");
+    expect(confirmPasswordInput).toHaveValue("Careflow#123");
 
-    expect(screen.getByLabelText("Mật khẩu")).toHaveAttribute("type", "password");
-    expect(screen.getByLabelText("Xác nhận mật khẩu")).toHaveAttribute("type", "password");
+    await user.click(screen.getByRole("button", { name: "Hiện xác nhận mật khẩu" }));
+
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(confirmPasswordInput).toHaveAttribute("type", "text");
+
+    await user.click(screen.getByRole("button", { name: "Ẩn mật khẩu" }));
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(confirmPasswordInput).toHaveAttribute("type", "text");
   });
 
   it("requires both passwords and clears the API session after changing a password", async () => {

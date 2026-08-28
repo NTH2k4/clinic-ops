@@ -319,6 +319,7 @@ describe("Auth and RBAC", () => {
           const body: unknown = response.body;
           const parsed = errorResponseSchema.parse(body);
           expect(parsed.error.code).toBe("UNAUTHENTICATED");
+          expect(parsed.error.message).toBe("Email or password is incorrect.");
         });
 
       await request(server)

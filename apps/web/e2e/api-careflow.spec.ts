@@ -23,7 +23,7 @@ function createPatientCredentials(): PatientCredentials {
 async function signIn(page: Page, email: string, signInPassword = password) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Mật khẩu").fill(signInPassword);
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(signInPassword);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
 }
 
@@ -33,7 +33,7 @@ async function registerPatient(page: Page, patient: PatientCredentials) {
   await page.getByLabel("Email").fill(patient.email);
   await page.getByLabel("Số điện thoại").fill(patient.phone);
   await page.getByLabel("Mật khẩu", { exact: true }).fill(patient.password);
-  await page.getByLabel("Xác nhận mật khẩu").fill(patient.password);
+  await page.getByLabel("Xác nhận mật khẩu", { exact: true }).fill(patient.password);
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
 }
 
@@ -59,8 +59,8 @@ test("password change clears the session and requires login with the new passwor
 
   await registerPatient(page, patient);
   await page.getByRole("button", { name: "Bảo mật tài khoản" }).click();
-  await page.getByLabel("Mật khẩu hiện tại").fill(patient.password);
-  await page.getByLabel("Mật khẩu mới").fill(newPassword);
+  await page.getByLabel("Mật khẩu hiện tại", { exact: true }).fill(patient.password);
+  await page.getByLabel("Mật khẩu mới", { exact: true }).fill(newPassword);
   await page.getByRole("button", { name: "Đổi mật khẩu" }).click();
 
   await expect(page).toHaveURL(/\/login$/);
