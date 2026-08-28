@@ -332,6 +332,25 @@ describe("Schedule and availability reads", () => {
     }
   });
 
+  it("keeps includeUnavailable=false in available-only mode without requiring doctorId", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server);
+
+      await request(server)
+        .get("/api/v1/availability/slots?serviceId=service-general&date=2026-08-25&includeUnavailable=false&pageSize=3")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200)
+        .expect((response) => {
+          const result = availabilitySchema.parse(response.body);
+          expect(result.data).not.toHaveLength(0);
+          expect(result.data[0]).not.toHaveProperty("availabilityStatus");
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
   it("forbids non-admin schedule management", async () => {
     const { app, server } = await createApp();
     try {

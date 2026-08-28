@@ -4,6 +4,7 @@ import { dateOnlySchema, paginationFields } from "../common/validation";
 
 const identifier = z.string().trim().min(1).max(200);
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "time must use HH:mm.");
+const booleanQuerySchema = z.enum(["true", "false"]).transform((value) => value === "true");
 
 const scheduleFields = {
   doctorId: identifier,
@@ -34,7 +35,7 @@ export const availabilityQuerySchema = z.object({
   serviceId: identifier,
   date: dateOnlySchema,
   doctorId: identifier.optional(),
-  includeUnavailable: z.coerce.boolean().optional(),
+  includeUnavailable: booleanQuerySchema.optional(),
   ...paginationFields,
 }).strict().refine((query) => !query.includeUnavailable || Boolean(query.doctorId), {
   message: "doctorId is required when includeUnavailable is true.",
