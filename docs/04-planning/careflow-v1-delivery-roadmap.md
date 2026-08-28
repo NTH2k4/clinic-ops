@@ -102,7 +102,7 @@ Exit criteria:
 
 ## Phase 3: Scheduling Operations UI
 
-Trạng thái: đang triển khai trên branch/worktree `scheduling-operations`; plan chính nằm tại `docs/04-planning/scheduling-operations-plan.md`.
+Trạng thái: local implementation and verification complete on branch/worktree `scheduling-operations`; awaiting final review and user-approved merge/deploy gate.
 
 Mục tiêu:
 
@@ -124,9 +124,9 @@ Tài liệu cần có trước khi triển khai:
 
 Exit criteria:
 
-- Admin/operations UI có thể tạo, sửa, deactivate schedule và blocked interval.
-- Availability UI giải thích slot unavailable theo dữ liệu backend.
-- Booking vẫn deterministic và conflict-safe qua API-mode Playwright.
+- Admin UI có thể tạo, sửa và deactivate schedule entries, including blocked intervals.
+- Operations booking UI giải thích unavailable slots theo dữ liệu backend availability explanation.
+- Booking vẫn deterministic và conflict-safe qua API-mode Playwright `9/9`.
 
 ## Phase 4: Production Demo Operations
 

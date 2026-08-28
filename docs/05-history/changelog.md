@@ -2,6 +2,8 @@
 
 ## 2026-08-28
 
+- Completed Phase 3 Scheduling Operations local implementation and verification on branch `scheduling-operations`: backend availability explanation, frontend scheduling service boundary, admin schedule management UI, operations unavailable-slot reason UI and API-mode browser regression are implemented. Final local gate passed API unit `42/42`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`, API/Web typecheck/lint/build and API high-severity audit.
+- Fixed Phase 3 review findings before closure: `includeUnavailable=false` now preserves available-only mode, mock availability explanation now rejects missing `doctorId` like the backend, API availability timestamps are formatted in `Asia/Ho_Chi_Minh`, and stale admin mobile-nav count coverage now derives from `navigationForRole("admin")`.
 - Started Phase 3 Scheduling Operations on branch `scheduling-operations`: added `docs/04-planning/scheduling-operations-plan.md`, documented planned availability explanation mode, and updated workflows/readiness/documentation map before code.
 - Closed Phase 2 Account Administration as deployed complete after manual Render deploy and GitHub Actions verification. Production health serves `a52072e1a36166a14b0e29b912032377dad1995b`, which includes runtime merge `32464b3d`; production smoke passed health, admin login, patient registration/access, password change/session revocation, admin user list, lock/unlock, reset-password, temporary-password login, deactivate and deactivated-login rejection. The generated `@example.test` smoke user was deactivated at the end of the flow.
 - Merged and pushed Phase 2 Account Administration to `main` at merge commit `32464b3d` after post-merge local API/Web verification passed.

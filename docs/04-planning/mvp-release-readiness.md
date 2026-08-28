@@ -37,7 +37,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
-| Phase 3 Scheduling Operations | Đang triển khai trên branch `scheduling-operations`; Tasks 1-3 complete | `docs/04-planning/scheduling-operations-plan.md`; latest Task 3 commit `ef39d1e4` adds admin schedule management UI |
+| Phase 3 Scheduling Operations | Local implementation and verification complete on branch `scheduling-operations`; awaiting final review and user-approved merge/deploy gate | `docs/04-planning/scheduling-operations-plan.md`; API unit `42/42`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -173,10 +173,10 @@ Trạng thái verification sau merge:
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Tạo `docs/04-planning/scheduling-operations-plan.md` trước khi sửa code Phase 3.
-2. Cập nhật `docs/02-product/workflows.md`, `docs/03-architecture/api-contract.md` và `docs/03-architecture/openapi.json` nếu Scheduling Operations UI yêu cầu đổi workflow hoặc API contract.
-3. Triển khai Phase 3 Scheduling Operations UI bằng subagent-driven development sau khi plan được duyệt.
+1. Chạy final code review cho branch `scheduling-operations`.
+2. Nếu review sạch hoặc findings đã xử lý, xin approval rõ của người dùng để merge vào `main`, push và deploy.
+3. Sau deploy, smoke Render health/login và scheduling path, rồi cập nhật readiness/release notes lần cuối với deployed commit.
 
-Khuyến nghị: chuyển sang Scheduling Operations UI vì auth/account lifecycle đã deploy complete và người dùng đã có luồng đăng ký, đăng nhập, đổi mật khẩu và admin account actions ở production.
+Khuyến nghị: hoàn tất merge/deploy gate cho Phase 3 trước khi mở Phase 4 Production Demo Operations.
 
-Phase 3 implementation branch đã mở: `scheduling-operations`. Plan triển khai chính: `docs/04-planning/scheduling-operations-plan.md`.
+Phase 3 implementation branch: `scheduling-operations`. Plan triển khai chính: `docs/04-planning/scheduling-operations-plan.md`.

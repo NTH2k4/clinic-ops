@@ -12,8 +12,8 @@
 
 ## Implementation Status
 
-Status as of 2026-08-28: Tasks 1, 2, 3, 4 and 5 are implemented on branch/worktree `scheduling-operations`.
-Latest Phase 3 commit: pending Task 5 cleanup/docs commit.
+Status as of 2026-08-28: Tasks 1, 2, 3, 4, 5 and 6 are locally verified on branch/worktree `scheduling-operations`.
+Latest Phase 3 commit: `fc420ef2 docs: record scheduling operations local gate`.
 Baseline typecheck passed for API and Web after worktree dependency install.
 
 Completed before implementation:
@@ -29,6 +29,7 @@ Completed during implementation:
 - Task 3 added admin schedule management at `/app/admin/schedules`, including filters, create/update/deactivate controls and admin navigation.
 - Task 4 wired API-mode operations booking to scheduling availability explanation and fixed UTC API timestamp display back to clinic time.
 - Task 5 added API-mode Playwright coverage proving backend schedule blocks disable matching operations booking slots with reason labels.
+- Task 6 reran full local API/Web verification and recorded release evidence. Merge, push and production deploy remain gated on explicit user approval.
 
 ## Global Constraints
 
@@ -285,11 +286,11 @@ Expected: API-mode Playwright passes.
 - Consumes: verification outputs from Tasks 1-5.
 - Produces: updated project evidence and next-step status.
 
-- [ ] **Step 1: Record implementation status**
+- [x] **Step 1: Record implementation status**
 
 Update this plan after each completed task with commit SHA, verification commands and any deferred constraints.
 
-- [ ] **Step 2: Run final local verification**
+- [x] **Step 2: Run final local verification**
 
 Run:
 
@@ -311,13 +312,21 @@ npm run e2e
 DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api
 ```
 
-- [ ] **Step 3: Record docs evidence**
+Result on 2026-08-28:
+
+- API: typecheck pass; lint pass; unit `7/7` suites, `42/42` tests; E2E `10/10` suites, `98/98` tests; build pass; audit `found 0 vulnerabilities`.
+- Web: unit `16/16` files, `145/145` tests after fixing stale admin mobile nav count; typecheck pass; lint pass; build pass with non-blocking Vite chunk-size warning (`649.04 kB` JS chunk over `500 kB`); mock Playwright `9/9`; API-mode Playwright `9/9`.
+- Known non-blocking logs: intentional API E2E internal-error/audit rollback logs and Playwright `NO_COLOR` warning under `FORCE_COLOR`.
+
+- [x] **Step 3: Record docs evidence**
 
 Update readiness, roadmap, release notes, changelog and acceptance checklist with exact command results and known constraints.
 
-- [ ] **Step 4: Prepare merge/deploy gate**
+- [x] **Step 4: Prepare merge/deploy gate**
 
 Do not push or deploy without explicit user approval. After approval, merge to `main`, push, wait for GitHub Actions/Render, run production smoke, and update docs again.
+
+Prepared gate status: local verification is complete; branch is ready for final review and user-approved merge/push/deploy. No push or deployment has been performed for Phase 3.
 
 ## Self-Review
 
