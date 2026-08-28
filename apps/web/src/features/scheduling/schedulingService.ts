@@ -148,6 +148,10 @@ function availabilityReason(
 }
 
 function listMockAvailability(filters: AvailabilityListFilters): ApiListResponse<AvailabilitySlot> {
+  if (filters.includeUnavailable && !filters.doctorId) {
+    throw new Error("doctorId is required when includeUnavailable is true.");
+  }
+
   const durationMinutes = serviceDuration(filters.serviceId);
   const schedules = activeSchedulesForDate({ doctorId: filters.doctorId, date: filters.date })
     .filter((schedule) => doctorSupportsService(schedule.doctorId, filters.serviceId));

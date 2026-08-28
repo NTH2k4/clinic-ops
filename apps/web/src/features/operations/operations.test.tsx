@@ -190,6 +190,16 @@ describe("operations workspace", () => {
     });
   });
 
+  it("keeps mock explanation mode aligned with the backend doctor requirement", async () => {
+    const service = createSchedulingService({ source: "mock" });
+
+    await expect(service.listAvailability({
+      serviceId: "service-general",
+      date: "2026-08-25",
+      includeUnavailable: true,
+    })).rejects.toThrow("doctorId is required when includeUnavailable is true.");
+  });
+
   it("does not render actions for completed queue entries", () => {
     renderWithProviders(<QueuePage />);
 
