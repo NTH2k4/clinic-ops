@@ -77,7 +77,7 @@ Trạng thái: **pass local verification** trên branch `account-administration`
 | `cd apps/api && npm run typecheck` | Pass | `tsc --noEmit` exited 0. |
 | `cd apps/api && npm run lint` | Pass | ESLint exited 0. |
 | `cd apps/api && npm test -- --runInBand` | Pass | `7/7` suites, `41/41` tests. |
-| `cd apps/api && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | `10/10` suites, `92/92` tests. |
+| `cd apps/api && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` | Pass | `10/10` suites, `93/93` tests. |
 | `cd apps/api && npm run build` | Pass | `nest build` exited 0. |
 | `cd apps/api && npm audit --audit-level=high` | Pass | `found 0 vulnerabilities`. |
 | `cd apps/web && npm test -- --run` | Pass | `16/16` files, `141/141` tests. |
@@ -93,7 +93,7 @@ Pre-round-3 verification rerun on 2026-08-28 confirmed local commit `10537ed9 fi
 
 Final review fix round 2 on 2026-08-28: routine hosted startup now creates missing demo users only, so existing password changes and locked/deactivated states persist; password registration/change validation rejects inputs over bcrypt's 72-byte UTF-8 limit and rejects reuse; OpenAPI now declares `201` for login/logout. RED targeted E2E covered the prior lifecycle reset, overlong 72-byte-prefix collision, and password reuse; targeted GREEN passed API E2E `2/2` suites `21/21` tests and unit/contract `2/2` suites `12/12` tests. API typecheck, lint, build, and high-severity audit also passed. This branch remains pending final review, merge, and deploy.
 
-Final review fix round 3 on 2026-08-28: login now rejects passwords over bcrypt's 72-byte UTF-8 limit with the existing generic `401 UNAUTHENTICATED` response before bcrypt comparison. RED reproduced a `201` login for a password whose first 72 bytes matched the stored hash; targeted GREEN passed `auth.e2e-spec.ts` `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, API typecheck, and lint. The full API E2E inventory is now `93` tests; the full suite was not rerun in this scoped fix.
+Final review fix round 3 on 2026-08-28: login now rejects passwords over bcrypt's 72-byte UTF-8 limit with the existing generic `401 UNAUTHENTICATED` response before bcrypt comparison. RED reproduced a `201` login for a password whose first 72 bytes matched the stored hash; targeted GREEN passed `auth.e2e-spec.ts` `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, API typecheck, and lint. Coordinator rerun confirmed API unit `7/7` suites `41/41` tests, API build/audit pass, and full API E2E `10/10` suites `93/93` tests.
 
 ## Web Verification Gate Sau Merge (Task 3)
 
