@@ -90,6 +90,46 @@ describe("admin workspace", () => {
     });
   });
 
+  it("lets administrators manage doctor schedule blocks from navigation", async () => {
+    const user = userEvent.setup();
+
+    expect(navigationForRole("admin")).toContainEqual({
+      icon: expect.anything(),
+      label: "Schedules",
+      to: "/app/admin/schedules",
+    });
+
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Admin Demo/i }));
+    await user.click((await screen.findAllByRole("link", { name: "Schedules" }))[0]);
+
+    expect(await screen.findByRole("heading", { name: "Schedules" })).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Filter doctor"), "doctor-1");
+    await user.click(screen.getByRole("button", { name: "Apply filters" }));
+
+    await user.selectOptions(screen.getByLabelText("Doctor"), "doctor-1");
+    await user.selectOptions(screen.getByLabelText("Schedule type"), "blocked");
+    await user.selectOptions(screen.getByLabelText("Day of week"), "2");
+    await user.clear(screen.getByLabelText("Start time"));
+    await user.type(screen.getByLabelText("Start time"), "10:00");
+    await user.clear(screen.getByLabelText("End time"));
+    await user.type(screen.getByLabelText("End time"), "11:00");
+    await user.click(screen.getByRole("button", { name: "Create schedule" }));
+
+    const schedulesTable = await screen.findByRole("table", { name: "Doctor schedules" });
+    await waitFor(() => expect(within(schedulesTable).getByText("10:00-11:00")).toBeInTheDocument());
+    const createdRow = within(schedulesTable).getByText("10:00-11:00").closest("tr")!;
+    expect(within(createdRow).getByText("Blocked")).toBeInTheDocument();
+    expect(within(createdRow).getByText("BS. Tran Quang Huy")).toBeInTheDocument();
+    expect(within(createdRow).getByText("2026-08-25 to 2026-08-25")).toBeInTheDocument();
+
+    await user.click(within(createdRow).getByRole("button", { name: "Deactivate BS. Tran Quang Huy 10:00-11:00" }));
+
+    expect(await within(createdRow).findByLabelText("Trạng thái: Không hoạt động")).toBeInTheDocument();
+  });
+
   it("renders account email, role, and status from the admin API", async () => {
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => apiListResponse(apiUsers, "req-users"));
     await renderApiAdminAccounts(fetcher);

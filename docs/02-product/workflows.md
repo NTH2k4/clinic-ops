@@ -30,6 +30,23 @@
 3. System cập nhật ngày và giờ của appointment.
 4. Audit log ghi lại schedule cũ và mới.
 
+## Luồng Quản Lý Lịch Bác Sĩ
+
+1. Admin mở schedule management trong admin workspace.
+2. Admin lọc theo bác sĩ hoặc khoảng ngày hiệu lực.
+3. Admin tạo hoặc sửa working schedule, blocked interval hoặc leave period.
+4. System validate khoảng giờ, khoảng ngày và appointment conflict.
+5. System ghi audit event cho create/update/deactivate schedule.
+6. Operations staff thấy availability mới khi tạo appointment.
+
+## Luồng Giải Thích Slot Không Khả Dụng
+
+1. Operations staff chọn service, bác sĩ và ngày khám.
+2. System lấy availability explanation từ backend ở API mode.
+3. UI hiển thị slot còn trống và slot không khả dụng cùng lý do.
+4. Staff chỉ có thể chọn slot còn trống.
+5. Backend vẫn kiểm tra conflict lần cuối khi staff tạo appointment.
+
 ## Luồng Cancellation
 
 1. Patient hoặc staff cancel appointment.

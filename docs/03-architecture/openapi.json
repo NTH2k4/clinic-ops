@@ -494,11 +494,12 @@
           { "$ref": "#/components/parameters/ServiceIdRequired" },
           { "$ref": "#/components/parameters/Date" },
           { "$ref": "#/components/parameters/DoctorId" },
+          { "$ref": "#/components/parameters/IncludeUnavailable" },
           { "$ref": "#/components/parameters/Page" },
           { "$ref": "#/components/parameters/PageSize" }
         ],
         "responses": {
-          "200": { "$ref": "#/components/responses/List" },
+          "200": { "$ref": "#/components/responses/AvailabilitySlotList" },
           "403": { "$ref": "#/components/responses/Error" }
         }
       }
@@ -796,6 +797,13 @@
         "required": true,
         "schema": { "type": "string", "minLength": 1 }
       },
+      "IncludeUnavailable": {
+        "name": "includeUnavailable",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "boolean", "default": false },
+        "description": "When true, requires doctorId and includes unavailable slots with backend-derived reason fields."
+      },
       "SpecialtyId": {
         "name": "specialtyId",
         "in": "query",
@@ -1055,6 +1063,14 @@
             "schema": { "$ref": "#/components/schemas/PasswordResetEnvelope" }
           }
         }
+      },
+      "AvailabilitySlotList": {
+        "description": "Paginated availability slot envelope",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/AvailabilitySlotListEnvelope" }
+          }
+        }
       }
     },
     "schemas": {
@@ -1073,6 +1089,17 @@
           "data": {
             "type": "array",
             "items": { "type": "object", "additionalProperties": true }
+          },
+          "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+        }
+      },
+      "AvailabilitySlotListEnvelope": {
+        "type": "object",
+        "required": ["data", "meta"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AvailabilitySlot" }
           },
           "meta": { "$ref": "#/components/schemas/PaginationMeta" }
         }
@@ -1390,6 +1417,20 @@
           "effectiveFrom": { "type": "string", "format": "date" },
           "effectiveTo": { "type": "string", "format": "date" },
           "type": { "enum": ["working", "blocked", "leave"] }
+        }
+      },
+      "AvailabilitySlot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["doctorId", "serviceId", "startAt", "endAt"],
+        "properties": {
+          "doctorId": { "type": "string" },
+          "serviceId": { "type": "string" },
+          "startAt": { "type": "string", "format": "date-time" },
+          "endAt": { "type": "string", "format": "date-time" },
+          "availabilityStatus": { "enum": ["available", "unavailable"] },
+          "reasonCode": { "enum": ["available", "blocked", "leave", "appointment_conflict"] },
+          "reasonLabel": { "type": "string" }
         }
       },
       "ServiceCreateRequest": {

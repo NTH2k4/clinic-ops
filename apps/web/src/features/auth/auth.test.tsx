@@ -3,6 +3,7 @@ import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import { useNavigate } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
+import { navigationForRole } from "../../components/navigation";
 import { renderWithProviders } from "../../test/render";
 
 function GoToRoleHome() {
@@ -206,7 +207,8 @@ describe("authentication and role routing", () => {
 
     const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng di động" });
     expect(mobileNavigation).toHaveClass("sticky", "bottom-0");
-    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(7);
+    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(navigationForRole("admin").length);
+    expect(within(mobileNavigation).getByRole("link", { name: "Schedules" })).toBeInTheDocument();
     expect(within(mobileNavigation).getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
 
     await user.click(within(mobileNavigation).getByRole("link", { name: "Audit log" }));

@@ -61,3 +61,19 @@
 - [x] Mock-mode Playwright. `npm run e2e` pass: 9/9 browser tests.
 - [x] API-mode Playwright. `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` pass: 5/5 browser tests.
 - [x] Không có failed command hoặc actionable error trong Web gate. Warning `NO_COLOR` của Node trong Playwright không làm test suite thất bại.
+
+## Phase 3 Scheduling Operations Task 5 (2026-08-28)
+
+- [x] API-mode browser regression covers schedule management affecting booking availability. Test logs in as admin, visits `/app/admin/schedules`, creates a `doctor-4` blocked schedule for `2026-08-26 11:30-12:00` through the authenticated API, then logs in as receptionist and verifies operations appointment creation shows `11:30 - Bác sĩ bị chặn lịch` as a disabled time option.
+- [x] Targeted GREEN: `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api -- --grep "schedule management"` pass: 1/1 browser test.
+- [x] Full API-mode GREEN: `cd apps/web && DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` pass: 9/9 browser tests. Teardown reseeded the local API database after the suite.
+- [x] RED note: initial targeted run failed on the disabled-option assertion while the failure log showed `<option disabled value="11:30">11:30 - Bác sĩ bị chặn lịch</option>`; the test assertion was corrected to verify the `disabled` attribute directly.
+
+## Phase 3 Scheduling Operations Final Local Gate (2026-08-28)
+
+- [x] API static/unit gate. `cd apps/api && npm run typecheck && npm run lint && npm test -- --runInBand` pass: unit `7/7` suites, `42/42` tests.
+- [x] API database/browser-support gate. `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run test:e2e -- --runInBand` pass: E2E `10/10` suites, `98/98` tests.
+- [x] API build/security gate. `npm run build && npm audit --audit-level=high` pass; audit reported `found 0 vulnerabilities`.
+- [x] Web unit/static/build gate. `cd apps/web && npm test -- --run && npm run typecheck && npm run lint && npm run build` pass: unit `16/16` files, `145/145` tests. Vite emitted the existing non-blocking chunk-size warning for a `649.04 kB` JS chunk over `500 kB`.
+- [x] Web browser gates. `npm run e2e` pass: mock-mode Playwright `9/9`; `DATABASE_URL=postgresql://careflow:careflow@localhost:5432/careflow npm run e2e:api` pass: API-mode Playwright `9/9`.
+- [x] Non-blocking logs reviewed. API E2E intentionally logs internal-error/audit rollback cases; Playwright logs `NO_COLOR` ignored under `FORCE_COLOR`. These did not fail commands.

@@ -42,6 +42,18 @@ const availabilitySchema = z.object({
   data: z.array(z.object({ doctorId: z.string(), serviceId: z.string(), startAt: z.string(), endAt: z.string() })),
   meta: listMetaSchema,
 });
+const explainedAvailabilitySchema = z.object({
+  data: z.array(z.object({
+    doctorId: z.string(),
+    serviceId: z.string(),
+    startAt: z.string(),
+    endAt: z.string(),
+    availabilityStatus: z.enum(["available", "unavailable"]),
+    reasonCode: z.enum(["available", "blocked", "leave", "appointment_conflict"]),
+    reasonLabel: z.string(),
+  })),
+  meta: listMetaSchema,
+});
 const errorSchema = z.object({ error: z.object({ code: z.string() }) });
 const appointmentSchema = z.object({ data: z.object({ id: z.string() }) });
 
@@ -198,6 +210,141 @@ describe("Schedule and availability reads", () => {
         .expect((response) => {
           const result = availabilitySchema.parse(response.body);
           expect(result.data.some((slot) => slot.startAt === slotStart)).toBe(true);
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("explains blocked slots when includeUnavailable is requested for a doctor", async () => {
+    const { app, server } = await createApp();
+    try {
+      const adminToken = await login(server, "admin@careflow.local");
+      const patientToken = await login(server);
+
+      await request(server)
+        .post("/api/v1/doctor-schedules")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          doctorId: "doctor-1",
+          dayOfWeek: 2,
+          startTime: "08:00",
+          endTime: "08:30",
+          effectiveFrom: "2026-08-25",
+          effectiveTo: "2026-08-25",
+          type: "blocked",
+        })
+        .expect(201);
+
+      await request(server)
+        .get("/api/v1/availability/slots?serviceId=service-general&date=2026-08-25&doctorId=doctor-1&pageSize=50&includeUnavailable=true")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200)
+        .expect((response) => {
+          const result = explainedAvailabilitySchema.parse(response.body);
+          const blocked = result.data.find((slot) => slot.startAt === "2026-08-25T01:00:00.000Z");
+          expect(blocked).toMatchObject({
+            doctorId: "doctor-1",
+            serviceId: "service-general",
+            availabilityStatus: "unavailable",
+            reasonCode: "blocked",
+            reasonLabel: "Bác sĩ bị chặn lịch",
+          });
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("explains leave slots when includeUnavailable is requested for a doctor", async () => {
+    const { app, server } = await createApp();
+    try {
+      const adminToken = await login(server, "admin@careflow.local");
+      const patientToken = await login(server);
+
+      await request(server)
+        .post("/api/v1/doctor-schedules")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          doctorId: "doctor-1",
+          dayOfWeek: 2,
+          startTime: "09:00",
+          endTime: "09:30",
+          effectiveFrom: "2026-08-25",
+          effectiveTo: "2026-08-25",
+          type: "leave",
+        })
+        .expect(201);
+
+      await request(server)
+        .get("/api/v1/availability/slots?serviceId=service-general&date=2026-08-25&doctorId=doctor-1&pageSize=50&includeUnavailable=true")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200)
+        .expect((response) => {
+          const result = explainedAvailabilitySchema.parse(response.body);
+          const leave = result.data.find((slot) => slot.startAt === "2026-08-25T02:00:00.000Z");
+          expect(leave).toMatchObject({
+            availabilityStatus: "unavailable",
+            reasonCode: "leave",
+            reasonLabel: "Bác sĩ nghỉ phép",
+          });
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("explains active appointment conflicts when includeUnavailable is requested for a doctor", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server);
+
+      await request(server)
+        .get("/api/v1/availability/slots?serviceId=service-general&date=2026-08-25&doctorId=doctor-1&pageSize=50&includeUnavailable=true")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200)
+        .expect((response) => {
+          const result = explainedAvailabilitySchema.parse(response.body);
+          const conflict = result.data.find((slot) => slot.startAt === "2026-08-25T05:00:00.000Z");
+          expect(conflict).toMatchObject({
+            availabilityStatus: "unavailable",
+            reasonCode: "appointment_conflict",
+            reasonLabel: "Bác sĩ đã có lịch hẹn",
+          });
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("requires doctorId for includeUnavailable explanation mode", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server);
+
+      await request(server)
+        .get("/api/v1/availability/slots?serviceId=service-general&date=2026-08-25&includeUnavailable=true")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(400)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("keeps includeUnavailable=false in available-only mode without requiring doctorId", async () => {
+    const { app, server } = await createApp();
+    try {
+      const patientToken = await login(server);
+
+      await request(server)
+        .get("/api/v1/availability/slots?serviceId=service-general&date=2026-08-25&includeUnavailable=false&pageSize=3")
+        .set("Authorization", `Bearer ${patientToken}`)
+        .expect(200)
+        .expect((response) => {
+          const result = availabilitySchema.parse(response.body);
+          expect(result.data).not.toHaveLength(0);
+          expect(result.data[0]).not.toHaveProperty("availabilityStatus");
         });
     } finally {
       await app.close();
