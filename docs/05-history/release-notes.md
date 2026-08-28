@@ -1,5 +1,12 @@
 # Ghi Chú Phát Hành
 
+## 2026-08-28 Phase 4 Production Demo Operations Candidate
+
+- Phase 4 implementation is in progress on branch `production-demo-operations` after plan approval. Scope covers read-only production smoke automation, optional Render deploy hook trigger, runbook/deployment documentation and final production operations closure.
+- Added `scripts/production-smoke.mjs` to verify Render health commit, admin login, catalog totals, doctor schedules and availability explanation mode without logging session tokens.
+- Updated `Render Deployment` workflow to optionally POST `secrets.RENDER_DEPLOY_HOOK_URL` before polling health. If the secret is absent, workflow behavior remains deployment registration plus health wait.
+- Updated operations docs with manual deploy fallback, failed health wait triage, demo baseline repair guidance and rollback documentation. Render Free and Neon Free remain the deployment target.
+
 ## 2026-08-28 Phase 3 Scheduling Operations Deployment Remediation
 
 - Phase 3 Scheduling Operations is deployed complete on Render at `f66970492103620d021a9bd9041374b9e656d684`, including runtime remediation commit `58d9ca0e`.

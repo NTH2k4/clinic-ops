@@ -182,7 +182,7 @@ git commit -m "ci: trigger render deploy from workflow"
 - Consumes: deploy hook workflow behavior from Task 2.
 - Produces: documented operator workflow for first deploy, routine deploy, manual fallback, failed health wait, demo baseline repair, rollback and smoke.
 
-- [ ] **Step 1: Update runbook with exact operator paths**
+- [x] **Step 1: Update runbook with exact operator paths**
 
 Document:
 
@@ -192,7 +192,7 @@ Document:
 - Demo data recovery: rely on hosted baseline repair; avoid destructive full seed.
 - Smoke command: `RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs`.
 
-- [ ] **Step 2: Update deployment plan with GitHub setup**
+- [x] **Step 2: Update deployment plan with GitHub setup**
 
 Document:
 
@@ -201,11 +201,11 @@ Document:
 - Deploy hook URL is secret and must be rotated if exposed.
 - Manual deploy remains acceptable on Render Free.
 
-- [ ] **Step 3: Update release/readiness docs**
+- [x] **Step 3: Update release/readiness docs**
 
 Record Phase 4 status, verification commands and free-tier constraints without introducing temporary status document names.
 
-- [ ] **Step 4: Verify docs**
+- [x] **Step 4: Verify docs**
 
 ```bash
 rg -n 'RENDER_DEPLOY_HOOK_URL|production-smoke|Manual Deploy|Deploy latest commit' docs/03-architecture/backend-runbook.md docs/04-planning/render-deployment-plan.md
@@ -214,7 +214,7 @@ git diff --check
 
 Expected: all key operations are documented and diff hygiene passes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/03-architecture/backend-runbook.md docs/04-planning/render-deployment-plan.md docs/05-history/release-notes.md docs/05-history/changelog.md docs/04-planning/mvp-release-readiness.md docs/00-project/documentation-map.md

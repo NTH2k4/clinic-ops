@@ -108,9 +108,9 @@ RENDER_EXTERNAL_URL=https://your-render-service.onrender.com node scripts/produc
 - Neon Free has storage and compute limits.
 - Do not use real patient data on this demo deployment.
 - Render Free Web Services do not support pre-deploy commands, so database migrations run in `buildCommand`.
+- Render auto-deploy depends on the GitHub integration receiving push events. If auto-deploy does not move production to the pushed SHA, use `RENDER_DEPLOY_HOOK_URL` or manual deploy.
 
 ## Next Hardening Work
 
-- Add account administration flows for password change/reset and account state management.
-- Add deployed Playwright smoke checks against the Render URL.
+- Add a small V1 documentation closure package that links release scope, acceptance checks and deployment smoke evidence.
 - Decide whether to keep GitHub Pages as a mock-only demo or retire it after Render is stable.

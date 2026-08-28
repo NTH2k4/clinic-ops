@@ -146,6 +146,29 @@ Render Dashboard -> clinic-ops -> Manual Deploy -> Deploy latest commit
 
 Use the fallback when the workflow reports that Render is healthy but still serving an older commit. Do not paste the deploy hook URL into logs or documentation; rotate it in Render if it is exposed.
 
+Failed health wait triage:
+
+1. Compare production health with remote `main`.
+
+   ```bash
+   curl "$RENDER_EXTERNAL_URL/api/v1/health"
+   git ls-remote origin refs/heads/main
+   ```
+
+2. If health serves an older commit and there is no Render deploy for the latest SHA, check `RENDER_DEPLOY_HOOK_URL` and Render GitHub integration.
+3. If Render has a failed deploy for the latest SHA, inspect the Render deploy logs before retrying.
+4. If the latest SHA is docs-only, deploy is optional for runtime behavior, but health will continue to show the last runtime deploy until Render is manually deployed again.
+
+Rollback:
+
+Use Render's dashboard rollback to redeploy a previously healthy deploy when the latest deploy fails after release. After rollback, run:
+
+```bash
+RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com node scripts/production-smoke.mjs
+```
+
+Record the rolled-back commit, reason and smoke result in `docs/05-history/release-notes.md` before continuing new feature work.
+
 ## Auth Failures
 
 Symptoms:
