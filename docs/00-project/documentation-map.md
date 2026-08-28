@@ -39,12 +39,12 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | MVP Release Completion | Kế hoạch subagent-driven để tích hợp authorization hardening, chạy full verification, cập nhật docs và chuẩn bị deploy | `docs/04-planning/mvp-release-completion-plan.md` | Hoàn thành; production smoke pass sau manual deploy latest commit |
 | CareFlow V1 Delivery Roadmap | Roadmap từ MVP release candidate tới CareFlow v1 hoàn chỉnh trong phạm vi đã chốt | `docs/04-planning/careflow-v1-delivery-roadmap.md` | Đã duyệt hướng tổng thể; mỗi phase sau vẫn cần plan riêng |
 | CareFlow V1 Subagent Execution | Kế hoạch điều phối workstream v1 bằng subagent-driven development | `docs/04-planning/careflow-v1-subagent-execution-plan.md` | Đã duyệt execution map; push/deploy vẫn cần gate riêng |
-| CareFlow V1 Traceability Matrix | Link từng requirement v1 tới product docs, architecture/API docs, implementation plans và verification evidence | `docs/01-requirements/v1-traceability-matrix.md` | Ready for acceptance review |
-| CareFlow V1 Acceptance Package | Checklist cuối để người dùng duyệt release v1 mà không cần đọc chat history | `docs/06-testing/v1-acceptance-package.md` | Ready for user review |
+| CareFlow V1 Traceability Matrix | Link từng requirement v1 tới product docs, architecture/API docs, implementation plans và verification evidence | `docs/01-requirements/v1-traceability-matrix.md` | Accepted |
+| CareFlow V1 Acceptance Package | Checklist cuối để người dùng duyệt release v1 mà không cần đọc chat history | `docs/06-testing/v1-acceptance-package.md` | Accepted |
 | Account Administration | Kế hoạch Phase 2 cho auth/account lifecycle: patient registration, password change, admin reset/status actions và account UI | `docs/04-planning/account-administration-plan.md` | Deployed complete trên Render |
 | Scheduling Operations | Kế hoạch Phase 3 cho schedule management UI, blocked/leave intervals và availability explanation | `docs/04-planning/scheduling-operations-plan.md` | Deployed complete trên Render |
 | Production Demo Operations | Kế hoạch Phase 4 cho Render/Neon operations, smoke script, deploy hook hardening và runbook closure | `docs/04-planning/production-demo-operations-plan.md` | Deployed complete trên Render |
-| V1 Documentation Closure | Kế hoạch Phase 5 cho traceability, acceptance package và release documentation closure | `docs/04-planning/v1-documentation-closure-plan.md` | Complete; waiting for user acceptance review |
+| V1 Documentation Closure | Kế hoạch Phase 5 cho traceability, acceptance package và release documentation closure | `docs/04-planning/v1-documentation-closure-plan.md` | Complete; accepted by product owner |
 
 ## Đánh Giá Hiện Tại
 
@@ -93,8 +93,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Người dùng review `docs/06-testing/v1-acceptance-package.md` và quyết định accept v1 hoặc yêu cầu follow-up.
-2. Giữ `docs/04-planning/mvp-release-readiness.md` được cập nhật khi acceptance result thay đổi.
+1. Tạo plan riêng cho V1.1 Real Clinic Readiness trước khi thêm feature hoặc refactor runtime.
+2. Giữ `docs/04-planning/mvp-release-readiness.md` được cập nhật nếu có feedback sau nghiệm thu V1.
 3. Xin approval rõ trước khi push hoặc deploy thay đổi ảnh hưởng shared `main` hoặc production.
 4. Duy trì OpenAPI spec đã checked-in khi endpoint behavior thay đổi.
 5. Chỉ thêm SRS/diagram nặng hơn khi product/API scope vượt quá v1 hiện tại.

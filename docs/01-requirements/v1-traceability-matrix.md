@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `ready-for-acceptance` |
+| Status | `accepted` |
 | Audience | Product owner, senior engineer, implementation agent |
 | Last updated | 2026-08-28 |
 | Sources | `docs/01-requirements/mvp-requirements.md`, `docs/01-requirements/user-stories.md`, `docs/02-product/workflows.md`, `docs/04-planning/careflow-v1-delivery-roadmap.md` |
@@ -34,6 +34,6 @@ This matrix links CareFlow v1 requirements to product behavior, architecture/API
 - Paid hosting, paid monitoring or non-free infrastructure.
 - Heavyweight SRS/diagram package beyond the lightweight docs already maintained for v1.
 
-## Acceptance Dependency
+## Acceptance Result
 
-Final acceptance depends on the product owner reviewing `docs/06-testing/v1-acceptance-package.md`. Any requested changes should update this matrix, the acceptance package and the relevant source docs in the same commit.
+CareFlow v1 was accepted by the product owner on 2026-08-28 after review of `docs/06-testing/v1-acceptance-package.md` and production verification at `673ffe52b12033eecc3fa9927ebebf906ab0d016`. Any requested follow-up changes should update this matrix, the acceptance package and the relevant source docs in the same commit.

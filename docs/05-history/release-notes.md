@@ -1,5 +1,11 @@
 # Ghi Chú Phát Hành
 
+## 2026-08-28 CareFlow V1 Đã Được Chấp Nhận
+
+- Product owner đã chấp nhận CareFlow v1 sau khi review acceptance package và hành vi production.
+- Baseline production được chấp nhận: `673ffe52b12033eecc3fa9927ebebf906ab0d016` trên `https://clinic-ops.onrender.com`.
+- V1.1 cần bắt đầu bằng plan riêng; hướng được khuyến nghị là Real Clinic Readiness.
+
 ## 2026-08-28 Tinh Chỉnh UX Auth Và Shell V1
 
 - Bổ sung nhóm tài khoản test thủ công dễ nhớ cho từng tác nhân: `admin@test.com` / `admin`, `doctor@test.com` / `doctor`, `receptionist@test.com` / `receptionist`, `nurse@test.com` / `nurse`, `patient@test.com` / `patient`.

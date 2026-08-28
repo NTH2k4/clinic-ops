@@ -39,7 +39,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
 | Phase 3 Scheduling Operations | Deployed complete on Render at `f6697049`, including scheduling baseline repair `58d9ca0e` | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`; production health/login/catalog/scheduling smoke pass |
 | Phase 4 Production Demo Operations | Deployed complete on Render; deploy hook automation later verified at `05ebf87b00399bbdc677a3668fa107152d10620e` with API/Web/Render workflows success and production smoke pass. | `docs/04-planning/production-demo-operations-plan.md`, `scripts/production-smoke.mjs`, `.github/workflows/render-deployment.yml` |
-| Phase 5 V1 Documentation Closure | Ready for user acceptance review; traceability matrix and acceptance package prepared. | `docs/04-planning/v1-documentation-closure-plan.md`, `docs/01-requirements/v1-traceability-matrix.md`, `docs/06-testing/v1-acceptance-package.md` |
+| Phase 5 V1 Documentation Closure | Accepted by product owner on 2026-08-28 after production verification at `673ffe52`. | `docs/04-planning/v1-documentation-closure-plan.md`, `docs/01-requirements/v1-traceability-matrix.md`, `docs/06-testing/v1-acceptance-package.md` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -206,8 +206,12 @@ Automation retest after `RENDER_DEPLOY_HOOK_URL` setup:
 - `05ebf87b chore: remove render auto deploy test marker`: API CI, Web CI and Render Deployment all completed successfully; production health moved to `05ebf87b00399bbdc677a3668fa107152d10620e`.
 - Production smoke for `05ebf87b00399bbdc677a3668fa107152d10620e` passed health, admin login, catalog totals, doctor schedule and availability explanation. Session token was not logged.
 
+## Kết Quả Nghiệm Thu V1
+
+CareFlow v1 đã được product owner review và chấp nhận vào 2026-08-28. Production tại `https://clinic-ops.onrender.com` đã serve commit `673ffe52b12033eecc3fa9927ebebf906ab0d016`; smoke production và manual QA accounts đã được xác minh trước acceptance.
+
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Người dùng review `docs/06-testing/v1-acceptance-package.md`.
-2. Nếu acceptance feedback yêu cầu thay đổi, cập nhật traceability matrix, acceptance package, release notes và readiness trong cùng follow-up.
-3. Sau khi user accept v1, tạo phase mới riêng trước khi thêm feature hoặc refactor runtime.
+1. Tạo plan riêng cho V1.1 Real Clinic Readiness trước khi thêm feature hoặc refactor runtime.
+2. Nếu có feedback sau nghiệm thu V1, cập nhật traceability matrix, acceptance package, release notes và readiness trong cùng follow-up.
+3. Giữ môi trường demo không chứa dữ liệu bệnh nhân thật.

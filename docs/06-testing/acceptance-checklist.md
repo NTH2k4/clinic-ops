@@ -103,4 +103,5 @@
 
 - [x] V1 traceability matrix prepared at `docs/01-requirements/v1-traceability-matrix.md`, linking auth, patient, operations, doctor, admin, scheduling, audit and deployment requirements to docs and verification evidence.
 - [x] V1 acceptance package prepared at `docs/06-testing/v1-acceptance-package.md`, including production URL, demo credentials, deployed smoke commit, verification evidence, user acceptance checklist and known constraints.
-- [x] Release readiness, documentation map, release notes and changelog updated so final acceptance review can start without reading chat history.
+- [x] Release readiness, documentation map, release notes and changelog updated so final acceptance review could be completed without reading chat history.
+- [x] Product owner đã chấp nhận CareFlow v1 vào 2026-08-28 sau khi review acceptance package và production behavior tại commit `673ffe52b12033eecc3fa9927ebebf906ab0d016`.

@@ -4,7 +4,7 @@
 
 | Trường | Giá trị |
 | --- | --- |
-| Trạng thái | `ready-for-user-review` |
+| Trạng thái | `accepted` |
 | Người đọc | Chủ dự án và người nghiệm thu cuối |
 | Cập nhật lần cuối | 2026-08-28 |
 | Truy vết | `docs/01-requirements/v1-traceability-matrix.md` |
@@ -21,7 +21,7 @@ Không nhập dữ liệu bệnh nhân thật vào môi trường này.
 | --- | --- |
 | Production URL | `https://clinic-ops.onrender.com` |
 | Hạ tầng hosted | Render Free Web Service + Neon PostgreSQL |
-| Baseline production đã smoke | `a8c61dbdcb846b8324e55e5d7474b846cdc2e763` |
+| Baseline production đã smoke | `673ffe52b12033eecc3fa9927ebebf906ab0d016` |
 | Commit gói docs Phase 5 ban đầu | `8157b224f81e7910f0f404d7711d9e60f17ef404` |
 
 Tài khoản demo gốc:
@@ -61,28 +61,28 @@ Dữ liệu seed phục vụ test có thể giữ tiếng Anh để developer d�
 | Phase 2 Account Administration | API typecheck/lint/unit/E2E/build/audit pass; Web unit/typecheck/lint/build/mock Playwright/API-mode Playwright pass; production account smoke pass trên Render tại `a52072e1`. |
 | Phase 3 Scheduling Operations | API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9`; production catalog/scheduling smoke pass sau remediation tại `f6697049`. |
 | Phase 4 Production Demo Operations | `scripts/production-smoke.mjs` đã thêm và test; workflow hỗ trợ `RENDER_DEPLOY_HOOK_URL`; deploy hook automation verified với API/Web/Render workflows thành công tại `05ebf87b`. |
-| Auth/Shell UX polish | Production đã serve `a8c61dbd`; đăng nhập, hiện/ẩn mật khẩu, xác nhận đăng xuất và notification popover đóng khi bấm ra ngoài đã sẵn sàng để review thủ công. |
+| Auth/Shell UX polish | Production đã serve `673ffe52`; đăng nhập, hiện/ẩn mật khẩu, xác nhận đăng xuất, notification popover đóng khi bấm ra ngoài, tài khoản test thủ công và seed data đã được product owner review và chấp nhận. |
 
 Smoke production tham khảo:
 
 ```bash
 RENDER_EXTERNAL_URL=https://clinic-ops.onrender.com \
-EXPECTED_RENDER_COMMIT=a8c61dbdcb846b8324e55e5d7474b846cdc2e763 \
+EXPECTED_RENDER_COMMIT=673ffe52b12033eecc3fa9927ebebf906ab0d016 \
 node scripts/production-smoke.mjs
 ```
 
 ## Checklist Nghiệm Thu Thủ Công
 
-- [ ] Tôi mở được `https://clinic-ops.onrender.com`.
-- [ ] Tôi đăng nhập được bằng tài khoản quản trị gốc `admin@careflow.local` / `careflow-demo`.
-- [ ] Tôi đăng nhập được bằng các tài khoản test thủ công theo từng tác nhân.
-- [ ] Tôi có thể đăng ký bệnh nhân mới và vào workspace bệnh nhân.
-- [ ] Tôi có thể đặt hoặc xem lịch hẹn mà không dùng dữ liệu bệnh nhân thật.
-- [ ] Tôi có thể kiểm thử workspace bác sĩ, lễ tân và điều dưỡng với dữ liệu lịch hẹn có sẵn.
-- [ ] Tôi thấy popup xác nhận trước khi đăng xuất.
-- [ ] Tôi mở thông báo và đóng được popover bằng cách bấm ra ngoài.
-- [ ] Tôi tìm được hướng dẫn deploy/recovery trong `docs/03-architecture/backend-runbook.md` và `docs/04-planning/render-deployment-plan.md`.
-- [ ] Tôi chấp nhận các giới hạn của bản demo v1.
+- [x] Tôi mở được `https://clinic-ops.onrender.com`.
+- [x] Tôi đăng nhập được bằng tài khoản quản trị gốc `admin@careflow.local` / `careflow-demo`.
+- [x] Tôi đăng nhập được bằng các tài khoản test thủ công theo từng tác nhân.
+- [x] Tôi có thể đăng ký bệnh nhân mới và vào workspace bệnh nhân.
+- [x] Tôi có thể đặt hoặc xem lịch hẹn mà không dùng dữ liệu bệnh nhân thật.
+- [x] Tôi có thể kiểm thử workspace bác sĩ, lễ tân và điều dưỡng với dữ liệu lịch hẹn có sẵn.
+- [x] Tôi thấy popup xác nhận trước khi đăng xuất.
+- [x] Tôi mở thông báo và đóng được popover bằng cách bấm ra ngoài.
+- [x] Tôi tìm được hướng dẫn deploy/recovery trong `docs/03-architecture/backend-runbook.md` và `docs/04-planning/render-deployment-plan.md`.
+- [x] Tôi chấp nhận các giới hạn của bản demo v1.
 
 ## Giới Hạn Đã Biết
 
@@ -95,4 +95,4 @@ node scripts/production-smoke.mjs
 
 ## Kết Quả Nghiệm Thu
 
-Gói này sẵn sàng cho product-owner review. Nếu feedback nghiệm thu làm đổi scope, cập nhật `docs/01-requirements/v1-traceability-matrix.md`, tài liệu này, release notes và readiness docs trong cùng follow-up change.
+CareFlow v1 đã được product owner review và chấp nhận vào 2026-08-28. Nếu feedback sau nghiệm thu làm đổi scope, cập nhật `docs/01-requirements/v1-traceability-matrix.md`, tài liệu này, release notes và readiness docs trong cùng follow-up change.
