@@ -37,7 +37,7 @@ Tài liệu này là bảng tổng quan bằng tiếng Việt để theo dõi m�
 | MVP Release Completion | Đã push/deploy release candidate; CI pass; Render health/login smoke pass sau manual deploy latest commit | `docs/04-planning/mvp-release-completion-plan.md`, API/Web gates, GitHub Actions và Render smoke |
 | CareFlow V1 Delivery Roadmap | Đã được người dùng duyệt hướng tổng thể để triển khai theo thứ tự phase | `docs/04-planning/careflow-v1-delivery-roadmap.md` |
 | CareFlow V1 Subagent Execution | Đã được người dùng duyệt execution map để điều phối các package v1 | `docs/04-planning/careflow-v1-subagent-execution-plan.md` |
-| Phase 3 Scheduling Operations | Merge/push complete and Render deployed code at `49a4ff2a`; production scheduling smoke found missing demo catalog/scheduling baseline, remediation committed at `58d9ca0e` and awaiting push/deploy | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9` |
+| Phase 3 Scheduling Operations | Merge/push complete and Render deployed code at `49a4ff2a`; production scheduling smoke found missing demo catalog/scheduling baseline. Remediation is pushed on `main` at `9b8e9799`, but Render still serves `49a4ff2a`; manual Render deploy is required. | `docs/04-planning/scheduling-operations-plan.md`; API unit `43/43`, API E2E `98/98`, Web unit `145/145`, mock Playwright `9/9`, API-mode Playwright `9/9` |
 
 ## Trạng Thái Branch Hiện Tại
 
@@ -181,12 +181,13 @@ Production smoke sau deploy:
 - Admin login: pass với `admin@careflow.local`; response có `currentUser.role=admin` và session token. Token không được ghi vào tài liệu.
 - Scheduling data smoke: blocked. Production database thiếu baseline catalog/scheduling data: `/services`, `/doctors`, `/specialties`, `/doctor-schedules`, `/appointments` đều trả total `0`; `/availability/slots?serviceId=service-general...` trả `404 service was not found`.
 
-Remediation đã commit tại `58d9ca0e fix(api): repair hosted demo scheduling baseline`: hosted startup repair trong `SERVE_WEB_APP=true` tạo thiếu demo specialties, services, staff, doctors và doctor schedules bằng thao tác idempotent, không reset hoặc xoá user/patient data hiện có. Local RED/GREEN và Prisma smoke đã pass: targeted unit `4/4`, API unit `7/7` suites `43/43`, API E2E `10/10` suites `98/98`, API typecheck/lint/build/audit pass, local repair smoke sau hai lần chạy giữ totals `8` services, `5` doctors, `50` schedules.
+Remediation đã commit tại `58d9ca0e fix(api): repair hosted demo scheduling baseline` và push lên `origin/main` trong docs ledger commit `9b8e9799`: hosted startup repair trong `SERVE_WEB_APP=true` tạo thiếu demo specialties, services, staff, doctors và doctor schedules bằng thao tác idempotent, không reset hoặc xoá user/patient data hiện có. Local RED/GREEN và Prisma smoke đã pass: targeted unit `4/4`, API unit `7/7` suites `43/43`, API E2E `10/10` suites `98/98`, API typecheck/lint/build/audit pass, local repair smoke sau hai lần chạy giữ totals `8` services, `5` doctors, `50` schedules.
+
+GitHub Actions for `9b8e9799`: API CI and Web CI passed. Render Deployment failed because the health wait still observed production serving `49a4ff2a6789d2677ea2fdc431d9f877cdbfd01e` instead of `9b8e9799199660aa5331ed3dedf84510c9770c10`; this matches the known Render auto-deploy disconnect.
 
 ## Bước Tiếp Theo Được Khuyến Nghị
 
-1. Push remediation commit `58d9ca0e` lên `origin/main`.
-2. Chờ GitHub Actions và Render Deployment pass cho commit mới.
-3. Chạy production smoke lại: health commit, admin login, `/services`, `/doctors`, `/doctor-schedules`, `/availability/slots` với explanation mode.
-4. Nếu smoke pass, cập nhật readiness/release notes/acceptance checklist để đánh dấu Phase 3 deployed complete.
-5. Sau khi Phase 3 deployed complete, mở kế hoạch Phase 4 Production Demo Operations.
+1. Manual deploy latest `main` commit `9b8e9799199660aa5331ed3dedf84510c9770c10` trên Render.
+2. Sau khi Render health serve đúng `9b8e9799`, chạy production smoke lại: health commit, admin login, `/services`, `/doctors`, `/doctor-schedules`, `/availability/slots` với explanation mode.
+3. Nếu smoke pass, cập nhật readiness/release notes/acceptance checklist để đánh dấu Phase 3 deployed complete.
+4. Sau khi Phase 3 deployed complete, mở kế hoạch Phase 4 Production Demo Operations.
