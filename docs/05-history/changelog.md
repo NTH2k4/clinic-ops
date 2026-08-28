@@ -2,6 +2,7 @@
 
 ## 2026-08-28
 
+- Started Phase 3 Scheduling Operations on branch `scheduling-operations`: added `docs/04-planning/scheduling-operations-plan.md`, documented planned availability explanation mode, and updated workflows/readiness/documentation map before code.
 - Closed Phase 2 Account Administration as deployed complete after manual Render deploy and GitHub Actions verification. Production health serves `a52072e1a36166a14b0e29b912032377dad1995b`, which includes runtime merge `32464b3d`; production smoke passed health, admin login, patient registration/access, password change/session revocation, admin user list, lock/unlock, reset-password, temporary-password login, deactivate and deactivated-login rejection. The generated `@example.test` smoke user was deactivated at the end of the flow.
 - Merged and pushed Phase 2 Account Administration to `main` at merge commit `32464b3d` after post-merge local API/Web verification passed.
 - Final review fix round 3: login now rejects passwords over bcrypt's 72-byte UTF-8 input limit before comparison, preserving the established generic `401 UNAUTHENTICATED` response. Added an E2E prefix-collision regression using a stored 72-byte password hash; targeted auth E2E passed `1/1` suite `21/21` tests, OpenAPI contract `1/1` suite `9/9` tests, typecheck, and lint. Coordinator rerun confirmed full API E2E `10/10` suites `93/93` tests.

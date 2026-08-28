@@ -102,7 +102,7 @@ Exit criteria:
 
 ## Phase 3: Scheduling Operations UI
 
-Trạng thái: chưa bắt đầu.
+Trạng thái: đang triển khai trên branch/worktree `scheduling-operations`; plan chính nằm tại `docs/04-planning/scheduling-operations-plan.md`.
 
 Mục tiêu:
 

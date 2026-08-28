@@ -228,6 +228,20 @@ serviceId=service-general&date=2026-08-25&doctorId=doctor-1
 
 Nếu không truyền `doctorId`, backend trả slot cho any available doctor. Mỗi slot response phải có doctor candidate để frontend có thể assign deterministic khi submit.
 
+Phase 3 bổ sung planned backward-compatible explanation mode:
+
+```text
+serviceId=service-general&date=2026-08-25&doctorId=doctor-1&includeUnavailable=true
+```
+
+`includeUnavailable=true` chỉ áp dụng khi có `doctorId`. Response vẫn dùng list envelope cũ nhưng mỗi item có thể thêm:
+
+- `availabilityStatus`: `available` hoặc `unavailable`.
+- `reasonCode`: `available`, `blocked`, `leave` hoặc `appointment_conflict`.
+- `reasonLabel`: nhãn tiếng Việt để operations staff hiểu vì sao slot không khả dụng.
+
+Nếu không truyền `includeUnavailable=true`, response giữ hành vi hiện có: chỉ trả các slot khả dụng.
+
 ## Appointments
 
 | Method | Path | Role | Mục đích |

@@ -39,7 +39,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 | MVP Release Completion | Kế hoạch subagent-driven để tích hợp authorization hardening, chạy full verification, cập nhật docs và chuẩn bị deploy | `docs/04-planning/mvp-release-completion-plan.md` | Hoàn thành; production smoke pass sau manual deploy latest commit |
 | CareFlow V1 Delivery Roadmap | Roadmap từ MVP release candidate tới CareFlow v1 hoàn chỉnh trong phạm vi đã chốt | `docs/04-planning/careflow-v1-delivery-roadmap.md` | Đã duyệt hướng tổng thể; mỗi phase sau vẫn cần plan riêng |
 | CareFlow V1 Subagent Execution | Kế hoạch điều phối workstream v1 bằng subagent-driven development | `docs/04-planning/careflow-v1-subagent-execution-plan.md` | Đã duyệt execution map; push/deploy vẫn cần gate riêng |
-| Account Administration | Kế hoạch Phase 2 cho auth/account lifecycle: patient registration, password change, admin reset/status actions và account UI | `docs/04-planning/account-administration-plan.md` | Bản kế hoạch sẵn sàng để người dùng duyệt trước khi triển khai code |
+| Account Administration | Kế hoạch Phase 2 cho auth/account lifecycle: patient registration, password change, admin reset/status actions và account UI | `docs/04-planning/account-administration-plan.md` | Deployed complete trên Render |
+| Scheduling Operations | Kế hoạch Phase 3 cho schedule management UI, blocked/leave intervals và availability explanation | `docs/04-planning/scheduling-operations-plan.md` | Đang triển khai trên branch `scheduling-operations` |
 
 ## Đánh Giá Hiện Tại
 
@@ -68,7 +69,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 - Có release candidate đã verified và deploy: authorization hardening đã tích hợp vào `main`, API/Web gates pass, Render health/login smoke pass và docs/release notes đã được đồng bộ.
 - Có roadmap CareFlow v1 tại `docs/04-planning/careflow-v1-delivery-roadmap.md`, định nghĩa đích cuối cho v1 và các phase sau MVP release candidate.
 - Có kế hoạch điều phối subagent-driven tại `docs/04-planning/careflow-v1-subagent-execution-plan.md`, chia các package v1 theo thứ tự triển khai và verification gate.
-- Có kế hoạch Phase 2 tại `docs/04-planning/account-administration-plan.md`, ưu tiên authentication-first trước khi mở scheduling operations UI.
+- Có kế hoạch Phase 2 tại `docs/04-planning/account-administration-plan.md`, ưu tiên authentication-first và đã deploy complete.
+- Có kế hoạch Phase 3 tại `docs/04-planning/scheduling-operations-plan.md`, tập trung vào Scheduling Operations UI, blocked/leave intervals và availability explanation.
 
 ### Còn Thiếu So Với Mẫu
 
@@ -85,9 +87,8 @@ Vision/Scope -> MVP Requirements -> Data Model -> Frontend MVP Spec -> Frontend 
 
 Thứ tự nên làm tiếp:
 
-1. Duyệt `docs/04-planning/account-administration-plan.md`.
-2. Triển khai Phase 2 bằng subagent-driven development sau khi được duyệt.
-3. Giữ `docs/04-planning/mvp-release-readiness.md` được cập nhật trước và sau mỗi bước triển khai.
-4. Xin approval rõ trước khi push hoặc deploy thay đổi ảnh hưởng shared `main` hoặc production.
-5. Duy trì OpenAPI spec đã checked-in khi endpoint behavior thay đổi.
-6. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.
+1. Triển khai Phase 3 theo `docs/04-planning/scheduling-operations-plan.md`.
+2. Giữ `docs/04-planning/mvp-release-readiness.md` và plan Phase 3 được cập nhật trước và sau mỗi bước triển khai.
+3. Xin approval rõ trước khi push hoặc deploy thay đổi ảnh hưởng shared `main` hoặc production.
+4. Duy trì OpenAPI spec đã checked-in khi endpoint behavior thay đổi.
+5. Add traceability matrix and SRS only when the product/API scope becomes larger than the current MVP.
