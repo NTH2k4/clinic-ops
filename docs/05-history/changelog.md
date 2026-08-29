@@ -2,6 +2,9 @@
 
 ## 2026-08-29
 
+- Mở rộng admin catalog UI cho services, specialties và doctors từ form draft-only sang create/update/deactivate qua backend API thật; UI vẫn dùng soft deactivate để giữ lịch sử lịch hẹn/audit.
+- Bổ sung `actorDisplayName` và `entityDisplayName` cho audit event list/detail API, frontend Audit Log hiển thị tên đối tượng/người thao tác kèm raw ID phụ để quản trị dễ kiểm soát.
+- Loại bỏ copy user-facing còn sót về demo/draft trong mock login, role switcher, dashboard và quản trị bác sĩ; tài khoản demo và test credentials vẫn giữ để phục vụ kiểm thử.
 - Việt hóa backend seeded services/specialties cho API mode và hosted demo repair: patient-facing catalog dùng `Khám tổng quát`, `Tái khám`, `Khám tim mạch`, `Điện tâm đồ`, `Khám nhi`, `Tư vấn tiêm chủng` thay vì các label tiếng Anh cũ. Hosted startup repair dùng upsert cho known demo catalog rows để production records đã tồn tại được cập nhật sau deploy.
 - Bổ sung regression coverage cho API catalog E2E và production smoke script để bắt trường hợp service catalog vẫn trả `General Consultation` cho patient/admin smoke.
 

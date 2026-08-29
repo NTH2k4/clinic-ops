@@ -9,7 +9,7 @@ import type { UserRole } from "../../types/models";
 import { useAuth } from "./AuthProvider";
 import { PasswordField } from "./PasswordField";
 
-const demoRoleLabels: Record<UserRole, string> = {
+const roleLabels: Record<UserRole, string> = {
   admin: "Quản trị",
   doctor: "Bác sĩ",
   nurse: "Điều dưỡng",
@@ -97,7 +97,7 @@ export function LoginPage() {
           </form>
         ) : (
           <>
-            <p className="mt-4 text-sm text-text-muted">Chọn tài khoản mẫu để vào không gian làm việc tương ứng.</p>
+            <p className="mt-4 text-sm text-text-muted">Chọn tài khoản để vào không gian làm việc tương ứng.</p>
             <div className="mt-6 grid gap-3">
               {mockStore.users.map((user) => (
                 <button
@@ -106,7 +106,7 @@ export function LoginPage() {
                   onClick={() => signInAs(user.id)}
                   type="button"
                 >
-                  <span>{`${demoRoleLabels[user.role]} demo`}</span>
+                  <span>{roleLabels[user.role]}</span>
                   <span className="text-text-muted">{user.displayName}</span>
                 </button>
               ))}

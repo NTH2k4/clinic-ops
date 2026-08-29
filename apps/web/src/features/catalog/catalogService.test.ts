@@ -130,6 +130,71 @@ describe("catalog service", () => {
     expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer signed-in-token");
   });
 
+  it("creates, updates, and deactivates services through the API catalog client", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: {
+        id: "service-new",
+        name: "Khám du lịch",
+        specialtyId: "specialty-general",
+        durationMinutes: 30,
+        price: "250000.00",
+        currency: "VND",
+        description: null,
+        status: "active",
+        createdAt: "2026-08-20T01:00:00.000Z",
+        updatedAt: "2026-08-21T01:00:00.000Z",
+      }, meta: { requestId: "req-create" } }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: {
+        id: "service-new",
+        name: "Khám du lịch cập nhật",
+        specialtyId: "specialty-general",
+        durationMinutes: 45,
+        price: "300000.00",
+        currency: "VND",
+        description: "Tư vấn trước chuyến đi.",
+        status: "active",
+        createdAt: "2026-08-20T01:00:00.000Z",
+        updatedAt: "2026-08-22T01:00:00.000Z",
+      }, meta: { requestId: "req-update" } }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: {
+        id: "service-new",
+        name: "Khám du lịch cập nhật",
+        specialtyId: "specialty-general",
+        durationMinutes: 45,
+        price: "300000.00",
+        currency: "VND",
+        description: "Tư vấn trước chuyến đi.",
+        status: "inactive",
+        createdAt: "2026-08-20T01:00:00.000Z",
+        updatedAt: "2026-08-23T01:00:00.000Z",
+      }, meta: { requestId: "req-deactivate" } }), { status: 201 }));
+    const service = createCatalogService({ source: "api", fetcher });
+
+    await expect(service.createService({
+      name: "Khám du lịch",
+      specialtyId: "specialty-general",
+      durationMinutes: 30,
+      price: 250000,
+      currency: "VND",
+      description: "",
+    })).resolves.toMatchObject({ id: "service-new", description: "", price: 250000 });
+    await expect(service.updateService("service-new", { name: "Khám du lịch cập nhật", durationMinutes: 45, price: 300000 })).resolves.toMatchObject({ name: "Khám du lịch cập nhật", durationMinutes: 45 });
+    await expect(service.deactivateService("service-new")).resolves.toMatchObject({ status: "inactive" });
+
+    expect(fetcher.mock.calls.map(([url, init]) => [url, init?.method, init?.body])).toEqual([
+      ["/api/v1/services", "POST", JSON.stringify({
+        name: "Khám du lịch",
+        specialtyId: "specialty-general",
+        durationMinutes: 30,
+        price: 250000,
+        currency: "VND",
+        description: "",
+      })],
+      ["/api/v1/services/service-new", "PATCH", JSON.stringify({ name: "Khám du lịch cập nhật", durationMinutes: 45, price: 300000 })],
+      ["/api/v1/services/service-new/deactivate", "POST", undefined],
+    ]);
+  });
+
   it("returns complete filtered fixture lists from all mock full-list helpers", async () => {
     const service = createCatalogService({ source: "mock" });
 

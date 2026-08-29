@@ -42,7 +42,7 @@ export function AdminDashboard() {
         <MetricCard helper="Sẵn sàng tiếp nhận lịch hẹn đang hoạt động." label="Bác sĩ đang hoạt động" tone="primary" value={activeDoctorTotal} />
         <MetricCard helper="Danh mục dịch vụ đang mở cho đặt lịch." label="Dịch vụ đang hoạt động" tone="accent" value={activeServiceTotal} />
         <MetricCard helper={`Ngày vận hành ${today.split("-").reverse().join("/")}.`} label="Lịch hẹn hôm nay" tone="success" value={appointmentsToday.length} />
-        <MetricCard helper="Tỷ lệ lịch đã hủy trên toàn bộ dữ liệu demo." label="Tỷ lệ hủy lịch" tone="warning" value={percent(cancellationRate)} />
+        <MetricCard helper="Tỷ lệ lịch đã hủy trên toàn bộ dữ liệu." label="Tỷ lệ hủy lịch" tone="warning" value={percent(cancellationRate)} />
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="popular-services-heading" className="rounded-lg border border-border bg-surface p-5 shadow-panel">

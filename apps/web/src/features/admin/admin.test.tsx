@@ -24,8 +24,10 @@ function apiListResponse(data: unknown[], requestId: string, total = data.length
 const apiAuditEvent = {
   id: "audit-api-1",
   actorUserId: "user-admin-1",
+  actorDisplayName: "Quản trị viên",
   entityType: "appointment",
   entityId: "appointment-api-1",
+  entityDisplayName: "Nguyen Minh Anh - Khám tổng quát",
   action: "appointment_updated",
   timestamp: "2026-08-24T02:00:00.000Z",
   metadata: { source: "api" },
@@ -101,7 +103,7 @@ describe("admin workspace", () => {
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Quản trị demo/i }));
+    await user.click(screen.getByRole("button", { name: /Quản trị/i }));
     await user.click((await screen.findAllByRole("link", { name: "Lịch làm việc" }))[0]);
 
     expect(await screen.findByRole("heading", { name: "Lịch làm việc" })).toBeInTheDocument();
@@ -261,15 +263,19 @@ describe("admin workspace", () => {
     expect(within(screen.getByText("Dịch vụ đang hoạt động").closest("section")!).getByText("8")).toBeInTheDocument();
     expect(within(screen.getByText("Lịch hẹn hôm nay").closest("section")!).getByText("32")).toBeInTheDocument();
     expect(within(screen.getByText("Tỷ lệ hủy lịch").closest("section")!).getByText("14,3%")).toBeInTheDocument();
+    expect(screen.getByText("Tỷ lệ lịch đã hủy trên toàn bộ dữ liệu.")).toBeInTheDocument();
     expect(screen.getByText("5 dịch vụ có lịch hẹn nhiều nhất")).toBeInTheDocument();
     expect(screen.getByText("4 bác sĩ đang hoạt động")).toBeInTheDocument();
+    expect(screen.queryByText(/demo/i)).not.toBeInTheDocument();
   });
 
   it("renders the doctors management table", () => {
     renderWithProviders(<AdminDoctors />);
 
-    expect(screen.getByText("5 bác sĩ trong không gian demo")).toBeInTheDocument();
-    expect(screen.getByText("Form chỉ cập nhật state frontend để kiểm thử workflow quản trị.")).toBeInTheDocument();
+    expect(screen.getByText("5 bác sĩ trong danh mục")).toBeInTheDocument();
+    expect(screen.getByText("Thêm hoặc cập nhật bác sĩ để phục vụ đặt lịch.")).toBeInTheDocument();
+    expect(screen.queryByText(/demo/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/chỉ cập nhật state frontend/i)).not.toBeInTheDocument();
     expect(screen.getByRole("table", { name: "Bác sĩ" })).toBeInTheDocument();
   });
 
@@ -306,6 +312,8 @@ describe("admin workspace", () => {
     await screen.findByRole("option", { name: "Cập nhật lịch hẹn" });
     await user.selectOptions(screen.getByLabelText("Hành động"), "appointment_updated");
 
+    expect(screen.getByText("Nguyen Minh Anh - Khám tổng quát")).toBeInTheDocument();
+    expect(screen.getByText("Quản trị viên")).toBeInTheDocument();
     await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toContain(
       "/api/v1/audit-events?entityType=appointment&action=appointment_updated&page=1&pageSize=100",
     ));
@@ -327,7 +335,7 @@ describe("admin workspace", () => {
     mockStore.notifications[1].readAt = "2026-08-24T12:00:00+07:00";
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Quản trị demo/i }));
+    await user.click(screen.getByRole("button", { name: /Quản trị/i }));
     await user.click(screen.getByRole("button", { name: "Thông báo" }));
 
     const notificationDialog = screen.getByRole("dialog", { name: "Thông báo" });

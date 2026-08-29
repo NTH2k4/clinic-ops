@@ -16,7 +16,7 @@ afterEach(() => {
 async function signInAsPatient() {
   const user = userEvent.setup();
   renderWithProviders(<App />);
-  await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+  await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
   return user;
 }
 

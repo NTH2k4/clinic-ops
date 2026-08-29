@@ -26,8 +26,10 @@ function mapAuditEvent(record: ApiAuditEventRecord): AuditEvent {
   return {
     id: record.id,
     actorUserId: record.actorUserId,
+    actorDisplayName: record.actorDisplayName,
     entityType: record.entityType,
     entityId: record.entityId,
+    entityDisplayName: record.entityDisplayName,
     action: record.action,
     timestamp: record.timestamp,
     ...(record.metadata ? { metadata: record.metadata } : {}),

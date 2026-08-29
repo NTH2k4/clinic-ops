@@ -19,6 +19,14 @@ export function AuditLog() {
     setAction("");
   }
 
+  function entityName(event: (typeof events)[number]) {
+    return event.entityDisplayName || event.entityId;
+  }
+
+  function actorName(event: (typeof events)[number]) {
+    return event.actorDisplayName || event.actorUserId;
+  }
+
   return (
     <section className="mx-auto max-w-6xl">
       <p className="text-sm font-medium text-primary">Tuân thủ và theo dõi</p>
@@ -34,10 +42,10 @@ export function AuditLog() {
       </fieldset>
       <div className="mt-6 overflow-x-auto rounded-md border border-border bg-surface shadow-sm">
         <table aria-label="Sự kiện kiểm toán" className="hidden min-w-full text-left text-sm md:table">
-          <thead className="bg-surface-muted text-text-muted"><tr><th className="p-3 font-medium">Thời điểm</th><th className="p-3 font-medium">Loại đối tượng</th><th className="p-3 font-medium">Hành động</th><th className="p-3 font-medium">ID đối tượng</th></tr></thead>
-          <tbody>{events.map((event) => <tr className="border-t border-border" key={event.id}><td className="p-3">{formatDateTime(event.timestamp)}</td><td className="p-3">{auditEntityLabel(event.entityType)}</td><td className="p-3">{auditActionLabel(event.action)}</td><td className="p-3 text-text-muted">{event.entityId}</td></tr>)}</tbody>
+          <thead className="bg-surface-muted text-text-muted"><tr><th className="p-3 font-medium">Thời điểm</th><th className="p-3 font-medium">Đối tượng</th><th className="p-3 font-medium">Hành động</th><th className="p-3 font-medium">Người thao tác</th></tr></thead>
+          <tbody>{events.map((event) => <tr className="border-t border-border" key={event.id}><td className="p-3">{formatDateTime(event.timestamp)}</td><td className="p-3"><p className="font-medium text-text">{entityName(event)}</p><p className="mt-1 text-xs text-text-muted">{auditEntityLabel(event.entityType)} · {event.entityId}</p></td><td className="p-3">{auditActionLabel(event.action)}</td><td className="p-3"><p className="font-medium text-text">{actorName(event)}</p><p className="mt-1 text-xs text-text-muted">{event.actorUserId}</p></td></tr>)}</tbody>
         </table>
-        <ul className="divide-y divide-border md:hidden">{events.map((event) => <li className="p-3" key={event.id}><p className="font-medium text-text">{auditActionLabel(event.action)}</p><p className="mt-1 text-sm text-text-muted">{auditEntityLabel(event.entityType)} · {formatDateTime(event.timestamp)}</p><p className="mt-1 text-xs text-text-muted">{event.entityId}</p></li>)}</ul>
+        <ul className="divide-y divide-border md:hidden">{events.map((event) => <li className="p-3" key={event.id}><p className="font-medium text-text">{auditActionLabel(event.action)}</p><p className="mt-1 text-sm text-text-muted">{entityName(event)} · {formatDateTime(event.timestamp)}</p><p className="mt-1 text-xs text-text-muted">{auditEntityLabel(event.entityType)} · {event.entityId}</p><p className="mt-1 text-xs text-text-muted">Người thao tác: {actorName(event)}</p></li>)}</ul>
       </div>
       {!events.length ? <p className="mt-4 text-sm text-text-muted">Không có sự kiện kiểm toán phù hợp.</p> : null}
     </section>

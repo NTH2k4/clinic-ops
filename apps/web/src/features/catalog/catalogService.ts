@@ -1,5 +1,5 @@
 import { createCatalogApi } from "../../lib/api/catalog";
-import type { CatalogApi, CatalogListFilters } from "../../lib/api/catalog";
+import type { CatalogApi, CatalogListFilters, DoctorMutationInput, ServiceMutationInput, SpecialtyMutationInput } from "../../lib/api/catalog";
 import { mapDoctor, mapService, mapSpecialty } from "../../lib/api/mappers";
 import { createSessionApiHttpClient } from "../../lib/api/session";
 import type { ApiListMeta, ApiListResponse } from "../../lib/api/types";
@@ -16,6 +16,15 @@ export interface CatalogService {
   listAllServices(filters?: CatalogFullListFilters): Promise<ApiListResponse<Service>>;
   listAllSpecialties(filters?: CatalogFullListFilters): Promise<ApiListResponse<Specialty>>;
   listAllDoctors(filters?: CatalogFullListFilters): Promise<ApiListResponse<Doctor>>;
+  createService(input: Required<Pick<ServiceMutationInput, "name" | "specialtyId" | "durationMinutes" | "price">> & ServiceMutationInput): Promise<Service>;
+  updateService(id: string, input: ServiceMutationInput): Promise<Service>;
+  deactivateService(id: string): Promise<Service>;
+  createSpecialty(input: Required<Pick<SpecialtyMutationInput, "name">> & SpecialtyMutationInput): Promise<Specialty>;
+  updateSpecialty(id: string, input: SpecialtyMutationInput): Promise<Specialty>;
+  deactivateSpecialty(id: string): Promise<Specialty>;
+  createDoctor(input: Required<Pick<DoctorMutationInput, "fullName" | "specialtyId" | "phone" | "email">> & DoctorMutationInput): Promise<Doctor>;
+  updateDoctor(id: string, input: DoctorMutationInput): Promise<Doctor>;
+  deactivateDoctor(id: string): Promise<Doctor>;
 }
 
 interface CatalogServiceOptions {
@@ -63,6 +72,16 @@ function mockDoctors(filters: CatalogListFilters = {}): ApiListResponse<Doctor> 
     && (!filters.serviceId || doctor.serviceIds.includes(filters.serviceId))
     && includesQuery(doctor.fullName, filters.q));
   return paginate(items, filters);
+}
+
+function isoNow() {
+  return new Date().toISOString();
+}
+
+function requireMockRecord<T extends { id: string }>(items: T[], id: string, label: string): T {
+  const item = items.find((candidate) => candidate.id === id);
+  if (!item) throw new Error(`Không tìm thấy ${label}.`);
+  return item;
 }
 
 async function listAllPages<T>(
@@ -124,6 +143,89 @@ export function createCatalogService(options: CatalogServiceOptions): CatalogSer
     },
     listAllDoctors(filters = {}) {
       return listAllPages((pageFilters) => service.listDoctors(pageFilters), filters);
+    },
+    async createService(input) {
+      if (options.source === "api") return mapService(await (options.api ?? defaultApi(options.fetcher)).createService(input));
+      const now = isoNow();
+      const created: Service = {
+        id: `service-${crypto.randomUUID()}`,
+        name: input.name,
+        specialtyId: input.specialtyId,
+        durationMinutes: input.durationMinutes,
+        price: input.price,
+        currency: input.currency ?? "VND",
+        description: input.description ?? "",
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      };
+      mockStore.services.push(created);
+      return structuredClone(created);
+    },
+    async updateService(id, input) {
+      if (options.source === "api") return mapService(await (options.api ?? defaultApi(options.fetcher)).updateService(id, input));
+      const serviceRecord = requireMockRecord(mockStore.services, id, "dịch vụ");
+      Object.assign(serviceRecord, input, { updatedAt: isoNow() });
+      return structuredClone(serviceRecord);
+    },
+    async deactivateService(id) {
+      if (options.source === "api") return mapService(await (options.api ?? defaultApi(options.fetcher)).deactivateService(id));
+      const serviceRecord = requireMockRecord(mockStore.services, id, "dịch vụ");
+      serviceRecord.status = "inactive";
+      serviceRecord.updatedAt = isoNow();
+      return structuredClone(serviceRecord);
+    },
+    async createSpecialty(input) {
+      if (options.source === "api") return mapSpecialty(await (options.api ?? defaultApi(options.fetcher)).createSpecialty(input));
+      const now = isoNow();
+      const created: Specialty = { id: `specialty-${crypto.randomUUID()}`, name: input.name, description: input.description ?? "", status: "active", createdAt: now, updatedAt: now };
+      mockStore.specialties.push(created);
+      return structuredClone(created);
+    },
+    async updateSpecialty(id, input) {
+      if (options.source === "api") return mapSpecialty(await (options.api ?? defaultApi(options.fetcher)).updateSpecialty(id, input));
+      const specialty = requireMockRecord(mockStore.specialties, id, "chuyên khoa");
+      Object.assign(specialty, input, { updatedAt: isoNow() });
+      return structuredClone(specialty);
+    },
+    async deactivateSpecialty(id) {
+      if (options.source === "api") return mapSpecialty(await (options.api ?? defaultApi(options.fetcher)).deactivateSpecialty(id));
+      const specialty = requireMockRecord(mockStore.specialties, id, "chuyên khoa");
+      specialty.status = "inactive";
+      specialty.updatedAt = isoNow();
+      return structuredClone(specialty);
+    },
+    async createDoctor(input) {
+      if (options.source === "api") return mapDoctor(await (options.api ?? defaultApi(options.fetcher)).createDoctor(input));
+      const now = isoNow();
+      const created: Doctor = {
+        id: `doctor-${crypto.randomUUID()}`,
+        fullName: input.fullName,
+        specialtyId: input.specialtyId,
+        serviceIds: input.serviceIds ?? [],
+        phone: input.phone,
+        email: input.email,
+        title: input.title ?? "",
+        room: input.room ?? "",
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      };
+      mockStore.doctors.push(created);
+      return structuredClone(created);
+    },
+    async updateDoctor(id, input) {
+      if (options.source === "api") return mapDoctor(await (options.api ?? defaultApi(options.fetcher)).updateDoctor(id, input));
+      const doctor = requireMockRecord(mockStore.doctors, id, "bác sĩ");
+      Object.assign(doctor, input, { updatedAt: isoNow() });
+      return structuredClone(doctor);
+    },
+    async deactivateDoctor(id) {
+      if (options.source === "api") return mapDoctor(await (options.api ?? defaultApi(options.fetcher)).deactivateDoctor(id));
+      const doctor = requireMockRecord(mockStore.doctors, id, "bác sĩ");
+      doctor.status = "inactive";
+      doctor.updatedAt = isoNow();
+      return structuredClone(doctor);
     },
   };
 

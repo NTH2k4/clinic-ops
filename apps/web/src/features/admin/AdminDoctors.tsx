@@ -1,24 +1,101 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Pencil, RotateCcw, XCircle } from "lucide-react";
 import { useState } from "react";
 import { StatusBadge } from "../../components/StatusBadge";
+import type { ApiListResponse } from "../../lib/api/types";
 import type { Doctor } from "../../types/models";
-import { catalogQueryOptions } from "../catalog/catalogService";
+import { catalogQueryOptions, catalogService } from "../catalog/catalogService";
+
+type DoctorFormState = {
+  fullName: string;
+  specialtyId: string;
+  phone: string;
+  email: string;
+  title: string;
+  room: string;
+};
+
+const emptyForm: DoctorFormState = {
+  fullName: "",
+  specialtyId: "",
+  phone: "",
+  email: "",
+  title: "",
+  room: "",
+};
 
 export function AdminDoctors() {
+  const queryClient = useQueryClient();
   const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
   const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties());
-  const [draftDoctors, setDraftDoctors] = useState<Doctor[]>([]);
-  const doctors = [...(doctorResponse?.data ?? []), ...draftDoctors];
-  const doctorTotal = (doctorResponse?.meta.total ?? 0) + draftDoctors.length;
+  const doctors = doctorResponse?.data ?? [];
+  const doctorTotal = doctorResponse?.meta.total ?? doctors.length;
   const specialties = specialtyResponse?.data ?? [];
-  const [name, setName] = useState("");
-  const [specialtyId, setSpecialtyId] = useState("");
+  const [form, setForm] = useState<DoctorFormState>(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  function addDoctor() {
-    if (!name.trim() || !specialtyId) return setError("Vui lòng nhập đủ các trường bắt buộc.");
-    const created: Doctor = { id: `draft-doctor-${doctors.length + 1}`, fullName: name.trim(), specialtyId, serviceIds: [], phone: "", email: "", title: "Chưa cập nhật", room: "Chưa phân phòng", status: "active", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    setDraftDoctors((current) => [...current, created]); setName(""); setSpecialtyId(""); setError("");
+  const queryKey = catalogQueryOptions.allDoctors().queryKey;
+  const refreshDoctors = () => queryClient.invalidateQueries({ queryKey: ["catalog", "doctors"] });
+  const writeDoctorToCache = (doctor: Doctor) => {
+    queryClient.setQueryData<ApiListResponse<Doctor>>(queryKey, (current) => {
+      if (!current) return current;
+      const exists = current.data.some((item) => item.id === doctor.id);
+      const data = exists ? current.data.map((item) => item.id === doctor.id ? doctor : item) : [doctor, ...current.data];
+      return { ...current, data, meta: { ...current.meta, total: current.meta.total + (exists ? 0 : 1) } };
+    });
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: () => editingId ? catalogService.updateDoctor(editingId, form) : catalogService.createDoctor(form),
+    onSuccess: (doctor) => {
+      writeDoctorToCache(doctor);
+      refreshDoctors();
+      resetForm();
+    },
+    onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Không thể lưu bác sĩ."),
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: (id: string) => catalogService.deactivateDoctor(id),
+    onSuccess: (doctor) => {
+      writeDoctorToCache(doctor);
+      refreshDoctors();
+    },
+    onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Không thể vô hiệu hóa bác sĩ."),
+  });
+
+  function updateForm<K extends keyof DoctorFormState>(key: K, value: DoctorFormState[K]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function resetForm() {
+    setForm(emptyForm);
+    setEditingId(null);
+    setError("");
+  }
+
+  function submitDoctor(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!form.fullName.trim() || !form.specialtyId || !form.phone.trim() || !form.email.trim()) {
+      setError("Vui lòng nhập đủ các trường bắt buộc.");
+      return;
+    }
+    setError("");
+    saveMutation.mutate();
+  }
+
+  function editDoctor(doctor: Doctor) {
+    setForm({
+      fullName: doctor.fullName,
+      specialtyId: doctor.specialtyId,
+      phone: doctor.phone,
+      email: doctor.email,
+      title: doctor.title,
+      room: doctor.room,
+    });
+    setEditingId(doctor.id);
+    setError("");
   }
 
   const specialtyName = (id: string) => specialties.find((item) => item.id === id)?.name ?? "Chưa xác định";
@@ -28,28 +105,35 @@ export function AdminDoctors() {
       <p className="text-sm font-medium text-primary">Quản trị nhân sự</p>
       <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-2xl font-semibold text-text">Bác sĩ</h1>
-        <p className="text-sm font-medium text-text-muted">{doctorTotal} bác sĩ trong không gian demo</p>
+        <p className="text-sm font-medium text-text-muted">{doctorTotal} bác sĩ trong danh mục</p>
       </div>
-      <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm" onSubmit={(event) => { event.preventDefault(); addDoctor(); }}>
-        <div className="flex flex-col gap-1 border-b border-border pb-3">
-          <h2 className="text-base font-semibold text-text">Thêm bác sĩ thử nghiệm</h2>
-          <p className="text-sm text-text-muted">Form chỉ cập nhật state frontend để kiểm thử workflow quản trị.</p>
+      <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm" onSubmit={submitDoctor}>
+        <div className="flex flex-col gap-1 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-text">{editingId ? "Cập nhật bác sĩ" : "Thêm bác sĩ"}</h2>
+            <p className="text-sm text-text-muted">Thêm hoặc cập nhật bác sĩ để phục vụ đặt lịch.</p>
+          </div>
+          {editingId ? <button className="inline-flex h-8 items-center gap-2 self-start rounded-md border border-border px-2 text-xs font-semibold text-text hover:bg-surface-muted sm:self-auto" onClick={resetForm} type="button"><RotateCcw aria-hidden="true" size={14} />Hủy chỉnh sửa</button> : null}
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <label className="text-sm font-medium text-text">Tên bác sĩ<input className="mt-1 h-10 w-full rounded-md border border-border px-3" onChange={(event) => setName(event.target.value)} value={name} /></label>
-          <label className="text-sm font-medium text-text">Chuyên khoa<select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => setSpecialtyId(event.target.value)} value={specialtyId}><option value="">Chọn chuyên khoa</option>{specialties.map((specialty) => <option key={specialty.id} value={specialty.id}>{specialty.name}</option>)}</select></label>
-          <button className="h-10 self-end rounded-md bg-primary px-3 text-sm font-semibold text-white" type="submit">Thêm bác sĩ</button>
-          {error ? <p className="text-sm text-danger sm:col-span-3" role="alert">{error}</p> : null}
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <label className="text-sm font-medium text-text">Tên bác sĩ<input className="mt-1 h-10 w-full rounded-md border border-border px-3" onChange={(event) => updateForm("fullName", event.target.value)} value={form.fullName} /></label>
+          <label className="text-sm font-medium text-text">Chuyên khoa<select className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3" onChange={(event) => updateForm("specialtyId", event.target.value)} value={form.specialtyId}><option value="">Chọn chuyên khoa</option>{specialties.map((specialty) => <option key={specialty.id} value={specialty.id}>{specialty.name}</option>)}</select></label>
+          <label className="text-sm font-medium text-text">Điện thoại<input className="mt-1 h-10 w-full rounded-md border border-border px-3" onChange={(event) => updateForm("phone", event.target.value)} value={form.phone} /></label>
+          <label className="text-sm font-medium text-text">Email<input className="mt-1 h-10 w-full rounded-md border border-border px-3" onChange={(event) => updateForm("email", event.target.value)} type="email" value={form.email} /></label>
+          <label className="text-sm font-medium text-text">Chức danh<input className="mt-1 h-10 w-full rounded-md border border-border px-3" onChange={(event) => updateForm("title", event.target.value)} value={form.title} /></label>
+          <label className="text-sm font-medium text-text">Phòng<input className="mt-1 h-10 w-full rounded-md border border-border px-3" onChange={(event) => updateForm("room", event.target.value)} value={form.room} /></label>
+          <button className="h-10 self-end rounded-md bg-primary px-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 md:col-span-3" disabled={saveMutation.isPending} type="submit">{editingId ? "Cập nhật bác sĩ" : "Thêm bác sĩ"}</button>
+          {error ? <p className="text-sm text-danger md:col-span-3" role="alert">{error}</p> : null}
         </div>
       </form>
       <div className="mt-6 overflow-x-auto rounded-md border border-border bg-surface shadow-sm">
         <table aria-label="Bác sĩ" className="hidden min-w-full text-left text-sm md:table">
           <thead className="bg-surface-muted text-text-muted">
-            <tr><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Chuyên khoa</th><th className="p-3 font-medium">Phòng</th><th className="p-3 font-medium">Trạng thái</th></tr>
+            <tr><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Chuyên khoa</th><th className="p-3 font-medium">Phòng</th><th className="p-3 font-medium">Trạng thái</th><th className="p-3 text-right font-medium">Thao tác</th></tr>
           </thead>
-          <tbody>{doctors.map((doctor) => <tr className="border-t border-border" key={doctor.id}><td className="p-3 font-medium text-text">{doctor.fullName}</td><td className="p-3">{specialtyName(doctor.specialtyId)}</td><td className="p-3">{doctor.room}</td><td className="p-3"><StatusBadge status={doctor.status} /></td></tr>)}</tbody>
+          <tbody>{doctors.map((doctor) => <tr className="border-t border-border" key={doctor.id}><td className="p-3 font-medium text-text">{doctor.fullName}</td><td className="p-3">{specialtyName(doctor.specialtyId)}</td><td className="p-3">{doctor.room || "Chưa phân phòng"}</td><td className="p-3"><StatusBadge status={doctor.status} /></td><td className="p-3"><div className="flex justify-end gap-2"><button aria-label={`Sửa ${doctor.fullName}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted" onClick={() => editDoctor(doctor)} title="Sửa" type="button"><Pencil aria-hidden="true" size={15} /></button><button aria-label={`Vô hiệu hóa ${doctor.fullName}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50" disabled={doctor.status === "inactive" || deactivateMutation.isPending} onClick={() => deactivateMutation.mutate(doctor.id)} title="Vô hiệu hóa" type="button"><XCircle aria-hidden="true" size={16} /></button></div></td></tr>)}</tbody>
         </table>
-        <ul className="divide-y divide-border md:hidden">{doctors.map((doctor) => <li className="p-3" key={doctor.id}><p className="font-medium text-text">{doctor.fullName}</p><p className="mt-1 text-sm text-text-muted">{specialtyName(doctor.specialtyId)} · {doctor.room}</p><div className="mt-2"><StatusBadge status={doctor.status} /></div></li>)}</ul>
+        <ul className="divide-y divide-border md:hidden">{doctors.map((doctor) => <li className="p-3" key={doctor.id}><p className="font-medium text-text">{doctor.fullName}</p><p className="mt-1 text-sm text-text-muted">{specialtyName(doctor.specialtyId)} · {doctor.room || "Chưa phân phòng"}</p><div className="mt-2 flex items-center justify-between gap-3"><StatusBadge status={doctor.status} /><div className="flex gap-2"><button aria-label={`Sửa ${doctor.fullName}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text" onClick={() => editDoctor(doctor)} type="button"><Pencil aria-hidden="true" size={15} /></button><button aria-label={`Vô hiệu hóa ${doctor.fullName}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger disabled:opacity-50" disabled={doctor.status === "inactive" || deactivateMutation.isPending} onClick={() => deactivateMutation.mutate(doctor.id)} type="button"><XCircle aria-hidden="true" size={16} /></button></div></div></li>)}</ul>
       </div>
     </section>
   );

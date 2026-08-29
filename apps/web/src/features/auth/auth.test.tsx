@@ -56,14 +56,14 @@ function storageValues(storage: Storage) {
 }
 
 describe("authentication and role routing", () => {
-  it("signs in with the patient demo and switches to the doctor workspace", async () => {
+  it("signs in with the patient account and switches to the doctor workspace", async () => {
     const user = userEvent.setup();
 
     renderWithProviders(<App />);
 
     expect(screen.getByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
 
     expect(screen.getByText("Trang chính bệnh nhân")).toBeInTheDocument();
 
@@ -92,7 +92,7 @@ describe("authentication and role routing", () => {
       </>,
     );
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), role);
     await user.click(screen.getByRole("button", { name: "Go to role home" }));
 
@@ -109,7 +109,7 @@ describe("authentication and role routing", () => {
       </>,
     );
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "receptionist");
     await user.click(screen.getByRole("button", { name: "Go to role home" }));
     expect(screen.getByRole("heading", { name: "Không gian điều hành" })).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe("authentication and role routing", () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToOperations /></>);
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
     expect(screen.getByText("Trang chính bệnh nhân")).toBeInTheDocument();
 
@@ -140,7 +140,7 @@ describe("authentication and role routing", () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToOperations /></>);
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "receptionist");
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
     expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
@@ -154,7 +154,7 @@ describe("authentication and role routing", () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToAdmin /></>);
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
     await user.click(screen.getByRole("button", { name: "Go to admin" }));
     expect(screen.getByText("Trang chính bệnh nhân")).toBeInTheDocument();
 
@@ -167,7 +167,7 @@ describe("authentication and role routing", () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToAdmin /></>);
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "admin");
     await user.click(screen.getByRole("button", { name: "Go to admin" }));
 
@@ -179,7 +179,7 @@ describe("authentication and role routing", () => {
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
     await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
 
     expect(screen.getByRole("dialog", { name: "Xác nhận đăng xuất" })).toBeInTheDocument();
@@ -202,7 +202,7 @@ describe("authentication and role routing", () => {
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
 
     const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng di động" });
     await user.click(within(mobileNavigation).getByRole("link", { name: "Dịch vụ" }));
@@ -215,7 +215,7 @@ describe("authentication and role routing", () => {
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Quản trị demo/i }));
+    await user.click(screen.getByRole("button", { name: /Quản trị/i }));
 
     const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng di động" });
     expect(mobileNavigation).toHaveClass("sticky", "bottom-0");
@@ -234,7 +234,7 @@ describe("authentication and role routing", () => {
 
     renderWithProviders(<App />);
 
-    await user.click(screen.getByRole("button", { name: /Bệnh nhân demo/i }));
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
 
     const sidebarToggle = screen.getByRole("button", { name: "Thu gọn thanh điều hướng" });
@@ -497,7 +497,7 @@ describe("API authentication", () => {
     expect(queryClient.getQueryData(["session-sensitive"])).toBeUndefined();
   });
 
-  it("signs in through the API without persisting the session token and hides demo role switching", async () => {
+  it("signs in through the API without persisting the session token and hides mock role switching", async () => {
     const user = userEvent.setup();
     const sessionToken = "api-session-token";
     const fetcher = vi.fn<typeof fetch>(async (input) => {
@@ -529,7 +529,7 @@ describe("API authentication", () => {
 
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Mật khẩu")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Bệnh nhân demo/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Bệnh nhân/i })).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Email"), "patient@example.test");
     await user.type(screen.getByLabelText("Mật khẩu"), "secret");

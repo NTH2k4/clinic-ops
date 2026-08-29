@@ -16,10 +16,25 @@ if (!databaseUrl) {
 
 const loginSchema = z.object({ data: z.object({ sessionToken: z.string().min(1) }) });
 const auditListSchema = z.object({
-  data: z.array(z.object({ id: z.string(), entityType: z.string(), entityId: z.string(), action: z.string(), timestamp: z.string() })),
+  data: z.array(z.object({
+    id: z.string(),
+    actorUserId: z.string(),
+    actorDisplayName: z.string(),
+    entityType: z.string(),
+    entityId: z.string(),
+    entityDisplayName: z.string(),
+    action: z.string(),
+    timestamp: z.string(),
+  })),
   meta: z.object({ requestId: z.string().min(1), page: z.number(), pageSize: z.number(), total: z.number() }),
 });
-const auditResponseSchema = z.object({ data: z.object({ id: z.string(), actorUserId: z.string(), entityId: z.string() }) });
+const auditResponseSchema = z.object({ data: z.object({
+  id: z.string(),
+  actorUserId: z.string(),
+  actorDisplayName: z.string(),
+  entityId: z.string(),
+  entityDisplayName: z.string(),
+}) });
 const notificationSchema = z.object({
   id: z.string(),
   recipientUserId: z.string(),
@@ -80,7 +95,13 @@ describe("Audit events and notifications", () => {
         .expect((response) => {
           const events = auditListSchema.parse(response.body).data;
           expect(events).toHaveLength(1);
-          expect(events[0]).toMatchObject({ id: "audit-service-created", entityType: "service", action: "admin_resource_created" });
+          expect(events[0]).toMatchObject({
+            id: "audit-service-created",
+            actorDisplayName: "Admin Demo",
+            entityType: "service",
+            entityDisplayName: "Khám tổng quát",
+            action: "admin_resource_created",
+          });
         });
     } finally {
       await app.close();
@@ -106,7 +127,12 @@ describe("Audit events and notifications", () => {
         .get("/api/v1/audit-events/audit-1")
         .set("Authorization", `Bearer ${adminToken}`)
         .expect(200)
-        .expect((response) => expect(auditResponseSchema.parse(response.body).data).toMatchObject({ id: "audit-1", actorUserId: "user-patient-1" }));
+        .expect((response) => expect(auditResponseSchema.parse(response.body).data).toMatchObject({
+          id: "audit-1",
+          actorUserId: "user-patient-1",
+          actorDisplayName: "Patient Demo",
+          entityDisplayName: "Patient Demo - Khám tổng quát",
+        }));
     } finally {
       await app.close();
     }

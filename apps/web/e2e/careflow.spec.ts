@@ -4,7 +4,7 @@ test("patient can request appointment on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/login");
 
-  await page.getByRole("button", { name: /Bệnh nhân demo/i }).click();
+  await page.getByRole("button", { name: /Bệnh nhân/i }).click();
   await page.getByRole("link", { name: "Đặt lịch" }).click();
   await page.getByRole("button", { name: /Khám tổng quát/i }).click();
   await page.getByLabel("Bất kỳ bác sĩ nào").check();
@@ -20,7 +20,7 @@ test("doctor can start and complete a checked-in appointment on desktop", async 
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/login");
 
-  await page.getByRole("button", { name: /Bác sĩ demo/i }).click();
+  await page.getByRole("button", { name: /Bác sĩ/i }).click();
   const appointment = page.getByRole("article").filter({ has: page.getByLabel("Trạng thái: Đã check-in") }).first();
   await appointment.getByRole("button", { name: "Xem chi tiết Nguyen Minh Anh" }).click();
   await page.getByRole("button", { name: "Bắt đầu khám" }).click();
@@ -33,7 +33,7 @@ test("operations can check in a confirmed appointment on desktop", async ({ page
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/login");
 
-  await page.getByRole("button", { name: /Lễ tân demo/i }).click();
+  await page.getByRole("button", { name: /Lễ tân/i }).click();
   await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Hàng đợi", exact: true }).click();
   const confirmedQueue = page.getByRole("region", { name: "Đã xác nhận" });
   const checkedInQueue = page.getByRole("region", { name: "Đang chờ khám" });

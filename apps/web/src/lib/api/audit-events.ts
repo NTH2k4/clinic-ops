@@ -16,8 +16,10 @@ export interface AuditEventListFilters {
 export interface ApiAuditEventRecord {
   id: string;
   actorUserId: string;
+  actorDisplayName?: string;
   entityType: AuditEntityType;
   entityId: string;
+  entityDisplayName?: string;
   action: string;
   timestamp: string;
   metadata: Record<string, unknown> | null;

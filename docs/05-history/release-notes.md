@@ -1,5 +1,11 @@
 # Ghi Chú Phát Hành
 
+## 2026-08-29 Admin Catalog And Audit Readability
+
+- Admin có thể thêm, sửa và vô hiệu hóa mềm services, specialties và doctors từ UI quản trị qua backend API thật.
+- Audit Log hiển thị tên đối tượng và người thao tác, đồng thời vẫn giữ raw ID để truy vết kỹ thuật.
+- Các copy user-facing còn sót về demo/draft trong mock login, role switcher, dashboard và quản trị bác sĩ đã được loại bỏ; tài khoản demo/test vẫn giữ cho kiểm thử.
+
 ## 2026-08-29 Vietnamese Catalog Labels
 
 - Patient-facing services and specialties in backend seed data now use Vietnamese labels in API mode.
