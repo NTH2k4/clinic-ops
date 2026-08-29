@@ -102,6 +102,10 @@ export class AuditService {
         const schedules = await this.prisma.doctorSchedule.findMany({ where: { id: { in: ids } }, include: { doctor: { select: { fullName: true } } } });
         return schedules.map((schedule) => ({ id: schedule.id, name: `${schedule.doctor.fullName} ${schedule.startTime}-${schedule.endTime}` }));
       }, (item) => item.name),
+      this.addNames(names, "doctor_schedule", idsByType.get("doctor_schedule"), async (ids) => {
+        const schedules = await this.prisma.doctorSchedule.findMany({ where: { id: { in: ids } }, include: { doctor: { select: { fullName: true } } } });
+        return schedules.map((schedule) => ({ id: schedule.id, name: `${schedule.doctor.fullName} ${schedule.startTime}-${schedule.endTime}` }));
+      }, (item) => item.name),
       this.addNames(names, "user", idsByType.get("user"), (ids) => this.prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, displayName: true, email: true } }), (item) => item.displayName || item.email),
     ]);
     return names;

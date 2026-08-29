@@ -82,6 +82,7 @@ describe("Audit events and notifications", () => {
       data: [
         { id: "audit-service-created", actorUserId: "user-admin-1", entityType: "service", entityId: "service-general", action: "admin_resource_created", timestamp: new Date("2026-08-25T00:00:00.000Z") },
         { id: "audit-service-updated", actorUserId: "user-admin-1", entityType: "service", entityId: "service-general", action: "admin_resource_updated", timestamp: new Date("2026-08-25T01:00:00.000Z") },
+        { id: "audit-schedule-created", actorUserId: "user-admin-1", entityType: "doctor_schedule", entityId: "schedule-doctor-1-1", action: "doctor_schedule_created", timestamp: new Date("2026-08-25T02:00:00.000Z") },
       ],
     });
     const { app, server } = await createApp();
@@ -101,6 +102,19 @@ describe("Audit events and notifications", () => {
             entityType: "service",
             entityDisplayName: "Khám tổng quát",
             action: "admin_resource_created",
+          });
+        });
+      await request(server)
+        .get("/api/v1/audit-events?entityType=doctor_schedule&action=doctor_schedule_created")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .expect(200)
+        .expect((response) => {
+          const events = auditListSchema.parse(response.body).data;
+          expect(events).toHaveLength(1);
+          expect(events[0]).toMatchObject({
+            id: "audit-schedule-created",
+            entityType: "doctor_schedule",
+            entityDisplayName: "Dr. Minh Nguyen 08:00-17:00",
           });
         });
     } finally {

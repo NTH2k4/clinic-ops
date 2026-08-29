@@ -334,7 +334,7 @@ Filters:
 Audit event response vẫn giữ raw IDs để truy vết và lọc, đồng thời bổ sung nhãn đọc được:
 
 - `actorDisplayName`: tên hiển thị hoặc email của user thao tác.
-- `entityDisplayName`: tên đối tượng nghiệp vụ được resolve từ bảng tương ứng. Appointment dùng định dạng `patient - service`; service/specialty/doctor/patient/user dùng tên chính; schedule dùng tên bác sĩ và khung giờ.
+- `entityDisplayName`: tên đối tượng nghiệp vụ được resolve từ bảng tương ứng. Appointment dùng định dạng `patient - service`; service/specialty/doctor/patient/user dùng tên chính; `doctor_schedule` dùng tên bác sĩ và khung giờ.
 
 Backend phải ghi audit event cho:
 

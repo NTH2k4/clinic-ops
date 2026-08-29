@@ -6,6 +6,7 @@ const entityLabels: Record<AuditEntityType, string> = {
   doctor: "Bác sĩ",
   service: "Dịch vụ",
   schedule: "Lịch làm việc",
+  doctor_schedule: "Lịch làm việc",
   user: "Tài khoản",
 };
 

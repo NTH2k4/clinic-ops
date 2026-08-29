@@ -25,7 +25,7 @@ export type NotificationType =
   | "appointment_completed"
   | "system";
 export type ReferenceType = "appointment" | "doctor_schedule" | "audit_event";
-export type AuditEntityType = "appointment" | "patient" | "doctor" | "service" | "schedule" | "user";
+export type AuditEntityType = "appointment" | "patient" | "doctor" | "service" | "schedule" | "doctor_schedule" | "user";
 
 export interface User {
   id: string;
