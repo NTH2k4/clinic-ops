@@ -2,6 +2,10 @@ import { expect, type APIRequestContext, type Page, test } from "@playwright/tes
 
 const password = "careflow-demo";
 
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-08-25T02:45:00.000Z"));
+});
+
 type PatientCredentials = {
   displayName: string;
   email: string;
