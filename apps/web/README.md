@@ -29,6 +29,8 @@ API mode đã được triển khai qua service boundaries trong `src/lib/api` v
 
 API integration dùng `VITE_DATA_SOURCE=mock|api` và `VITE_API_BASE_URL=/api/v1`; `mock` là default local mode. Render production build dùng `api` same-origin, còn GitHub Pages dùng static mock-mode preview.
 
+Các màn hình vận hành dùng timezone phòng khám `Asia/Ho_Chi_Minh` để xác định ngày mặc định. Mock và Playwright fixtures có thể đóng băng clock riêng trong test để giữ dữ liệu mẫu ổn định, nhưng runtime production không dùng ngày hard-code.
+
 ## Auth Và Session
 
 Mock mode dùng mock auth để demo theo role. API mode dùng backend auth contract: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `POST /auth/change-password` và `POST /auth/logout`. Session token chỉ giữ trong memory; app không lưu password hoặc bearer token trong localStorage, sessionStorage, IndexedDB hay persisted mock state.
