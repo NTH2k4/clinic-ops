@@ -61,6 +61,35 @@ const apiUsers = [
   },
 ];
 
+const apiSpecialties = [
+  {
+    id: "specialty-api-1",
+    name: "Nội tổng quát",
+    description: "Khám và điều trị nội khoa.",
+    status: "active",
+    createdAt: "2026-08-01T08:00:00.000Z",
+    updatedAt: "2026-08-24T02:00:00.000Z",
+  },
+];
+
+const apiDoctors = [
+  {
+    id: "doctor-api-1",
+    userId: "user-doctor-api-1",
+    fullName: "BS. API Dang Khoa",
+    specialtyId: "specialty-api-1",
+    phone: "0901000003",
+    email: "khoa.doctor@example.test",
+    title: "Bác sĩ",
+    room: "P.201",
+    status: "active",
+    services: [],
+    specialty: { id: "specialty-api-1", name: "Nội tổng quát" },
+    createdAt: "2026-08-01T08:00:00.000Z",
+    updatedAt: "2026-08-24T02:00:00.000Z",
+  },
+];
+
 async function renderApiAuditLog(fetcher: typeof fetch) {
   vi.resetModules();
   vi.stubEnv("VITE_DATA_SOURCE", "api");
@@ -84,6 +113,19 @@ async function renderApiAdminAccounts(fetcher: typeof fetch) {
   ]);
   setApiSessionToken("admin-session-token");
   return { ...renderApiWithProviders(<AdminAccounts />), queryClient };
+}
+
+async function renderApiAdminDoctors(fetcher: typeof fetch) {
+  vi.resetModules();
+  vi.stubEnv("VITE_DATA_SOURCE", "api");
+  vi.stubGlobal("fetch", fetcher);
+  const [{ AdminDoctors: ApiAdminDoctors }, { renderWithProviders: renderApiWithProviders }, { setApiSessionToken }] = await Promise.all([
+    import("./AdminDoctors"),
+    import("../../test/render"),
+    import("../../lib/api/session"),
+  ]);
+  setApiSessionToken("admin-session-token");
+  return renderApiWithProviders(<ApiAdminDoctors />);
 }
 
 describe("admin workspace", () => {
@@ -325,6 +367,63 @@ describe("admin workspace", () => {
     await user.click(screen.getByRole("button", { name: "Vô hiệu hóa" }));
 
     expect(await within(doctorRow).findByLabelText("Trạng thái: Không hoạt động")).toBeInTheDocument();
+  });
+
+  it("removes a deactivated doctor from the current API list and reports success before refetch finishes", async () => {
+    let doctorListRequests = 0;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/v1/specialties")) return apiListResponse(apiSpecialties, "req-specialties");
+      if (url.endsWith("/doctors/doctor-api-1/deactivate")) {
+        return new Response(JSON.stringify({
+          data: { ...apiDoctors[0], status: "inactive", updatedAt: "2026-08-29T08:30:00.000Z" },
+          meta: { requestId: "req-deactivate-doctor" },
+        }), { status: 200 });
+      }
+      if (url.startsWith("/api/v1/doctors")) {
+        doctorListRequests += 1;
+        if (doctorListRequests === 1) return apiListResponse(apiDoctors, "req-doctors");
+        return new Promise<Response>(() => {});
+      }
+      return apiListResponse([], "req-empty");
+    });
+    const user = userEvent.setup();
+    await renderApiAdminDoctors(fetcher);
+
+    const doctorsTable = await screen.findByRole("table", { name: "Bác sĩ" });
+    expect(await within(doctorsTable).findByText("BS. API Dang Khoa")).toBeInTheDocument();
+
+    await user.click(within(doctorsTable).getByRole("button", { name: "Vô hiệu hóa BS. API Dang Khoa" }));
+    await user.click(screen.getByRole("button", { name: "Vô hiệu hóa" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Đã vô hiệu hóa bác sĩ BS. API Dang Khoa.");
+    expect(within(doctorsTable).queryByText("BS. API Dang Khoa")).not.toBeInTheDocument();
+  });
+
+  it("reports doctor deactivation failures when the edit form is closed", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/v1/specialties")) return apiListResponse(apiSpecialties, "req-specialties");
+      if (url.endsWith("/doctors/doctor-api-1/deactivate")) {
+        return new Response(JSON.stringify({
+          error: { code: "RESOURCE_IN_USE", message: "Bác sĩ đang có lịch hẹn hoạt động cần xử lý trước." },
+          meta: { requestId: "req-deactivate-doctor-failed" },
+        }), { status: 409 });
+      }
+      return apiListResponse(apiDoctors, "req-doctors");
+    });
+    const user = userEvent.setup();
+    await renderApiAdminDoctors(fetcher);
+
+    expect(screen.queryByLabelText("Tên bác sĩ")).not.toBeInTheDocument();
+    const doctorsTable = await screen.findByRole("table", { name: "Bác sĩ" });
+    expect(await within(doctorsTable).findByText("BS. API Dang Khoa")).toBeInTheDocument();
+
+    await user.click(within(doctorsTable).getByRole("button", { name: "Vô hiệu hóa BS. API Dang Khoa" }));
+    await user.click(screen.getByRole("button", { name: "Vô hiệu hóa" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Bác sĩ đang có lịch hẹn hoạt động cần xử lý trước.");
+    expect(within(doctorsTable).getByText("BS. API Dang Khoa")).toBeInTheDocument();
   });
 
   it("filters audit events by entity type", async () => {

@@ -36,6 +36,7 @@ export function AdminDoctors() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [deactivateTarget, setDeactivateTarget] = useState<Doctor | null>(null);
 
   const queryKey = catalogQueryOptions.allDoctors().queryKey;
@@ -48,25 +49,43 @@ export function AdminDoctors() {
       return { ...current, data, meta: { ...current.meta, total: current.meta.total + (exists ? 0 : 1) } };
     });
   };
+  const removeDoctorFromCache = (doctorId: string) => {
+    queryClient.setQueriesData<ApiListResponse<Doctor>>({ queryKey: ["catalog", "doctors"] }, (current) => {
+      if (!current) return current;
+      const data = current.data.filter((item) => item.id !== doctorId);
+      if (data.length === current.data.length) return current;
+      return { ...current, data, meta: { ...current.meta, total: Math.max(current.meta.total - 1, data.length) } };
+    });
+  };
 
   const saveMutation = useMutation({
     mutationFn: () => editingId ? catalogService.updateDoctor(editingId, form) : catalogService.createDoctor(form),
     onSuccess: (doctor) => {
       writeDoctorToCache(doctor);
       refreshDoctors();
+      setNotice(editingId ? `Đã cập nhật bác sĩ ${doctor.fullName}.` : `Đã thêm bác sĩ ${doctor.fullName}.`);
       resetForm();
     },
-    onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Không thể lưu bác sĩ."),
+    onError: (mutationError) => {
+      setNotice("");
+      setError(mutationError instanceof Error ? mutationError.message : "Không thể lưu bác sĩ.");
+    },
   });
 
   const deactivateMutation = useMutation({
     mutationFn: (id: string) => catalogService.deactivateDoctor(id),
     onSuccess: (doctor) => {
-      writeDoctorToCache(doctor);
+      removeDoctorFromCache(doctor.id);
       refreshDoctors();
+      setError("");
+      setNotice(`Đã vô hiệu hóa bác sĩ ${doctor.fullName}.`);
       setDeactivateTarget(null);
     },
-    onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Không thể vô hiệu hóa bác sĩ."),
+    onError: (mutationError) => {
+      setNotice("");
+      setError(mutationError instanceof Error ? mutationError.message : "Không thể vô hiệu hóa bác sĩ.");
+      setDeactivateTarget(null);
+    },
   });
 
   function updateForm<K extends keyof DoctorFormState>(key: K, value: DoctorFormState[K]) {
@@ -85,6 +104,7 @@ export function AdminDoctors() {
     setEditingId(null);
     setIsFormOpen(true);
     setError("");
+    setNotice("");
   }
 
   function submitDoctor(event: React.FormEvent<HTMLFormElement>) {
@@ -94,6 +114,7 @@ export function AdminDoctors() {
       return;
     }
     setError("");
+    setNotice("");
     saveMutation.mutate();
   }
 
@@ -109,6 +130,7 @@ export function AdminDoctors() {
     setEditingId(doctor.id);
     setIsFormOpen(true);
     setError("");
+    setNotice("");
   }
 
   const specialtyName = (id: string) => specialties.find((item) => item.id === id)?.name ?? "Chưa xác định";
@@ -123,6 +145,8 @@ export function AdminDoctors() {
           <button className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-white shadow-panel hover:bg-primary-hover" onClick={openCreateForm} type="button"><Plus aria-hidden="true" size={16} />Thêm bác sĩ</button>
         </div>
       </div>
+      {notice ? <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-success" role="status">{notice}</p> : null}
+      {!isFormOpen && error ? <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert">{error}</p> : null}
       {isFormOpen ? <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm transition-all duration-200 ease-out animate-in fade-in slide-in-from-top-1" onSubmit={submitDoctor}>
         <div className="flex flex-col gap-1 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
