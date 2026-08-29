@@ -214,6 +214,8 @@ Admin không thể tự khóa hoặc tự vô hiệu hóa tài khoản của mì
 - `effectiveFrom` và `effectiveTo` là date-only ISO.
 - `startTime` và `endTime` là giờ địa phương dạng `HH:mm`, theo timezone clinic `Asia/Ho_Chi_Minh`.
 
+V1 chốt lịch làm việc mặc định theo tuần: `working` schedule active trong đúng `dayOfWeek` và khoảng hiệu lực được coi là bác sĩ có đi làm. Phần recurrence hàng tháng chưa triển khai. Lịch `leave` phải được tạo/sửa trước ngày làm việc ít nhất 7 ngày; nếu vi phạm backend trả `409 LEAVE_NOTICE_TOO_SHORT`.
+
 ### Availability
 
 | Method | Path | Role | Mục đích |

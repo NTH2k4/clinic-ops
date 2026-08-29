@@ -56,6 +56,24 @@ const explainedAvailabilitySchema = z.object({
 });
 const errorSchema = z.object({ error: z.object({ code: z.string() }) });
 const appointmentSchema = z.object({ data: z.object({ id: z.string() }) });
+const clinicDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Ho_Chi_Minh",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function clinicDateOffset(days: number): string {
+  const [year, month, day] = clinicDateFormatter.format(new Date()).split("-").map(Number);
+  const utc = Date.UTC(year, month - 1, day + days);
+  return new Date(utc).toISOString().slice(0, 10);
+}
+
+function dayOfWeek(date: string): number {
+  const [year, month, day] = date.split("-").map(Number);
+  const jsDay = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return jsDay === 0 ? 7 : jsDay;
+}
 
 describe("Schedule and availability reads", () => {
   const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
@@ -259,22 +277,21 @@ describe("Schedule and availability reads", () => {
   it("explains leave slots when includeUnavailable is requested for a doctor", async () => {
     const { app, server } = await createApp();
     try {
-      const adminToken = await login(server, "admin@careflow.local");
       const patientToken = await login(server);
 
-      await request(server)
-        .post("/api/v1/doctor-schedules")
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send({
+      await prisma.doctorSchedule.create({
+        data: {
+          id: "schedule-doctor-1-leave-2026-08-25",
           doctorId: "doctor-1",
           dayOfWeek: 2,
           startTime: "09:00",
           endTime: "09:30",
-          effectiveFrom: "2026-08-25",
-          effectiveTo: "2026-08-25",
+          effectiveFrom: new Date("2026-08-25T00:00:00.000Z"),
+          effectiveTo: new Date("2026-08-25T00:00:00.000Z"),
           type: "leave",
-        })
-        .expect(201);
+          status: "active",
+        },
+      });
 
       await request(server)
         .get("/api/v1/availability/slots?serviceId=service-general&date=2026-08-25&doctorId=doctor-1&pageSize=50&includeUnavailable=true")
@@ -288,6 +305,34 @@ describe("Schedule and availability reads", () => {
             reasonCode: "leave",
             reasonLabel: "Bác sĩ nghỉ phép",
           });
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("rejects leave requests made less than one week before the working day", async () => {
+    const { app, server } = await createApp();
+    try {
+      const adminToken = await login(server, "admin@careflow.local");
+      const leaveDate = clinicDateOffset(6);
+
+      await request(server)
+        .post("/api/v1/doctor-schedules")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          doctorId: "doctor-1",
+          dayOfWeek: dayOfWeek(leaveDate),
+          startTime: "09:00",
+          endTime: "09:30",
+          effectiveFrom: leaveDate,
+          effectiveTo: leaveDate,
+          type: "leave",
+        })
+        .expect(409)
+        .expect((response) => {
+          const result = errorSchema.parse(response.body);
+          expect(result.error.code).toBe("LEAVE_NOTICE_TOO_SHORT");
         });
     } finally {
       await app.close();

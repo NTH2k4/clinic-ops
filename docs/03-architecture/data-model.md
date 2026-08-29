@@ -424,6 +424,7 @@ User 1--many AuditEvent
 
 - Doctor phải thuộc một specialty.
 - Doctor chỉ nhận appointment cho services mà doctor phụ trách.
+- V1 coi lịch `working` active theo `dayOfWeek` là lịch làm việc mặc định hàng tuần; nếu không có `leave` hợp lệ trước 7 ngày, bác sĩ được xem là có đi làm trong ngày đó.
 - DoctorSchedule loại `blocked` hoặc `leave` làm doctor không khả dụng trong khoảng thời gian đó.
 - Conflict checking cuối cùng thuộc trách nhiệm backend.
 

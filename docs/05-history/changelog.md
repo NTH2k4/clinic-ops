@@ -2,6 +2,7 @@
 
 ## 2026-08-29
 
+- Chốt quy tắc lịch làm việc bác sĩ cho v1 theo tuần: `working` schedule active là mặc định có đi làm, recurrence hàng tháng để sau; Operations Calendar hiển thị danh sách bác sĩ làm việc trong ngày và admin/backend chặn tạo lịch nghỉ phép dưới 7 ngày trước ngày làm việc.
 - Bổ sung luồng xác nhận lịch tương lai trong Operations UI: Queue có bộ lọc ngày `Ngày hàng đợi`, Calendar có cột thao tác để xác nhận appointment `requested`, và check-in chỉ hiển thị trong đúng ngày khám; lịch tương lai/quá ngày hiển thị lý do không thể check-in.
 - Sửa nguồn ngày vận hành trên frontend: Operations, Doctor, Admin và booking forms không còn dùng mốc hard-code `2026-08-25`/`2026-08-26`, thay bằng ngày phòng khám theo timezone `Asia/Ho_Chi_Minh`.
 - Hoàn thiện luồng trạng thái đặt lịch trong Operations UI: thêm lane `Chờ xác nhận` cho appointment `requested`, cho receptionist/nurse/admin xác nhận sang `confirmed`, hiển thị feedback cập nhật trạng thái, bổ sung filter `Chờ xác nhận` trong Operations Calendar và cập nhật dashboard để tính cả yêu cầu mới.

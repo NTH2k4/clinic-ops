@@ -46,6 +46,11 @@ function doctorName(doctors: Array<{ id: string; fullName: string }>, doctorId: 
   return doctors.find((doctor) => doctor.id === doctorId)?.fullName ?? doctorId;
 }
 
+function addDays(date: string, days: number): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
 function scheduleMatchesFilters(schedule: DoctorSchedule, filters: ScheduleListFilters): boolean {
   return (!filters.doctorId || schedule.doctorId === filters.doctorId)
     && (!filters.from || schedule.effectiveTo >= filters.from)
@@ -172,6 +177,10 @@ export function AdminSchedules() {
     }
     if (form.effectiveFrom > form.effectiveTo) {
       setFormError("Ngày kết thúc hiệu lực phải bằng hoặc sau ngày bắt đầu.");
+      return;
+    }
+    if (form.type === "leave" && form.effectiveFrom < addDays(todayInClinicTimeZone(), 7)) {
+      setFormError("Lịch nghỉ phép phải được đăng ký trước ngày làm việc ít nhất 7 ngày.");
       return;
     }
 

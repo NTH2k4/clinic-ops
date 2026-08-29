@@ -183,6 +183,18 @@ describe("admin workspace", () => {
     expect(await within(createdRow).findByLabelText("Trạng thái: Không hoạt động")).toBeInTheDocument();
   });
 
+  it("blocks leave schedules that are less than one week away", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<AdminSchedules />);
+
+    await user.click(screen.getByRole("button", { name: "Tạo lịch" }));
+    await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-1");
+    await user.selectOptions(screen.getByLabelText("Loại lịch"), "leave");
+    await user.click(screen.getByRole("button", { name: "Lưu lịch" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Lịch nghỉ phép phải được đăng ký trước ngày làm việc ít nhất 7 ngày.");
+  });
+
   it("renders account email, role, and status from the admin API", async () => {
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => apiListResponse(apiUsers, "req-users"));
     await renderApiAdminAccounts(fetcher);

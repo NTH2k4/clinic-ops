@@ -14,6 +14,7 @@ const activeAppointmentStatuses = [
   "checked_in",
   "in_progress",
 ] as const;
+const leaveNoticeDays = 7;
 const availabilityReasonLabels = {
   available: "Còn trống",
   blocked: "Bác sĩ bị chặn lịch",
@@ -68,6 +69,7 @@ export class SchedulingService {
   async createSchedule(input: ScheduleCreateInput, actorUserId: string) {
     await this.require(this.prisma.doctor.findUnique({ where: { id: input.doctorId } }), "doctor");
     this.assertScheduleRange(input);
+    this.assertLeaveNotice(input);
     return this.prisma.$transaction(async (transaction) => {
       await this.assertNoActiveAppointmentOverlap(transaction, input);
       const schedule = await transaction.doctorSchedule.create({
@@ -101,6 +103,7 @@ export class SchedulingService {
         type: input.type ?? existing.type,
       };
       this.assertScheduleRange(next);
+      this.assertLeaveNotice(next);
       await this.assertNoActiveAppointmentOverlap(transaction, next);
 
       const schedule = await transaction.doctorSchedule.update({
@@ -307,6 +310,26 @@ export class SchedulingService {
     if (schedule.effectiveFrom > schedule.effectiveTo) {
       throw new ApiError(400, "VALIDATION_ERROR", "effectiveFrom must be before or equal to effectiveTo.", { effectiveFrom: "Invalid" });
     }
+  }
+
+  private assertLeaveNotice(schedule: { type: ScheduleType; effectiveFrom: string }) {
+    if (schedule.type !== ScheduleType.leave) return;
+    const minimumLeaveDate = this.addDays(this.clinicDate(new Date()), leaveNoticeDays);
+    if (schedule.effectiveFrom < minimumLeaveDate) {
+      throw new ApiError(409, "LEAVE_NOTICE_TOO_SHORT", "Leave schedules must be requested at least 7 days before the working day.");
+    }
+  }
+
+  private clinicDate(date: Date) {
+    const parts = Object.fromEntries(dateTimeFormatter.formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  }
+
+  private addDays(date: string, days: number) {
+    const [year, month, day] = date.split("-").map(Number);
+    return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
   }
 
   private serializeSchedule(schedule: { effectiveFrom: Date; effectiveTo: Date } & Record<string, unknown>) {

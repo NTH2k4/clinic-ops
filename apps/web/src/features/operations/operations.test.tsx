@@ -516,6 +516,18 @@ describe("operations workspace", () => {
     expect(screen.getAllByLabelText("Trạng thái: Đã xác nhận").length).toBeGreaterThan(0);
   });
 
+  it("shows doctors working on the selected weekly schedule day", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderWithProviders(<OperationsCalendar />);
+
+    await setClinicDateToSeptemberThird(user, "Ngày");
+
+    const workingDoctors = screen.getByRole("region", { name: "Bác sĩ làm việc trong ngày" });
+    expect(within(workingDoctors).getByText("BS. Nguyen Thanh Mai")).toBeInTheDocument();
+    expect(workingDoctors).toHaveTextContent("08:00-17:00");
+    expect(within(workingDoctors).queryByText("BS. Bui Hoang Nam")).not.toBeInTheDocument();
+  });
+
   it("shows today counts and a waiting queue on the dashboard", () => {
     renderWithProviders(<OperationsDashboard />);
 
