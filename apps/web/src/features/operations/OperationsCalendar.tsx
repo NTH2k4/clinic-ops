@@ -8,7 +8,7 @@ import { appointmentDateRange, appointmentQueryOptions, patientsFromAppointments
 import { catalogQueryOptions } from "../catalog/catalogService";
 
 const OPERATIONS_TODAY = "2026-08-25";
-const statuses: Array<{ value: "" | AppointmentStatus; label: string }> = [{ value: "", label: "Tất cả trạng thái" }, { value: "confirmed", label: "Đã xác nhận" }, { value: "checked_in", label: "Đã check-in" }, { value: "in_progress", label: "Đang khám" }, { value: "completed", label: "Hoàn tất" }, { value: "cancelled", label: "Đã hủy" }, { value: "no_show", label: "Không đến" }];
+const statuses: Array<{ value: "" | AppointmentStatus; label: string }> = [{ value: "", label: "Tất cả trạng thái" }, { value: "requested", label: "Chờ xác nhận" }, { value: "confirmed", label: "Đã xác nhận" }, { value: "checked_in", label: "Đã check-in" }, { value: "in_progress", label: "Đang khám" }, { value: "completed", label: "Hoàn tất" }, { value: "cancelled", label: "Đã hủy" }, { value: "no_show", label: "Không đến" }];
 
 export function OperationsCalendar() {
   const [date, setDate] = useState(OPERATIONS_TODAY);

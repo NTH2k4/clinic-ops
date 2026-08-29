@@ -12,7 +12,8 @@ const OPERATIONS_TODAY = "2026-08-25";
 
 const metrics: Array<{ label: string; statuses?: AppointmentStatus[] }> = [
   { label: "Lịch hẹn hôm nay" },
-  { label: "Đang chờ", statuses: ["confirmed"] },
+  { label: "Chờ xác nhận", statuses: ["requested"] },
+  { label: "Đã xác nhận", statuses: ["confirmed"] },
   { label: "Đã check-in", statuses: ["checked_in"] },
   { label: "Đang khám", statuses: ["in_progress"] },
   { label: "Đã hủy / không đến", statuses: ["cancelled", "no_show"] },
@@ -24,7 +25,7 @@ export function OperationsDashboard() {
   const { data: appointmentResponse = [] } = useQuery(appointmentQueryOptions.list(appointmentDateRange(OPERATIONS_TODAY)));
   const appointments = appointmentResponse.slice().sort((left, right) => left.startAt.localeCompare(right.startAt));
   const patients = patientsFromAppointments(appointments);
-  const waiting = appointments.filter((appointment) => appointment.status === "confirmed" || appointment.status === "checked_in");
+  const waiting = appointments.filter((appointment) => appointment.status === "requested" || appointment.status === "confirmed" || appointment.status === "checked_in");
 
   return (
     <section className="mx-auto max-w-6xl">
@@ -38,13 +39,13 @@ export function OperationsDashboard() {
           <Link className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover" to="/app/operations/appointments/new"><CalendarPlus aria-hidden="true" size={18} />Tạo lịch hẹn</Link>
         </div>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{metrics.map((metric, index) => <MetricCard key={metric.label} label={metric.label} tone={index === 0 ? "primary" : metric.statuses?.includes("cancelled") ? "danger" : metric.statuses?.includes("checked_in") ? "warning" : "neutral"} value={metric.statuses ? appointments.filter((appointment) => metric.statuses?.includes(appointment.status)).length : appointments.length} />)}</div>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">{metrics.map((metric, index) => <MetricCard key={metric.label} label={metric.label} tone={index === 0 ? "primary" : metric.statuses?.includes("cancelled") ? "danger" : metric.statuses?.includes("checked_in") ? "warning" : "neutral"} value={metric.statuses ? appointments.filter((appointment) => metric.statuses?.includes(appointment.status)).length : appointments.length} />)}</div>
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <section className="rounded-lg border border-border bg-surface p-5 shadow-panel">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-text">Hàng đợi chờ xử lý</h2>
-              <p className="mt-1 text-sm text-text-muted">Lịch đã xác nhận và đã check-in.</p>
+              <p className="mt-1 text-sm text-text-muted">Yêu cầu mới, lịch đã xác nhận và bệnh nhân đã check-in.</p>
             </div>
             <Link className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-3 text-sm font-semibold text-text transition-colors hover:border-border-strong hover:bg-surface-muted" to="/app/operations/queue"><ClipboardList aria-hidden="true" size={17} />Mở hàng đợi</Link>
           </div>

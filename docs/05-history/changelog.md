@@ -2,6 +2,7 @@
 
 ## 2026-08-29
 
+- Hoàn thiện luồng trạng thái đặt lịch trong Operations UI: thêm lane `Chờ xác nhận` cho appointment `requested`, cho receptionist/nurse/admin xác nhận sang `confirmed`, hiển thị feedback cập nhật trạng thái, bổ sung filter `Chờ xác nhận` trong Operations Calendar và cập nhật dashboard để tính cả yêu cầu mới.
 - Mở rộng admin catalog UI cho services, specialties và doctors từ form draft-only sang create/update/deactivate qua backend API thật; UI vẫn dùng soft deactivate để giữ lịch sử lịch hẹn/audit.
 - Bổ sung `actorDisplayName` và `entityDisplayName` cho audit event list/detail API, frontend Audit Log hiển thị tên đối tượng/người thao tác kèm raw ID phụ để quản trị dễ kiểm soát.
 - Loại bỏ copy user-facing còn sót về demo/draft trong mock login, role switcher, dashboard và quản trị bác sĩ; tài khoản demo và test credentials vẫn giữ để phục vụ kiểm thử.

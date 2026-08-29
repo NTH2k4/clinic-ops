@@ -19,6 +19,7 @@ type QueueGroup = {
 };
 
 const queueGroups: QueueGroup[] = [
+  { description: "Yêu cầu mới từ bệnh nhân, cần xác nhận trước khi tiếp đón.", label: "Chờ xác nhận", statuses: ["requested"] },
   { description: "Cần check-in khi bệnh nhân đến.", label: "Đã xác nhận", statuses: ["confirmed"] },
   { description: "Bệnh nhân đã có mặt và đang chờ gọi vào phòng khám.", label: "Đang chờ khám", statuses: ["checked_in"] },
   { description: "Bác sĩ đang xử lý, không cần thao tác tiếp đón.", label: "Đang khám", statuses: ["in_progress"] },
@@ -27,15 +28,24 @@ const queueGroups: QueueGroup[] = [
 ];
 
 function actionsForStatus(status: AppointmentStatus, role: UserRole = "receptionist"): Array<{ label: string; next?: AppointmentStatus; cancel?: boolean }> {
-  const candidates: Array<{ label: string; next: AppointmentStatus; cancel?: boolean }> = status === "confirmed"
-    ? [{ label: "Check-in", next: "checked_in" }, { label: "Không đến", next: "no_show" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
-    : status === "checked_in"
-      ? [{ label: "Bắt đầu khám", next: "in_progress" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
-      : status === "in_progress"
-        ? [{ label: "Hoàn tất", next: "completed" }]
-        : [];
+  const candidates: Array<{ label: string; next: AppointmentStatus; cancel?: boolean }> = status === "requested"
+    ? [{ label: "Xác nhận lịch", next: "confirmed" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
+    : status === "confirmed"
+      ? [{ label: "Check-in", next: "checked_in" }, { label: "Không đến", next: "no_show" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
+      : status === "checked_in"
+        ? [{ label: "Bắt đầu khám", next: "in_progress" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
+        : status === "in_progress"
+          ? [{ label: "Hoàn tất", next: "completed" }]
+          : [];
   return candidates.filter((action) => canTransitionAppointment(status, action.next, role));
 }
+
+const successMessages: Partial<Record<AppointmentStatus, string>> = {
+  confirmed: "Đã xác nhận lịch hẹn.",
+  checked_in: "Đã check-in lịch hẹn.",
+  no_show: "Đã ghi nhận bệnh nhân không đến.",
+  completed: "Đã hoàn tất lịch hẹn.",
+};
 
 export function QueuePage() {
   const { user } = useAuth();
@@ -45,12 +55,13 @@ export function QueuePage() {
   const appointmentOptions = appointmentQueryOptions.list(appointmentDateRange(OPERATIONS_TODAY));
   const { data: appointmentResponse = [] } = useQuery(appointmentOptions);
   const appointments = useMemo(
-    () => appointmentResponse.filter((appointment) => appointment.status !== "requested").sort((left, right) => left.startAt.localeCompare(right.startAt)),
+    () => appointmentResponse.slice().sort((left, right) => left.startAt.localeCompare(right.startAt)),
     [appointmentResponse],
   );
   const patients = useMemo(() => patientsFromAppointments(appointments), [appointments]);
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const actorUserId = user?.id ?? "user-receptionist-1";
   const groupedAppointments = useMemo(() => queueGroups.map((group) => ({ ...group, appointments: appointments.filter((appointment) => group.statuses.includes(appointment.status)) })), [appointments]);
 
@@ -61,10 +72,12 @@ export function QueuePage() {
 
   async function updateStatus(appointment: Appointment, status: AppointmentStatus) {
     setError("");
+    setNotice("");
 
     try {
       const updated = await appointmentService.updateAppointmentStatus(appointment.id, status, actorUserId);
       cacheUpdatedAppointment(updated);
+      setNotice(successMessages[status] ?? "Đã cập nhật lịch hẹn.");
     } catch {
       setError("Không thể cập nhật lịch hẹn. Vui lòng thử lại.");
     }
@@ -73,6 +86,7 @@ export function QueuePage() {
   async function cancelAppointment() {
     if (!cancelTarget) return;
     setError("");
+    setNotice("");
 
     try {
       const updated = await appointmentService.cancelAppointment(cancelTarget.id, {
@@ -80,6 +94,7 @@ export function QueuePage() {
         cancellationReason: "Nhân viên hủy lịch trong hàng đợi vận hành.",
       });
       cacheUpdatedAppointment(updated);
+      setNotice("Đã hủy lịch hẹn.");
       setCancelTarget(null);
     } catch {
       setError("Không thể hủy lịch hẹn. Vui lòng thử lại.");
@@ -91,6 +106,7 @@ export function QueuePage() {
       <p className="text-sm font-medium text-primary">Điều phối trong ngày</p>
       <h1 className="mt-1 text-2xl font-semibold text-text">Hàng đợi khám</h1>
       <p className="mt-1 text-sm text-text-muted">Theo dõi và cập nhật luồng tiếp đón ngày {OPERATIONS_TODAY.split("-").reverse().join("/")}.</p>
+      {notice && <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-success" role="status">{notice}</p>}
       {error && <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger" role="alert">{error}</p>}
       <div className="mt-6 grid gap-4 xl:grid-cols-2">
         {groupedAppointments.map((group) => (

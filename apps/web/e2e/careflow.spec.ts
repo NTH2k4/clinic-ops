@@ -35,8 +35,19 @@ test("operations can check in a confirmed appointment on desktop", async ({ page
 
   await page.getByRole("button", { name: /Lễ tân/i }).click();
   await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Hàng đợi", exact: true }).click();
+  const requestedQueue = page.getByRole("region", { name: "Chờ xác nhận" });
   const confirmedQueue = page.getByRole("region", { name: "Đã xác nhận" });
   const checkedInQueue = page.getByRole("region", { name: "Đang chờ khám" });
+  const confirmActions = requestedQueue.getByRole("button", { name: "Xác nhận lịch" });
+  await expect(confirmActions.first()).toBeVisible();
+  const requestedCount = await requestedQueue.getByLabel("Trạng thái: Chờ xác nhận").count();
+  const confirmedBeforeConfirm = await confirmedQueue.getByLabel("Trạng thái: Đã xác nhận").count();
+  await confirmActions.first().click();
+
+  await expect(requestedQueue.getByLabel("Trạng thái: Chờ xác nhận")).toHaveCount(requestedCount - 1);
+  await expect(confirmedQueue.getByLabel("Trạng thái: Đã xác nhận")).toHaveCount(confirmedBeforeConfirm + 1);
+  await expect(page.getByRole("status")).toContainText("Đã xác nhận lịch hẹn.");
+
   const checkInActions = confirmedQueue.getByRole("button", { name: "Check-in" });
   await expect(checkInActions.first()).toBeVisible();
   const confirmedCount = await checkInActions.count();

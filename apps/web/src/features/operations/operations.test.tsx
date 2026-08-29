@@ -19,6 +19,26 @@ afterEach(() => {
 });
 
 describe("operations workspace", () => {
+  it("confirms a requested appointment into the confirmed queue", async () => {
+    const user = userEvent.setup();
+    mockStore.appointments.forEach((appointment) => {
+      if (appointment.status === "confirmed") appointment.status = "completed";
+    });
+    renderWithProviders(<QueuePage />);
+
+    const requestedGroup = screen.getByRole("region", { name: "Chờ xác nhận" });
+    const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
+    const requestedCount = within(requestedGroup).getAllByLabelText("Trạng thái: Chờ xác nhận").length;
+    const confirmedCount = within(confirmedGroup).queryAllByLabelText("Trạng thái: Đã xác nhận").length;
+
+    await user.click(within(requestedGroup).getAllByRole("button", { name: "Xác nhận lịch" })[0]);
+
+    expect(await within(confirmedGroup).findByLabelText("Trạng thái: Đã xác nhận")).toBeInTheDocument();
+    expect(within(requestedGroup).queryAllByLabelText("Trạng thái: Chờ xác nhận")).toHaveLength(requestedCount - 1);
+    expect(within(confirmedGroup).getAllByLabelText("Trạng thái: Đã xác nhận")).toHaveLength(confirmedCount + 1);
+    expect(screen.getByRole("status")).toHaveTextContent("Đã xác nhận lịch hẹn.");
+  });
+
   it("checks a confirmed appointment into the waiting queue", async () => {
     const user = userEvent.setup();
     mockStore.appointments.forEach((appointment) => {
@@ -360,11 +380,23 @@ describe("operations workspace", () => {
     expect(screen.queryByText("Trạng thái: Đã xác nhận")).not.toBeInTheDocument();
   });
 
+  it("filters the operations calendar by requested appointments", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<OperationsCalendar />);
+
+    await user.selectOptions(screen.getByLabelText("Trạng thái"), "requested");
+
+    expect(screen.getByText("Trạng thái: Chờ xác nhận")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Trạng thái: Chờ xác nhận").length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText("Trạng thái: Đã xác nhận")).not.toBeInTheDocument();
+  });
+
   it("shows today counts and a waiting queue on the dashboard", () => {
     renderWithProviders(<OperationsDashboard />);
 
     expect(screen.getByText("Lịch hẹn hôm nay")).toBeInTheDocument();
     expect(screen.getByText("Hàng đợi chờ xử lý")).toBeInTheDocument();
+    expect(screen.getByText("Yêu cầu mới, lịch đã xác nhận và bệnh nhân đã check-in.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tạo lịch hẹn" })).toBeInTheDocument();
   });
 });

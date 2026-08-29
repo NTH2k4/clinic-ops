@@ -31,3 +31,11 @@ checked_in -> cancelled
 - Appointments đã `cancelled` vẫn hiển thị trong history.
 - Rescheduling giữ nguyên appointment record và ghi một audit event.
 - Status change cần có actor và timestamp.
+
+## UI Vận Hành
+
+- Patient-created appointments hiển thị ở `Chờ xác nhận`.
+- Operations Queue hiển thị lane `Chờ xác nhận` để receptionist, nurse hoặc admin xác nhận lịch.
+- Sau khi `requested -> confirmed`, lịch chuyển sang lane `Đã xác nhận` để tiếp tục check-in.
+- Operations Calendar có thể lọc `Chờ xác nhận`, `Đã xác nhận`, `Đã check-in`, `Đang khám`, `Hoàn tất`, `Đã hủy` và `Không đến`.
+- Doctor workspace tiếp tục xử lý phần khám: `checked_in -> in_progress -> completed`.
