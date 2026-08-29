@@ -9,7 +9,7 @@ import { appointmentService } from "../appointments/appointmentService";
 import { createSchedulingService } from "../scheduling/schedulingService";
 import type { SchedulingApi } from "../../lib/api/scheduling";
 import { mockStore } from "../../mocks/mockStore";
-import { expectClinicDateField, setClinicDateDay } from "../../test/dateField";
+import { expectClinicDateField, getClinicDateSegment, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
 import { queryClient } from "../../lib/queryClient";
 
@@ -25,6 +25,63 @@ afterEach(() => {
 });
 
 describe("operations workspace", () => {
+  async function setClinicDateToSeptemberThird(user: ReturnType<typeof userEvent.setup>, label: string) {
+    await user.click(getClinicDateSegment(label, "month"));
+    await user.keyboard("{ArrowUp}");
+    await setClinicDateDay(user, label, 3);
+  }
+
+  function addFutureRequestedAppointment() {
+    mockStore.appointments.push({
+      ...mockStore.appointments[0],
+      id: "appointment-future-requested",
+      doctorId: "doctor-2",
+      patientId: "patient-1",
+      serviceId: "service-cardiology-consult",
+      startAt: "2026-09-03T09:00:00+07:00",
+      endAt: "2026-09-03T09:30:00+07:00",
+      status: "requested",
+      checkedInAt: undefined,
+      startedAt: undefined,
+      completedAt: undefined,
+      cancelledAt: undefined,
+    });
+  }
+
+  function addFutureConfirmedAppointment() {
+    mockStore.appointments.push({
+      ...mockStore.appointments[1],
+      id: "appointment-future-confirmed",
+      doctorId: "doctor-2",
+      patientId: "patient-1",
+      serviceId: "service-cardiology-consult",
+      startAt: "2026-09-03T09:30:00+07:00",
+      endAt: "2026-09-03T10:00:00+07:00",
+      status: "confirmed",
+      checkedInAt: undefined,
+      startedAt: undefined,
+      completedAt: undefined,
+      cancelledAt: undefined,
+    });
+  }
+
+  function addPastConfirmedAppointment() {
+    mockStore.appointments.push({
+      ...mockStore.appointments[1],
+      id: "appointment-past-confirmed",
+      doctorId: "doctor-2",
+      patientId: "patient-1",
+      serviceId: "service-cardiology-consult",
+      startAt: "2026-08-24T09:30:00+07:00",
+      endAt: "2026-08-24T10:00:00+07:00",
+      status: "confirmed",
+      checkedInAt: undefined,
+      startedAt: undefined,
+      completedAt: undefined,
+      cancelledAt: undefined,
+    });
+  }
+
   it("uses the real clinic day for the operations dashboard date", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-29T02:30:00.000Z"));
@@ -52,6 +109,45 @@ describe("operations workspace", () => {
     expect(within(requestedGroup).queryAllByLabelText("Trạng thái: Chờ xác nhận")).toHaveLength(requestedCount - 1);
     expect(within(confirmedGroup).getAllByLabelText("Trạng thái: Đã xác nhận")).toHaveLength(confirmedCount + 1);
     expect(screen.getByRole("status")).toHaveTextContent("Đã xác nhận lịch hẹn.");
+  });
+
+  it("confirms requested appointments for a future selected queue date", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    addFutureRequestedAppointment();
+    renderWithProviders(<QueuePage />);
+
+    await setClinicDateToSeptemberThird(user, "Ngày hàng đợi");
+
+    const requestedGroup = screen.getByRole("region", { name: "Chờ xác nhận" });
+    const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
+    expect(within(requestedGroup).getByText("09:00")).toBeInTheDocument();
+
+    await user.click(within(requestedGroup).getByRole("button", { name: "Xác nhận lịch" }));
+
+    expect(await within(confirmedGroup).findByLabelText("Trạng thái: Đã xác nhận")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Đã xác nhận lịch hẹn.");
+  });
+
+  it("does not allow check-in outside the appointment date", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    addFutureConfirmedAppointment();
+    addPastConfirmedAppointment();
+    renderWithProviders(<QueuePage />);
+
+    await setClinicDateToSeptemberThird(user, "Ngày hàng đợi");
+    const futureConfirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
+    expect(within(futureConfirmedGroup).getByText("09:30")).toBeInTheDocument();
+    expect(within(futureConfirmedGroup).queryByRole("button", { name: "Check-in" })).not.toBeInTheDocument();
+    expect(within(futureConfirmedGroup).getByText("Chỉ check-in trong ngày khám.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Xóa filter Ngày" }));
+    await user.click(getClinicDateSegment("Ngày hàng đợi", "day"));
+    await user.keyboard("{ArrowDown}");
+    const pastConfirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
+    expect(within(pastConfirmedGroup).getByText("09:30")).toBeInTheDocument();
+    expect(within(pastConfirmedGroup).queryByRole("button", { name: "Check-in" })).not.toBeInTheDocument();
+    expect(within(pastConfirmedGroup).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(pastConfirmedGroup).getByText("Lịch đã qua ngày khám, không thể check-in.")).toBeInTheDocument();
   });
 
   it("checks a confirmed appointment into the waiting queue", async () => {
@@ -404,6 +500,20 @@ describe("operations workspace", () => {
     expect(screen.getByText("Trạng thái: Chờ xác nhận")).toBeInTheDocument();
     expect(screen.getAllByLabelText("Trạng thái: Chờ xác nhận").length).toBeGreaterThan(0);
     expect(screen.queryByLabelText("Trạng thái: Đã xác nhận")).not.toBeInTheDocument();
+  });
+
+  it("confirms requested appointments from the operations calendar", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    addFutureRequestedAppointment();
+    renderWithProviders(<OperationsCalendar />);
+
+    await setClinicDateToSeptemberThird(user, "Ngày");
+    await user.selectOptions(screen.getByLabelText("Trạng thái"), "requested");
+
+    await user.click(screen.getAllByRole("button", { name: "Xác nhận lịch" })[0]);
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Đã xác nhận lịch hẹn.");
+    expect(screen.getAllByLabelText("Trạng thái: Đã xác nhận").length).toBeGreaterThan(0);
   });
 
   it("shows today counts and a waiting queue on the dashboard", () => {

@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { ClinicDateField } from "../../components/ClinicDateField";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
-import { formatDateInputValue, formatTime, todayInClinicTimeZone } from "../../lib/dateTime";
+import { formatDateInputValue, formatTime, todayInClinicTimeZone, toDateInputValue } from "../../lib/dateTime";
 import type { Appointment, AppointmentStatus, UserRole } from "../../types/models";
 import { appointmentDateRange, appointmentQueryOptions, appointmentService, patientsFromAppointments } from "../appointments/appointmentService";
 import { canTransitionAppointment } from "../appointments/appointmentRules";
@@ -25,17 +26,29 @@ const queueGroups: QueueGroup[] = [
   { description: "Lịch không còn hoạt động hoặc bệnh nhân không đến.", label: "Đã hủy / không đến", statuses: ["cancelled", "no_show"] },
 ];
 
-function actionsForStatus(status: AppointmentStatus, role: UserRole = "receptionist"): Array<{ label: string; next?: AppointmentStatus; cancel?: boolean }> {
-  const candidates: Array<{ label: string; next: AppointmentStatus; cancel?: boolean }> = status === "requested"
+function checkInGuardMessage(appointment: Appointment, selectedDate: string, today: string): string {
+  if (appointment.status !== "confirmed") return "";
+  const appointmentDate = toDateInputValue(appointment.startAt);
+  if (appointmentDate > today || selectedDate > today) return "Chỉ check-in trong ngày khám.";
+  if (appointmentDate < today || selectedDate < today) return "Lịch đã qua ngày khám, không thể check-in.";
+  return "";
+}
+
+function actionsForAppointment(appointment: Appointment, role: UserRole = "receptionist", selectedDate: string, today: string): Array<{ label: string; next?: AppointmentStatus; cancel?: boolean }> {
+  const appointmentDate = toDateInputValue(appointment.startAt);
+  if (appointmentDate < today || selectedDate < today) return [];
+  const candidates: Array<{ label: string; next: AppointmentStatus; cancel?: boolean }> = appointment.status === "requested"
     ? [{ label: "Xác nhận lịch", next: "confirmed" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
-    : status === "confirmed"
-      ? [{ label: "Check-in", next: "checked_in" }, { label: "Không đến", next: "no_show" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
-      : status === "checked_in"
+    : appointment.status === "confirmed"
+      ? checkInGuardMessage(appointment, selectedDate, today)
+        ? [{ label: "Hủy lịch", next: "cancelled", cancel: true }]
+        : [{ label: "Check-in", next: "checked_in" }, { label: "Không đến", next: "no_show" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
+      : appointment.status === "checked_in"
         ? [{ label: "Bắt đầu khám", next: "in_progress" }, { label: "Hủy lịch", next: "cancelled", cancel: true }]
-        : status === "in_progress"
+        : appointment.status === "in_progress"
           ? [{ label: "Hoàn tất", next: "completed" }]
           : [];
-  return candidates.filter((action) => canTransitionAppointment(status, action.next, role));
+  return candidates.filter((action) => canTransitionAppointment(appointment.status, action.next, role));
 }
 
 const successMessages: Partial<Record<AppointmentStatus, string>> = {
@@ -51,7 +64,8 @@ export function QueuePage() {
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const services = serviceResponse?.data ?? [];
   const today = todayInClinicTimeZone();
-  const appointmentOptions = appointmentQueryOptions.list(appointmentDateRange(today));
+  const [date, setDate] = useState(() => todayInClinicTimeZone());
+  const appointmentOptions = appointmentQueryOptions.list(appointmentDateRange(date));
   const { data: appointmentResponse = [] } = useQuery(appointmentOptions);
   const appointments = useMemo(
     () => appointmentResponse.slice().sort((left, right) => left.startAt.localeCompare(right.startAt)),
@@ -102,9 +116,23 @@ export function QueuePage() {
 
   return (
     <section className="mx-auto max-w-6xl">
-      <p className="text-sm font-medium text-primary">Điều phối trong ngày</p>
+      <p className="text-sm font-medium text-primary">Điều phối theo ngày</p>
       <h1 className="mt-1 text-2xl font-semibold text-text">Hàng đợi khám</h1>
-      <p className="mt-1 text-sm text-text-muted">Theo dõi và cập nhật luồng tiếp đón ngày {formatDateInputValue(today)}.</p>
+      <p className="mt-1 text-sm text-text-muted">Theo dõi yêu cầu xác nhận và luồng tiếp đón ngày {formatDateInputValue(date)}.</p>
+      <fieldset className="mt-5 rounded-lg border border-border bg-surface p-4 shadow-panel">
+        <legend className="px-1 text-base font-semibold text-text">Bộ lọc hàng đợi</legend>
+        <div className="mt-3 max-w-xs">
+          <ClinicDateField id="operations-queue-date" label="Ngày hàng đợi" labelClassName="text-sm font-medium text-text" onChange={setDate} value={date} />
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2 text-sm text-text-muted">
+          {date !== today ? (
+            <span className="inline-flex items-center gap-1 rounded-md bg-surface-muted px-2 py-1">
+              <span>Ngày: {formatDateInputValue(date)}</span>
+              <button aria-label="Xóa filter Ngày" className="inline-flex size-5 items-center justify-center rounded-sm text-text-muted hover:bg-surface hover:text-text" onClick={() => setDate(todayInClinicTimeZone())} type="button">×</button>
+            </span>
+          ) : null}
+        </div>
+      </fieldset>
       {notice && <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-success" role="status">{notice}</p>}
       {error && <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger" role="alert">{error}</p>}
       <div className="mt-6 grid gap-4 xl:grid-cols-2">
@@ -115,7 +143,8 @@ export function QueuePage() {
             {group.appointments.length ? <ul className="mt-3 divide-y divide-border">{group.appointments.map((appointment) => {
               const patient = patients.find((candidate) => candidate.id === appointment.patientId);
               const service = services.find((candidate) => candidate.id === appointment.serviceId);
-              return <li className="py-3 first:pt-0 last:pb-0" key={appointment.id}><div className="flex flex-wrap items-center gap-2"><p className="w-12 text-sm font-semibold text-primary">{formatTime(appointment.startAt)}</p><p className="min-w-36 flex-1 font-medium text-text">{patient?.fullName ?? "Bệnh nhân chưa xác định"}</p><StatusBadge status={appointment.status} /></div><p className="mt-1 pl-14 text-sm text-text-muted">{service?.name ?? "Dịch vụ chưa xác định"}</p><div className="mt-3 flex flex-wrap gap-2 pl-14">{actionsForStatus(appointment.status, user?.role ?? "receptionist").map((action) => <button aria-label={action.cancel ? `Hủy lịch ${patient?.fullName ?? "bệnh nhân"} ${formatTime(appointment.startAt)}` : undefined} className="h-9 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" key={action.label} onClick={() => { if (action.cancel) setCancelTarget(appointment); else if (action.next) void updateStatus(appointment, action.next); }} type="button">{action.label}</button>)}</div></li>;
+              const guardMessage = checkInGuardMessage(appointment, date, today);
+              return <li className="py-3 first:pt-0 last:pb-0" key={appointment.id}><div className="flex flex-wrap items-center gap-2"><p className="w-12 text-sm font-semibold text-primary">{formatTime(appointment.startAt)}</p><p className="min-w-36 flex-1 font-medium text-text">{patient?.fullName ?? "Bệnh nhân chưa xác định"}</p><StatusBadge status={appointment.status} /></div><p className="mt-1 pl-14 text-sm text-text-muted">{service?.name ?? "Dịch vụ chưa xác định"}</p>{guardMessage ? <p className="mt-2 pl-14 text-sm font-medium text-text-muted">{guardMessage}</p> : null}<div className="mt-3 flex flex-wrap gap-2 pl-14">{actionsForAppointment(appointment, user?.role ?? "receptionist", date, today).map((action) => <button aria-label={action.cancel ? `Hủy lịch ${patient?.fullName ?? "bệnh nhân"} ${formatTime(appointment.startAt)}` : undefined} className="h-9 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" key={action.label} onClick={() => { if (action.cancel) setCancelTarget(appointment); else if (action.next) void updateStatus(appointment, action.next); }} type="button">{action.label}</button>)}</div></li>;
             })}</ul> : <EmptyState description="Không có lịch hẹn trong nhóm này." title="Trống" />}
           </section>
         ))}

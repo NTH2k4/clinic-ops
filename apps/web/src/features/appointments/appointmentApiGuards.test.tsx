@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.resetModules();
@@ -90,6 +91,8 @@ describe("API appointment workflows", () => {
   });
 
   it("exposes queue mutation controls for API appointments", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date("2026-08-25T02:45:00.000Z"));
     const fetcher = vi.fn<typeof fetch>(async (input) => String(input).includes("/appointments")
       ? appointmentListResponse()
       : emptyListResponse());
