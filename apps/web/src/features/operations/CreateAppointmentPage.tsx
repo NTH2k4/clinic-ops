@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { StatusBadge } from "../../components/StatusBadge";
 import { isApiMode } from "../../lib/dataSource";
-import { formatDateInputValue, formatTime } from "../../lib/dateTime";
+import { addDays, formatDateInputValue, formatTime, todayInClinicTimeZone } from "../../lib/dateTime";
 import type { Appointment, Patient } from "../../types/models";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
@@ -14,7 +14,6 @@ import { patientQueryOptions, patientService } from "../patients/patientService"
 import { schedulingQueryOptions } from "../scheduling/schedulingService";
 import type { AvailabilitySlot } from "../scheduling/schedulingService";
 
-const OPERATIONS_DATE = "2026-08-26";
 const appointmentTimes = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
 const availabilityReasonLabels = {
   appointment_conflict: "Bác sĩ đã có lịch hẹn",
@@ -46,7 +45,7 @@ function AppointmentCreationForm() {
   const [newPatientPhone, setNewPatientPhone] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [doctorId, setDoctorId] = useState("");
-  const [date, setDate] = useState(OPERATIONS_DATE);
+  const [date, setDate] = useState(() => addDays(todayInClinicTimeZone(), 1));
   const [time, setTime] = useState("");
   const [error, setError] = useState("");
   const [created, setCreated] = useState<Appointment | null>(null);

@@ -1,7 +1,7 @@
 import userEvent from "@testing-library/user-event";
 import { cleanup, screen, within } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
 import { DetailDrawer } from "../../components/DetailDrawer";
 import { mockStore } from "../../mocks/mockStore";
@@ -9,13 +9,19 @@ import { expectClinicDateField, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
 import type { Appointment } from "../../types/models";
 
+beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.setSystemTime(new Date("2026-08-25T02:45:00.000Z"));
+});
+
 afterEach(() => {
   cleanup();
   mockStore.reset();
+  vi.useRealTimers();
 });
 
 async function signInAsDoctor() {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
   renderWithProviders(<App />);
   await user.click(screen.getByRole("button", { name: /Bác sĩ/i }));
   return user;
@@ -162,7 +168,7 @@ describe("doctor workspace", () => {
   });
 
   it("moves a checked-in appointment through the doctor consultation flow", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<DoctorFlowHarness />);
 
     await user.click(screen.getByRole("button", { name: /Bắt đầu khám/i }));

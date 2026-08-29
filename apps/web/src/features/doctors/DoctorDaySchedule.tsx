@@ -10,7 +10,7 @@ import type { Appointment } from "../../types/models";
 import { appointmentDateRange, appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
-import { DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
+import { doctorToday } from "./doctorPrototype";
 
 export function DoctorDaySchedule() {
   const { linkedProfile, user } = useAuth();
@@ -19,7 +19,7 @@ export function DoctorDaySchedule() {
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const doctor = doctorResponse?.data.find((candidate) => candidate.id === (linkedProfile?.type === "doctor" ? linkedProfile.id : undefined) || candidate.userId === user?.id);
   const services = serviceResponse?.data ?? [];
-  const [date, setDate] = useState(DOCTOR_PROTOTYPE_TODAY);
+  const [date, setDate] = useState(() => doctorToday());
   const appointmentOptions = appointmentQueryOptions.list({ ...appointmentDateRange(date), doctorId: doctor?.id });
   const { data: appointments = [] } = useQuery(appointmentOptions);
   const patients = patientsFromAppointments(appointments);
@@ -55,7 +55,7 @@ export function DoctorDaySchedule() {
               <ChevronLeft aria-hidden="true" className="h-4 w-4" />
               Ngày trước
             </button>
-            <button className="h-10 rounded-md border border-primary/30 bg-primary/10 px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/15" onClick={() => setDate(DOCTOR_PROTOTYPE_TODAY)} type="button">
+            <button className="h-10 rounded-md border border-primary/30 bg-primary/10 px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/15" onClick={() => setDate(doctorToday())} type="button">
               Hôm nay
             </button>
             <button className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-3 text-sm font-semibold text-text transition-colors hover:bg-surface-muted" onClick={() => setDate(addDays(date, 1))} type="button">

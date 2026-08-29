@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-08-25T02:45:00.000Z"));
+});
+
 test("patient can request appointment on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/login");

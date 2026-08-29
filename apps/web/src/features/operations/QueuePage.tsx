@@ -3,14 +3,12 @@ import { useMemo, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
-import { formatTime } from "../../lib/dateTime";
+import { formatDateInputValue, formatTime, todayInClinicTimeZone } from "../../lib/dateTime";
 import type { Appointment, AppointmentStatus, UserRole } from "../../types/models";
 import { appointmentDateRange, appointmentQueryOptions, appointmentService, patientsFromAppointments } from "../appointments/appointmentService";
 import { canTransitionAppointment } from "../appointments/appointmentRules";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
-
-const OPERATIONS_TODAY = "2026-08-25";
 
 type QueueGroup = {
   description: string;
@@ -52,7 +50,8 @@ export function QueuePage() {
   const queryClient = useQueryClient();
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const services = serviceResponse?.data ?? [];
-  const appointmentOptions = appointmentQueryOptions.list(appointmentDateRange(OPERATIONS_TODAY));
+  const today = todayInClinicTimeZone();
+  const appointmentOptions = appointmentQueryOptions.list(appointmentDateRange(today));
   const { data: appointmentResponse = [] } = useQuery(appointmentOptions);
   const appointments = useMemo(
     () => appointmentResponse.slice().sort((left, right) => left.startAt.localeCompare(right.startAt)),
@@ -105,7 +104,7 @@ export function QueuePage() {
     <section className="mx-auto max-w-6xl">
       <p className="text-sm font-medium text-primary">Điều phối trong ngày</p>
       <h1 className="mt-1 text-2xl font-semibold text-text">Hàng đợi khám</h1>
-      <p className="mt-1 text-sm text-text-muted">Theo dõi và cập nhật luồng tiếp đón ngày {OPERATIONS_TODAY.split("-").reverse().join("/")}.</p>
+      <p className="mt-1 text-sm text-text-muted">Theo dõi và cập nhật luồng tiếp đón ngày {formatDateInputValue(today)}.</p>
       {notice && <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-success" role="status">{notice}</p>}
       {error && <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger" role="alert">{error}</p>}
       <div className="mt-6 grid gap-4 xl:grid-cols-2">

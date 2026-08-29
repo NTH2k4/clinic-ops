@@ -5,6 +5,7 @@ import { ClinicDateField } from "../../components/ClinicDateField";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { StatusBadge } from "../../components/StatusBadge";
 import type { ApiListResponse } from "../../lib/api/types";
+import { todayInClinicTimeZone } from "../../lib/dateTime";
 import type { DoctorSchedule, ScheduleType } from "../../types/models";
 import { catalogQueryOptions } from "../catalog/catalogService";
 import { schedulingQueryOptions, schedulingService } from "../scheduling/schedulingService";
@@ -28,15 +29,18 @@ const scheduleTypeLabels: Record<ScheduleType, string> = {
 
 type ScheduleFormState = ScheduleCreateInput;
 
-const defaultForm: ScheduleFormState = {
-  doctorId: "",
-  type: "blocked",
-  dayOfWeek: 2,
-  startTime: "10:00",
-  endTime: "11:00",
-  effectiveFrom: "2026-08-25",
-  effectiveTo: "2026-08-25",
-};
+function defaultForm(): ScheduleFormState {
+  const today = todayInClinicTimeZone();
+  return {
+    doctorId: "",
+    type: "blocked",
+    dayOfWeek: 2,
+    startTime: "10:00",
+    endTime: "11:00",
+    effectiveFrom: today,
+    effectiveTo: today,
+  };
+}
 
 function doctorName(doctors: Array<{ id: string; fullName: string }>, doctorId: string): string {
   return doctors.find((doctor) => doctor.id === doctorId)?.fullName ?? doctorId;
@@ -50,9 +54,10 @@ function scheduleMatchesFilters(schedule: DoctorSchedule, filters: ScheduleListF
 
 export function AdminSchedules() {
   const queryClient = useQueryClient();
-  const [draftFilters, setDraftFilters] = useState({ doctorId: "", from: "2026-08-25", to: "2026-08-25" });
-  const [appliedFilters, setAppliedFilters] = useState<ScheduleListFilters>({ from: "2026-08-25", to: "2026-08-25", page: 1, pageSize: 100 });
-  const [form, setForm] = useState<ScheduleFormState>(defaultForm);
+  const today = todayInClinicTimeZone();
+  const [draftFilters, setDraftFilters] = useState(() => ({ doctorId: "", from: today, to: today }));
+  const [appliedFilters, setAppliedFilters] = useState<ScheduleListFilters>(() => ({ from: today, to: today, page: 1, pageSize: 100 }));
+  const [form, setForm] = useState<ScheduleFormState>(() => defaultForm());
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -93,7 +98,7 @@ export function AdminSchedules() {
     mutationFn: ({ id, input }: { id?: string; input: ScheduleCreateInput | ScheduleUpdateInput }) =>
       id ? schedulingService.updateSchedule(id, input) : schedulingService.createSchedule(input as ScheduleCreateInput),
     onSuccess: (updatedSchedule) => {
-      setForm(defaultForm);
+      setForm(defaultForm());
       setEditingId(null);
       setIsFormOpen(false);
       setFormError(null);
@@ -126,14 +131,14 @@ export function AdminSchedules() {
   }
 
   function resetForm() {
-    setForm(defaultForm);
+    setForm(defaultForm());
     setEditingId(null);
     setIsFormOpen(false);
     setFormError(null);
   }
 
   function openCreateForm() {
-    setForm(defaultForm);
+    setForm(defaultForm());
     setEditingId(null);
     setIsFormOpen(true);
     setFormError(null);

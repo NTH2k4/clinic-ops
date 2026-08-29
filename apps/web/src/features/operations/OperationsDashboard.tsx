@@ -4,11 +4,10 @@ import { Link } from "react-router-dom";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
 import { EmptyState } from "../../components/EmptyState";
 import { MetricCard } from "../../components/MetricCard";
+import { formatDateInputValue, todayInClinicTimeZone } from "../../lib/dateTime";
 import type { AppointmentStatus } from "../../types/models";
 import { appointmentDateRange, appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
 import { catalogQueryOptions } from "../catalog/catalogService";
-
-const OPERATIONS_TODAY = "2026-08-25";
 
 const metrics: Array<{ label: string; statuses?: AppointmentStatus[] }> = [
   { label: "Lịch hẹn hôm nay" },
@@ -22,7 +21,8 @@ const metrics: Array<{ label: string; statuses?: AppointmentStatus[] }> = [
 export function OperationsDashboard() {
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const services = serviceResponse?.data ?? [];
-  const { data: appointmentResponse = [] } = useQuery(appointmentQueryOptions.list(appointmentDateRange(OPERATIONS_TODAY)));
+  const today = todayInClinicTimeZone();
+  const { data: appointmentResponse = [] } = useQuery(appointmentQueryOptions.list(appointmentDateRange(today)));
   const appointments = appointmentResponse.slice().sort((left, right) => left.startAt.localeCompare(right.startAt));
   const patients = patientsFromAppointments(appointments);
   const waiting = appointments.filter((appointment) => appointment.status === "requested" || appointment.status === "confirmed" || appointment.status === "checked_in");
@@ -34,7 +34,7 @@ export function OperationsDashboard() {
           <div>
             <p className="text-sm font-medium text-primary">Điều hành phòng khám</p>
             <h1 className="mt-1 text-2xl font-semibold text-text">Không gian điều hành</h1>
-            <p className="mt-1 text-sm text-text-muted">Tổng quan tiếp đón và điều phối lịch ngày {OPERATIONS_TODAY.split("-").reverse().join("/")}.</p>
+            <p className="mt-1 text-sm text-text-muted">Tổng quan tiếp đón và điều phối lịch ngày {formatDateInputValue(today)}.</p>
           </div>
           <Link className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover" to="/app/operations/appointments/new"><CalendarPlus aria-hidden="true" size={18} />Tạo lịch hẹn</Link>
         </div>

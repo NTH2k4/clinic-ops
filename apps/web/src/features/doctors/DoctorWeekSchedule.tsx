@@ -10,7 +10,7 @@ import type { Appointment } from "../../types/models";
 import { appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
-import { DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
+import { doctorToday } from "./doctorPrototype";
 
 function weekDates(startDate: string) {
   const start = new Date(`${startDate}T00:00:00Z`);
@@ -24,7 +24,7 @@ export function DoctorWeekSchedule() {
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const doctor = doctorResponse?.data.find((candidate) => candidate.id === (linkedProfile?.type === "doctor" ? linkedProfile.id : undefined) || candidate.userId === user?.id);
   const services = serviceResponse?.data ?? [];
-  const currentWeekStart = getWeekStartDate(DOCTOR_PROTOTYPE_TODAY);
+  const currentWeekStart = getWeekStartDate(doctorToday());
   const [weekStart, setWeekStart] = useState(currentWeekStart);
   const dates = useMemo(() => weekDates(weekStart), [weekStart]);
   const [selectedDate, setSelectedDate] = useState(weekStart);

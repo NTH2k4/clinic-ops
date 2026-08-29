@@ -5,6 +5,7 @@ import { App } from "../../app/App";
 import { navigationForRole } from "../../components/navigation";
 import { mockStore } from "../../mocks/mockStore";
 import { renderWithProviders } from "../../test/render";
+import { todayInClinicTimeZone } from "../../lib/dateTime";
 import { AdminDashboard } from "./AdminDashboard";
 import { AdminDoctors } from "./AdminDoctors";
 import { AdminSchedules } from "./AdminSchedules";
@@ -18,6 +19,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.resetModules();
+  vi.useRealTimers();
 });
 
 function apiListResponse(data: unknown[], requestId: string, total = data.length) {
@@ -169,9 +171,10 @@ describe("admin workspace", () => {
     const schedulesTable = await screen.findByRole("table", { name: "Lịch làm việc bác sĩ" });
     await waitFor(() => expect(within(schedulesTable).getByText("10:00-11:00")).toBeInTheDocument());
     const createdRow = within(schedulesTable).getByText("10:00-11:00").closest("tr")!;
+    const today = todayInClinicTimeZone();
     expect(within(createdRow).getByText("Chặn lịch")).toBeInTheDocument();
     expect(within(createdRow).getByText("BS. Tran Quang Huy")).toBeInTheDocument();
-    expect(within(createdRow).getByText("2026-08-25 đến 2026-08-25")).toBeInTheDocument();
+    expect(within(createdRow).getByText(`${today} đến ${today}`)).toBeInTheDocument();
 
     await user.click(within(createdRow).getByRole("button", { name: "Vô hiệu hóa BS. Tran Quang Huy 10:00-11:00" }));
     expect(screen.getByRole("dialog", { name: "Xác nhận vô hiệu hóa lịch làm việc" })).toBeInTheDocument();
@@ -303,6 +306,9 @@ describe("admin workspace", () => {
   });
 
   it("derives the active doctor metric from mock data", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-25T02:45:00.000Z"));
+
     renderWithProviders(<AdminDashboard />);
 
     expect(screen.getByText("Bác sĩ đang hoạt động")).toBeInTheDocument();

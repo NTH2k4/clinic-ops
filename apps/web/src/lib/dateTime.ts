@@ -22,6 +22,18 @@ const viTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
   timeZone: "Asia/Ho_Chi_Minh",
 });
 
+const clinicDatePartsFormatter = new Intl.DateTimeFormat("en-US", {
+  day: "2-digit",
+  month: "2-digit",
+  timeZone: "Asia/Ho_Chi_Minh",
+  year: "numeric",
+});
+
+export function todayInClinicTimeZone(now = new Date()): string {
+  const parts = Object.fromEntries(clinicDatePartsFormatter.formatToParts(now).map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
 export function formatDate(dateTime: string): string {
   return viDateFormatter.format(new Date(dateTime));
 }

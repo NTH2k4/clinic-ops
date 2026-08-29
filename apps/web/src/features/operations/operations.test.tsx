@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateAppointmentPage } from "./CreateAppointmentPage";
 import { OperationsCalendar } from "./OperationsCalendar";
 import { OperationsDashboard } from "./OperationsDashboard";
@@ -13,14 +13,29 @@ import { expectClinicDateField, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
 import { queryClient } from "../../lib/queryClient";
 
+beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.setSystemTime(new Date("2026-08-25T02:45:00.000Z"));
+});
+
 afterEach(() => {
   cleanup();
   mockStore.reset();
+  vi.useRealTimers();
 });
 
 describe("operations workspace", () => {
+  it("uses the real clinic day for the operations dashboard date", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-29T02:30:00.000Z"));
+
+    renderWithProviders(<OperationsDashboard />);
+
+    expect(screen.getByText("Tổng quan tiếp đón và điều phối lịch ngày 29/08/2026.")).toBeInTheDocument();
+  });
+
   it("confirms a requested appointment into the confirmed queue", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     mockStore.appointments.forEach((appointment) => {
       if (appointment.status === "confirmed") appointment.status = "completed";
     });
@@ -40,7 +55,7 @@ describe("operations workspace", () => {
   });
 
   it("checks a confirmed appointment into the waiting queue", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     mockStore.appointments.forEach((appointment) => {
       if (appointment.status === "checked_in") appointment.status = "completed";
     });
@@ -64,7 +79,7 @@ describe("operations workspace", () => {
   });
 
   it("shows an error when a queue status update fails", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     vi.spyOn(appointmentService, "updateAppointmentStatus").mockRejectedValueOnce(new Error("Request failed"));
     renderWithProviders(<QueuePage />);
 
@@ -75,7 +90,7 @@ describe("operations workspace", () => {
   });
 
   it("shows an error when queue cancellation fails", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     vi.spyOn(appointmentService, "cancelAppointment").mockRejectedValueOnce(new Error("Request failed"));
     renderWithProviders(<QueuePage />);
 
@@ -87,7 +102,7 @@ describe("operations workspace", () => {
   });
 
   it("shows queue lane descriptions and cancellation confirmation context", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<QueuePage />);
 
     const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
@@ -102,7 +117,7 @@ describe("operations workspace", () => {
   });
 
   it("finds a patient before creating an appointment", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<CreateAppointmentPage />);
 
     await user.type(screen.getByLabelText("Tìm patient"), "Nguyễn");
@@ -119,7 +134,7 @@ describe("operations workspace", () => {
   });
 
   it("creates a confirmed appointment for staff", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<CreateAppointmentPage />);
     const staleAppointmentKey = ["appointments", "list", { doctorId: "cached-doctor" }] as const;
     queryClient.setQueryData(staleAppointmentKey, []);
@@ -137,7 +152,7 @@ describe("operations workspace", () => {
   });
 
   it("does not offer staff booking slots outside the doctor's working schedule", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<CreateAppointmentPage />);
 
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
@@ -148,7 +163,7 @@ describe("operations workspace", () => {
   });
 
   it("does not submit a second appointment after a successful staff creation", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<CreateAppointmentPage />);
 
     await user.type(screen.getByLabelText("Tìm patient"), "Nguyễn");
@@ -164,7 +179,7 @@ describe("operations workspace", () => {
   });
 
   it("does not offer staff booking slots that conflict with active appointments", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<CreateAppointmentPage />);
 
     await user.type(screen.getByLabelText("Tìm patient"), "Nguyễn");
@@ -176,7 +191,7 @@ describe("operations workspace", () => {
   });
 
   it("shows API-mode unavailable staff booking slots disabled with their scheduling reason", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const availabilityQueryOptions = vi.fn(() => ({
       queryKey: ["scheduling", "availability", "test"],
       queryFn: vi.fn().mockResolvedValue({
@@ -329,7 +344,7 @@ describe("operations workspace", () => {
   });
 
   it("filters the operations calendar by specialty", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<OperationsCalendar />);
 
     await user.selectOptions(screen.getByLabelText("Chuyên khoa"), "specialty-cardiology");
@@ -338,7 +353,7 @@ describe("operations workspace", () => {
   });
 
   it("summarizes and resets operations calendar filters", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<OperationsCalendar />);
 
     expect(screen.getByRole("group", { name: "Bộ lọc lịch hoạt động" })).toBeInTheDocument();
@@ -358,7 +373,7 @@ describe("operations workspace", () => {
   });
 
   it("clears individual operations calendar filter chips without resetting the rest", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<OperationsCalendar />);
 
     await setClinicDateDay(user, "Ngày", 26);
@@ -381,7 +396,7 @@ describe("operations workspace", () => {
   });
 
   it("filters the operations calendar by requested appointments", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<OperationsCalendar />);
 
     await user.selectOptions(screen.getByLabelText("Trạng thái"), "requested");

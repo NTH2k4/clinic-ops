@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { cleanup, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
 import { appointmentService } from "../appointments/appointmentService";
 import { mockStore } from "../../mocks/mockStore";
@@ -8,13 +8,19 @@ import { expectClinicDateField, getClinicDateSegment, setClinicDateDay } from ".
 import { renderWithProviders } from "../../test/render";
 import { queryClient } from "../../lib/queryClient";
 
+beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.setSystemTime(new Date("2026-08-25T02:45:00.000Z"));
+});
+
 afterEach(() => {
   cleanup();
   mockStore.reset();
+  vi.useRealTimers();
 });
 
 async function signInAsPatient() {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
   renderWithProviders(<App />);
   await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
   return user;

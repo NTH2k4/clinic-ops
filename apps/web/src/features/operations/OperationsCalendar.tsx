@@ -2,16 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { StatusBadge } from "../../components/StatusBadge";
-import { formatDateInputValue, formatTime } from "../../lib/dateTime";
+import { formatDateInputValue, formatTime, todayInClinicTimeZone } from "../../lib/dateTime";
 import type { AppointmentStatus } from "../../types/models";
 import { appointmentDateRange, appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
 import { catalogQueryOptions } from "../catalog/catalogService";
 
-const OPERATIONS_TODAY = "2026-08-25";
 const statuses: Array<{ value: "" | AppointmentStatus; label: string }> = [{ value: "", label: "Tất cả trạng thái" }, { value: "requested", label: "Chờ xác nhận" }, { value: "confirmed", label: "Đã xác nhận" }, { value: "checked_in", label: "Đã check-in" }, { value: "in_progress", label: "Đang khám" }, { value: "completed", label: "Hoàn tất" }, { value: "cancelled", label: "Đã hủy" }, { value: "no_show", label: "Không đến" }];
 
 export function OperationsCalendar() {
-  const [date, setDate] = useState(OPERATIONS_TODAY);
+  const today = todayInClinicTimeZone();
+  const [date, setDate] = useState(() => todayInClinicTimeZone());
   const [doctorId, setDoctorId] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
   const [status, setStatus] = useState<"" | AppointmentStatus>("");
@@ -35,7 +35,7 @@ export function OperationsCalendar() {
   const selectedStatus = statuses.find((candidate) => candidate.value === status);
 
   function resetFilters() {
-    setDate(OPERATIONS_TODAY);
+    setDate(todayInClinicTimeZone());
     setDoctorId("");
     setSpecialtyId("");
     setStatus("");
@@ -67,7 +67,7 @@ export function OperationsCalendar() {
           <button className="h-10 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={resetFilters} type="button">Xóa bộ lọc</button>
         </div>
         <div className="mt-3 flex flex-wrap gap-2 text-sm text-text-muted">
-          {date !== OPERATIONS_TODAY ? renderFilterChip("Ngày", formatDateInputValue(date), () => setDate(OPERATIONS_TODAY)) : null}
+          {date !== today ? renderFilterChip("Ngày", formatDateInputValue(date), () => setDate(todayInClinicTimeZone())) : null}
           {doctor ? renderFilterChip("Bác sĩ", doctor.fullName, () => setDoctorId("")) : null}
           {specialty ? renderFilterChip("Chuyên khoa", specialty.name, () => setSpecialtyId("")) : null}
           {status && selectedStatus ? renderFilterChip("Trạng thái", selectedStatus.label, () => setStatus("")) : null}

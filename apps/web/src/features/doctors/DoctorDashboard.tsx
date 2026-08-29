@@ -10,7 +10,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { isActiveAppointmentStatus } from "../appointments/appointmentRules";
 import { appointmentDateRange, appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
 import { catalogQueryOptions } from "../catalog/catalogService";
-import { DOCTOR_PROTOTYPE_NOW, DOCTOR_PROTOTYPE_TODAY } from "./doctorPrototype";
+import { doctorToday } from "./doctorPrototype";
 
 const statusMetrics: Array<{ label: string; status: AppointmentStatus }> = [
   { label: "Chờ xác nhận", status: "confirmed" },
@@ -26,14 +26,14 @@ export function DoctorDashboard() {
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const doctor = doctorResponse?.data.find((candidate) => candidate.id === (linkedProfile?.type === "doctor" ? linkedProfile.id : undefined) || candidate.userId === user?.id);
   const services = serviceResponse?.data ?? [];
-  const today = DOCTOR_PROTOTYPE_TODAY;
+  const today = doctorToday();
   const appointmentOptions = appointmentQueryOptions.list({ ...appointmentDateRange(today), doctorId: doctor?.id });
   const { data: appointmentResponse = [] } = useQuery(appointmentOptions);
   const appointments = appointmentResponse.slice().sort((left, right) => left.startAt.localeCompare(right.startAt));
   const patients = patientsFromAppointments(appointments);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const nextAppointment = appointments.find(
-    (appointment) => isActiveAppointmentStatus(appointment.status) && appointment.startAt > DOCTOR_PROTOTYPE_NOW,
+    (appointment) => isActiveAppointmentStatus(appointment.status) && new Date(appointment.startAt).getTime() > Date.now(),
   );
 
   const counts = useMemo(() => Object.fromEntries(statusMetrics.map(({ status }) => [status, appointments.filter((appointment) => appointment.status === status).length])), [appointments]);

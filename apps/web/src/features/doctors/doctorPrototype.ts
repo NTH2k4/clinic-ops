@@ -1,2 +1,1 @@
-export const DOCTOR_PROTOTYPE_TODAY = "2026-08-25";
-export const DOCTOR_PROTOTYPE_NOW = "2026-08-25T09:45:00+07:00";
+export { todayInClinicTimeZone as doctorToday } from "../../lib/dateTime";

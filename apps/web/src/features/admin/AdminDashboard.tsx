@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { MetricCard } from "../../components/MetricCard";
-import { toDateInputValue } from "../../lib/dateTime";
+import { formatDateInputValue, toDateInputValue, todayInClinicTimeZone } from "../../lib/dateTime";
 import { mockStore } from "../../mocks/mockStore";
 import { catalogQueryOptions } from "../catalog/catalogService";
-
-const ADMIN_PROTOTYPE_TODAY = "2026-08-25";
 
 function percent(value: number) {
   return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1, style: "percent" }).format(value);
@@ -17,7 +15,7 @@ export function AdminDashboard() {
   const activeServices = serviceResponse?.data ?? [];
   const activeDoctorTotal = doctorResponse?.meta.total ?? 0;
   const activeServiceTotal = serviceResponse?.meta.total ?? 0;
-  const today = ADMIN_PROTOTYPE_TODAY;
+  const today = todayInClinicTimeZone();
   const appointmentsToday = mockStore.appointments.filter((appointment) => toDateInputValue(appointment.startAt) === today);
   const cancellationRate = mockStore.appointments.length
     ? mockStore.appointments.filter((appointment) => appointment.status === "cancelled").length / mockStore.appointments.length
@@ -41,7 +39,7 @@ export function AdminDashboard() {
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard helper="Sẵn sàng tiếp nhận lịch hẹn đang hoạt động." label="Bác sĩ đang hoạt động" tone="primary" value={activeDoctorTotal} />
         <MetricCard helper="Danh mục dịch vụ đang mở cho đặt lịch." label="Dịch vụ đang hoạt động" tone="accent" value={activeServiceTotal} />
-        <MetricCard helper={`Ngày vận hành ${today.split("-").reverse().join("/")}.`} label="Lịch hẹn hôm nay" tone="success" value={appointmentsToday.length} />
+        <MetricCard helper={`Ngày vận hành ${formatDateInputValue(today)}.`} label="Lịch hẹn hôm nay" tone="success" value={appointmentsToday.length} />
         <MetricCard helper="Tỷ lệ lịch đã hủy trên toàn bộ dữ liệu." label="Tỷ lệ hủy lịch" tone="warning" value={percent(cancellationRate)} />
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
