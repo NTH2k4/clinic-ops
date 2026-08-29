@@ -26,7 +26,7 @@ export function createApiHttpClient(options: ApiHttpClientOptions) {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
-    const response = await (options.fetcher ?? fetch)(`${options.baseUrl}${path}`, { ...init, headers });
+    const response = await (options.fetcher ?? fetch)(`${options.baseUrl}${path}`, { ...init, credentials: "include", headers });
     const body = await response.json() as ApiSuccess<T> | ApiErrorEnvelope;
 
     if (response.ok && "data" in body) {

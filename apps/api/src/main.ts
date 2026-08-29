@@ -11,7 +11,7 @@ async function bootstrap() {
   const corsOrigins = corsOriginsFromEnv(process.env);
   app.setGlobalPrefix("api/v1");
   if (corsOrigins.length > 0) {
-    app.enableCors({ origin: corsOrigins });
+    app.enableCors({ credentials: true, origin: corsOrigins });
   }
   if (serveWebAppFromEnv(process.env)) {
     const webDistPath = resolveWebDistPath({ env: process.env, cwd: process.cwd(), moduleDir: __dirname });

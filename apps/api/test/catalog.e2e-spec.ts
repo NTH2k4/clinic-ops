@@ -31,6 +31,19 @@ const serviceSchema = z.object({
   meta: z.object({ requestId: z.string().min(1) }),
 });
 
+const doctorSchema = z.object({
+  data: z.object({
+    id: z.string(),
+    status: z.string(),
+  }).passthrough(),
+  meta: z.object({ requestId: z.string().min(1) }),
+});
+
+const doctorListSchema = z.object({
+  data: z.array(z.object({ id: z.string() }).passthrough()),
+  meta: z.object({ requestId: z.string().min(1), page: z.number(), pageSize: z.number(), total: z.number() }),
+});
+
 const patientSchema = z.object({
   data: z.object({ id: z.string(), userId: z.string().nullable().optional() }).passthrough(),
 });
@@ -282,18 +295,44 @@ describe("Catalog resources", () => {
     }
   });
 
-  it("returns RESOURCE_IN_USE when deactivation would affect active dependencies", async () => {
+  it("returns RESOURCE_IN_USE when specialty deactivation would affect active dependencies", async () => {
     const { app, server } = await createApp();
 
     try {
       const token = await login(server, "admin@careflow.local");
-      for (const path of ["/api/v1/doctors/doctor-1/deactivate", "/api/v1/specialties/specialty-general/deactivate"]) {
-        await request(server)
-          .post(path)
-          .set("Authorization", `Bearer ${token}`)
-          .expect(409)
-          .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("RESOURCE_IN_USE"));
-      }
+      await request(server)
+        .post("/api/v1/specialties/specialty-general/deactivate")
+        .set("Authorization", `Bearer ${token}`)
+        .expect(409)
+        .expect((response) => expect(errorSchema.parse(response.body).error.code).toBe("RESOURCE_IN_USE"));
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("lets admins soft-deactivate doctors that still have active appointments", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const token = await login(server, "admin@careflow.local");
+      await expect(prisma.appointment.count({ where: { doctorId: "doctor-1", status: { in: ["requested", "confirmed", "checked_in", "in_progress"] } } }))
+        .resolves.toBeGreaterThan(0);
+
+      await request(server)
+        .post("/api/v1/doctors/doctor-1/deactivate")
+        .set("Authorization", `Bearer ${token}`)
+        .expect(201)
+        .expect((response) => {
+          expect(doctorSchema.parse(response.body).data).toMatchObject({ id: "doctor-1", status: "inactive" });
+        });
+
+      await request(server)
+        .get("/api/v1/doctors")
+        .set("Authorization", `Bearer ${token}`)
+        .expect(200)
+        .expect((response) => {
+          expect(doctorListSchema.parse(response.body).data.some((doctor) => doctor.id === "doctor-1")).toBe(false);
+        });
     } finally {
       await app.close();
     }

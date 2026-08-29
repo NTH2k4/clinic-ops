@@ -1,13 +1,22 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from "@nestjs/common";
+import type { Response } from "express";
 import { successEnvelope } from "../common/api-response";
 import { parseSchema } from "../common/validation";
 import { changePasswordSchema, patientRegistrationSchema } from "./auth.dto";
 import { AuthService } from "./auth.service";
-import { type AuthenticatedRequest, extractBearerToken, SessionGuard } from "./session.guard";
+import { type AuthenticatedRequest, extractSessionToken, SESSION_COOKIE_NAME, SessionGuard } from "./session.guard";
 
 type LoginBody = {
   email?: unknown;
   password?: unknown;
+};
+
+const sessionCookieOptions = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  path: "/api/v1",
+  maxAge: 12 * 60 * 60 * 1000,
 };
 
 @Controller("auth")
@@ -15,17 +24,20 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("login")
-  async login(@Body() body: LoginBody) {
+  async login(@Body() body: LoginBody, @Res({ passthrough: true }) response: Response) {
     const result = await this.authService.login(
       typeof body.email === "string" ? body.email : "",
       typeof body.password === "string" ? body.password : "",
     );
+    response.cookie(SESSION_COOKIE_NAME, result.sessionToken, sessionCookieOptions);
     return successEnvelope(result);
   }
 
   @Post("register")
-  async register(@Body() body: unknown) {
-    return successEnvelope(await this.authService.registerPatient(parseSchema(patientRegistrationSchema, body)));
+  async register(@Body() body: unknown, @Res({ passthrough: true }) response: Response) {
+    const result = await this.authService.registerPatient(parseSchema(patientRegistrationSchema, body));
+    response.cookie(SESSION_COOKIE_NAME, result.sessionToken, sessionCookieOptions);
+    return successEnvelope(result);
   }
 
   @Post("change-password")
@@ -37,11 +49,12 @@ export class AuthController {
 
   @Post("logout")
   @UseGuards(SessionGuard)
-  async logout(@Req() request: AuthenticatedRequest) {
-    const sessionToken = extractBearerToken(request.headers.authorization);
+  async logout(@Req() request: AuthenticatedRequest, @Res({ passthrough: true }) response: Response) {
+    const sessionToken = extractSessionToken(request);
     if (sessionToken) {
       await this.authService.logout(sessionToken);
     }
+    response.clearCookie(SESSION_COOKIE_NAME, { path: sessionCookieOptions.path });
     return successEnvelope({});
   }
 

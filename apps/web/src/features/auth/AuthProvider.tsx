@@ -15,6 +15,7 @@ type AuthContextValue = {
   user: CurrentUser | null;
   linkedProfile: LinkedProfileRef;
   authError: string | null;
+  isRestoringSession: boolean;
   signIn: (input: SignInInput) => Promise<CurrentUser | null>;
   register: (input: RegisterInput) => Promise<CurrentUser | null>;
   changePassword: (input: ChangePasswordInput) => Promise<boolean>;
@@ -59,10 +60,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [linkedProfile, setLinkedProfile] = useState<LinkedProfileRef>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isRestoringSession, setIsRestoringSession] = useState(isApiMode);
 
   const clearApiAuthState = useCallback(() => {
     setUser(null);
     setLinkedProfile(null);
+    setIsRestoringSession(false);
   }, []);
 
   useEffect(() => subscribeToApiSessionCleared(clearApiAuthState), [clearApiAuthState]);
@@ -73,11 +76,44 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return createAuthApi(client.request);
   }, []);
 
+  useEffect(() => {
+    if (!isApiMode) {
+      setIsRestoringSession(false);
+      return;
+    }
+
+    let isMounted = true;
+    void authApi.me()
+      .then((session) => {
+        if (!isMounted) return;
+        if (session.currentUser) {
+          setUser(session.currentUser);
+          setLinkedProfile(session.linkedProfile);
+          return;
+        }
+        setUser(null);
+        setLinkedProfile(null);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setUser(null);
+        setLinkedProfile(null);
+      })
+      .finally(() => {
+        if (isMounted) setIsRestoringSession(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authApi]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       linkedProfile,
       authError,
+      isRestoringSession,
       async signIn(input) {
         setAuthError(null);
 
@@ -163,7 +199,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setUser(userForRole(role) ?? null);
       },
     }),
-    [authApi, authError, linkedProfile, user],
+    [authApi, authError, isRestoringSession, linkedProfile, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

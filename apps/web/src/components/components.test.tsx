@@ -96,7 +96,7 @@ describe("shared UI components", () => {
     const [{ renderWithProviders: renderApiWithProviders }, { App: ApiApp }] = await prepareApiMode(fetcher);
     const user = userEvent.setup();
 
-    renderApiWithProviders(<ApiApp />);
+    renderApiWithProviders(<ApiApp />, { initialEntries: ["/login"] });
     await user.type(screen.getByLabelText("Email"), "admin@example.test");
     await user.type(screen.getByLabelText("Mật khẩu"), "secret");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
@@ -127,7 +127,7 @@ describe("shared UI components", () => {
     const [{ renderWithProviders: renderApiWithProviders }, { App: ApiApp }] = await prepareApiMode(fetcher);
     const user = userEvent.setup();
 
-    renderApiWithProviders(<ApiApp />);
+    renderApiWithProviders(<ApiApp />, { initialEntries: ["/login"] });
     await user.type(screen.getByLabelText("Email"), "admin@example.test");
     await user.type(screen.getByLabelText("Mật khẩu"), "secret");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));

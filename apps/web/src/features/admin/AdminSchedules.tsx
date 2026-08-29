@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, RotateCcw, XCircle } from "lucide-react";
+import { Pencil, Plus, RotateCcw, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { StatusBadge } from "../../components/StatusBadge";
 import type { ApiListResponse } from "../../lib/api/types";
 import type { DoctorSchedule, ScheduleType } from "../../types/models";
@@ -52,8 +53,10 @@ export function AdminSchedules() {
   const [draftFilters, setDraftFilters] = useState({ doctorId: "", from: "2026-08-25", to: "2026-08-25" });
   const [appliedFilters, setAppliedFilters] = useState<ScheduleListFilters>({ from: "2026-08-25", to: "2026-08-25", page: 1, pageSize: 100 });
   const [form, setForm] = useState<ScheduleFormState>(defaultForm);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = useState<DoctorSchedule | null>(null);
 
   const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors({ status: "active" }));
   const doctors = doctorResponse?.data ?? [];
@@ -92,6 +95,7 @@ export function AdminSchedules() {
     onSuccess: (updatedSchedule) => {
       setForm(defaultForm);
       setEditingId(null);
+      setIsFormOpen(false);
       setFormError(null);
       writeScheduleToCache(updatedSchedule);
       refreshSchedules();
@@ -103,6 +107,7 @@ export function AdminSchedules() {
     onSuccess: (updatedSchedule) => {
       writeScheduleToCache(updatedSchedule);
       refreshSchedules();
+      setDeactivateTarget(null);
     },
   });
 
@@ -123,6 +128,14 @@ export function AdminSchedules() {
   function resetForm() {
     setForm(defaultForm);
     setEditingId(null);
+    setIsFormOpen(false);
+    setFormError(null);
+  }
+
+  function openCreateForm() {
+    setForm(defaultForm);
+    setEditingId(null);
+    setIsFormOpen(true);
     setFormError(null);
   }
 
@@ -137,6 +150,7 @@ export function AdminSchedules() {
       effectiveTo: schedule.effectiveTo,
     });
     setEditingId(schedule.id);
+    setIsFormOpen(true);
     setFormError(null);
   }
 
@@ -164,7 +178,10 @@ export function AdminSchedules() {
       <p className="text-sm font-medium text-primary">Quản trị lịch bác sĩ</p>
       <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-2xl font-semibold text-text">Lịch làm việc</h1>
-        <p className="text-sm font-medium text-text-muted">{scheduleResponse?.meta.total ?? schedules.length} mục lịch</p>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <p className="text-sm font-medium text-text-muted">{scheduleResponse?.meta.total ?? schedules.length} mục lịch</p>
+          <button className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-white shadow-panel hover:bg-primary-hover" onClick={openCreateForm} type="button"><Plus aria-hidden="true" size={16} />Tạo lịch</button>
+        </div>
       </div>
 
       <fieldset className="mt-5 border-y border-border py-3">
@@ -183,10 +200,10 @@ export function AdminSchedules() {
         </div>
       </fieldset>
 
-      <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm" onSubmit={submitSchedule}>
+      {isFormOpen ? <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm transition-all duration-200 ease-out animate-in fade-in slide-in-from-top-1" onSubmit={submitSchedule}>
         <div className="flex flex-col gap-1 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-base font-semibold text-text">{editingId ? "Cập nhật lịch" : "Tạo lịch"}</h2>
-          {editingId ? <button className="inline-flex h-8 items-center gap-2 self-start rounded-md border border-border px-2 text-xs font-semibold text-text hover:bg-surface-muted sm:self-auto" onClick={resetForm} type="button"><RotateCcw aria-hidden="true" size={14} />Hủy chỉnh sửa</button> : null}
+          <button className="inline-flex h-8 items-center gap-2 self-start rounded-md border border-border px-2 text-xs font-semibold text-text hover:bg-surface-muted sm:self-auto" onClick={resetForm} type="button"><RotateCcw aria-hidden="true" size={14} />Hủy</button>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-4">
           <label className="text-sm font-medium text-text">
@@ -219,12 +236,12 @@ export function AdminSchedules() {
           <ClinicDateField id="schedule-effective-from" label="Hiệu lực từ ngày" onChange={(value) => updateForm("effectiveFrom", value)} value={form.effectiveFrom} />
           <ClinicDateField id="schedule-effective-to" label="Hiệu lực đến ngày" onChange={(value) => updateForm("effectiveTo", value)} value={form.effectiveTo} />
           <button className="h-10 self-end rounded-md bg-primary px-3 text-sm font-semibold text-white shadow-panel hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60" disabled={saveMutation.isPending} type="submit">
-            {editingId ? "Cập nhật lịch" : "Tạo lịch"}
+            Lưu lịch
           </button>
         </div>
         {formError ? <p className="mt-3 text-sm text-danger" role="alert">{formError}</p> : null}
         {saveMutation.error ? <p className="mt-3 text-sm text-danger" role="alert">{saveMutation.error instanceof Error ? saveMutation.error.message : "Không thể lưu lịch."}</p> : null}
-      </form>
+      </form> : null}
 
       {error ? <p className="mt-4 text-sm text-danger" role="alert">{error instanceof Error ? error.message : "Không thể tải lịch."}</p> : null}
       {deactivateMutation.error ? <p className="mt-4 text-sm text-danger" role="alert">{deactivateMutation.error instanceof Error ? deactivateMutation.error.message : "Không thể vô hiệu hóa lịch."}</p> : null}
@@ -256,7 +273,7 @@ export function AdminSchedules() {
                     <button aria-label={`Sửa ${doctorName(doctors, schedule.doctorId)} ${schedule.startTime}-${schedule.endTime}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted" onClick={() => editSchedule(schedule)} title="Sửa" type="button">
                       <Pencil aria-hidden="true" size={15} />
                     </button>
-                    <button aria-label={`Vô hiệu hóa ${doctorName(doctors, schedule.doctorId)} ${schedule.startTime}-${schedule.endTime}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50" disabled={schedule.status === "inactive" || deactivateMutation.isPending} onClick={() => deactivateMutation.mutate(schedule.id)} title="Vô hiệu hóa" type="button">
+                    <button aria-label={`Vô hiệu hóa ${doctorName(doctors, schedule.doctorId)} ${schedule.startTime}-${schedule.endTime}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50" disabled={schedule.status === "inactive" || deactivateMutation.isPending} onClick={() => setDeactivateTarget(schedule)} title="Vô hiệu hóa" type="button">
                       <XCircle aria-hidden="true" size={16} />
                     </button>
                   </div>
@@ -268,6 +285,14 @@ export function AdminSchedules() {
       </div>
       {isLoading ? <p className="mt-3 text-sm text-text-muted">Đang tải lịch...</p> : null}
       {!isLoading && !sortedSchedules.length ? <p className="mt-3 text-sm text-text-muted">Không có lịch nào khớp bộ lọc.</p> : null}
+      <ConfirmDialog
+        confirmLabel="Vô hiệu hóa"
+        description={`Lịch ${deactivateTarget ? `${doctorName(doctors, deactivateTarget.doctorId)} ${deactivateTarget.startTime}-${deactivateTarget.endTime}` : ""} sẽ không còn ảnh hưởng đến khung giờ đặt lịch mới. Dữ liệu lịch sử và kiểm toán vẫn được giữ lại.`}
+        isOpen={Boolean(deactivateTarget)}
+        onCancel={() => setDeactivateTarget(null)}
+        onConfirm={() => deactivateTarget && deactivateMutation.mutate(deactivateTarget.id)}
+        title="Xác nhận vô hiệu hóa lịch làm việc"
+      />
     </section>
   );
 }

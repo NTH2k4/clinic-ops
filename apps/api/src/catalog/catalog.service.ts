@@ -108,7 +108,7 @@ export class CatalogService {
     return this.prisma.$transaction(async (transaction) => {
       const service = await this.require(transaction.service.findUnique({ where: { id } }), "service");
       const activeAppointments = await transaction.appointment.count({ where: { serviceId: id, status: { in: activeAppointmentStatuses } } });
-      if (activeAppointments) throw new ApiError(409, "RESOURCE_IN_USE", "Service has active appointments.");
+      if (activeAppointments) throw new ApiError(409, "RESOURCE_IN_USE", "Dịch vụ đang có lịch hẹn hoạt động.");
       const deactivated = await transaction.service.update({ where: { id }, data: { status: ServiceStatus.inactive } });
       await this.audit(transaction, actorUserId, "service", service.id, "admin_resource_deactivated");
       return deactivated;
@@ -164,7 +164,7 @@ export class CatalogService {
         transaction.service.count({ where: { specialtyId: id, status: ServiceStatus.active } }),
         transaction.doctor.count({ where: { specialtyId: id, status: "active" } }),
       ]);
-      if (dependencies.some(Boolean)) throw new ApiError(409, "RESOURCE_IN_USE", "Active resources still depend on this specialty.");
+      if (dependencies.some(Boolean)) throw new ApiError(409, "RESOURCE_IN_USE", "Chuyên khoa vẫn còn dịch vụ hoặc bác sĩ đang hoạt động.");
       const deactivated = await transaction.specialty.update({ where: { id }, data: { status: ServiceStatus.inactive } });
       await this.audit(transaction, actorUserId, "specialty", specialty.id, "admin_resource_deactivated");
       return deactivated;
@@ -230,8 +230,6 @@ export class CatalogService {
   async deactivateDoctor(id: string, actorUserId: string) {
     return this.prisma.$transaction(async (transaction) => {
       const doctor = await this.require(transaction.doctor.findUnique({ where: { id } }), "doctor");
-      const activeAppointments = await transaction.appointment.count({ where: { doctorId: id, status: { in: activeAppointmentStatuses } } });
-      if (activeAppointments) throw new ApiError(409, "RESOURCE_IN_USE", "Doctor has active appointments.");
       const deactivated = await transaction.doctor.update({ where: { id }, data: { status: "inactive" } });
       await this.audit(transaction, actorUserId, "doctor", doctor.id, "admin_resource_deactivated");
       return deactivated;

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, RotateCcw, XCircle } from "lucide-react";
+import { Pencil, Plus, RotateCcw, XCircle } from "lucide-react";
 import { useState } from "react";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { StatusBadge } from "../../components/StatusBadge";
 import type { ApiListResponse } from "../../lib/api/types";
 import type { Service } from "../../types/models";
@@ -29,8 +30,10 @@ export function AdminServices() {
   const services = serviceResponse?.data ?? [];
   const specialties = specialtyResponse?.data ?? [];
   const [form, setForm] = useState<ServiceFormState>(emptyForm);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [deactivateTarget, setDeactivateTarget] = useState<Service | null>(null);
 
   const queryKey = catalogQueryOptions.allServices().queryKey;
   const refreshServices = () => queryClient.invalidateQueries({ queryKey: ["catalog", "services"] });
@@ -58,6 +61,7 @@ export function AdminServices() {
     onSuccess: (service) => {
       writeServiceToCache(service);
       refreshServices();
+      setDeactivateTarget(null);
     },
     onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Không thể vô hiệu hóa dịch vụ."),
   });
@@ -71,6 +75,14 @@ export function AdminServices() {
   function resetForm() {
     setForm(emptyForm);
     setEditingId(null);
+    setIsFormOpen(false);
+    setError("");
+  }
+
+  function openCreateForm() {
+    setForm(emptyForm);
+    setEditingId(null);
+    setIsFormOpen(true);
     setError("");
   }
 
@@ -93,17 +105,21 @@ export function AdminServices() {
       description: service.description,
     });
     setEditingId(service.id);
+    setIsFormOpen(true);
     setError("");
   }
 
   return (
     <section className="mx-auto max-w-6xl">
       <p className="text-sm font-medium text-primary">Danh mục dịch vụ</p>
-      <h1 className="mt-1 text-2xl font-semibold text-text">Dịch vụ</h1>
-      <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm" onSubmit={submitService}>
+      <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <h1 className="text-2xl font-semibold text-text">Dịch vụ</h1>
+        <button className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-white shadow-panel hover:bg-primary-hover" onClick={openCreateForm} type="button"><Plus aria-hidden="true" size={16} />Thêm dịch vụ</button>
+      </div>
+      {isFormOpen ? <form className="mt-5 rounded-md border border-border bg-surface p-4 shadow-sm transition-all duration-200 ease-out animate-in fade-in slide-in-from-top-1" onSubmit={submitService}>
         <div className="flex flex-col gap-1 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-base font-semibold text-text">{editingId ? "Cập nhật dịch vụ" : "Thêm dịch vụ"}</h2>
-          {editingId ? <button className="inline-flex h-8 items-center gap-2 self-start rounded-md border border-border px-2 text-xs font-semibold text-text hover:bg-surface-muted sm:self-auto" onClick={resetForm} type="button"><RotateCcw aria-hidden="true" size={14} />Hủy chỉnh sửa</button> : null}
+          <button className="inline-flex h-8 items-center gap-2 self-start rounded-md border border-border px-2 text-xs font-semibold text-text hover:bg-surface-muted sm:self-auto" onClick={resetForm} type="button"><RotateCcw aria-hidden="true" size={14} />Hủy</button>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <label className="text-sm font-medium text-text">Tên dịch vụ<input className="mt-1 h-10 w-full rounded-md border border-border px-3" onChange={(event) => updateForm("name", event.target.value)} value={form.name} /></label>
@@ -111,14 +127,22 @@ export function AdminServices() {
           <label className="text-sm font-medium text-text">Thời lượng phút<input className="mt-1 h-10 w-full rounded-md border border-border px-3" min={1} onChange={(event) => updateForm("durationMinutes", Number(event.target.value))} type="number" value={form.durationMinutes} /></label>
           <label className="text-sm font-medium text-text">Giá VND<input className="mt-1 h-10 w-full rounded-md border border-border px-3" min={0} onChange={(event) => updateForm("price", Number(event.target.value))} type="number" value={form.price} /></label>
           <label className="text-sm font-medium text-text md:col-span-2">Mô tả<input className="mt-1 h-10 w-full rounded-md border border-border px-3" onChange={(event) => updateForm("description", event.target.value)} value={form.description} /></label>
-          <button className="h-10 self-end rounded-md bg-primary px-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 md:col-span-3" disabled={saveMutation.isPending} type="submit">{editingId ? "Cập nhật dịch vụ" : "Thêm dịch vụ"}</button>
+          <button className="h-10 self-end rounded-md bg-primary px-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 md:col-span-3" disabled={saveMutation.isPending} type="submit">Lưu dịch vụ</button>
           {error ? <p className="text-sm text-danger md:col-span-3" role="alert">{error}</p> : null}
         </div>
-      </form>
+      </form> : null}
       <div className="mt-6 overflow-x-auto rounded-md border border-border bg-surface">
-        <table aria-label="Dịch vụ" className="hidden min-w-full text-left text-sm md:table"><thead className="bg-surface-muted text-text-muted"><tr><th className="p-3">Dịch vụ</th><th className="p-3">Chuyên khoa</th><th className="p-3">Thời lượng</th><th className="p-3">Trạng thái</th><th className="p-3 text-right">Thao tác</th></tr></thead><tbody>{services.map((service) => <tr className="border-t border-border" key={service.id}><td className="p-3 font-medium text-text">{service.name}</td><td className="p-3">{specialtyName(service.specialtyId)}</td><td className="p-3">{service.durationMinutes} phút</td><td className="p-3"><StatusBadge status={service.status} /></td><td className="p-3"><div className="flex justify-end gap-2"><button aria-label={`Sửa ${service.name}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted" onClick={() => editService(service)} title="Sửa" type="button"><Pencil aria-hidden="true" size={15} /></button><button aria-label={`Vô hiệu hóa ${service.name}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50" disabled={service.status === "inactive" || deactivateMutation.isPending} onClick={() => deactivateMutation.mutate(service.id)} title="Vô hiệu hóa" type="button"><XCircle aria-hidden="true" size={16} /></button></div></td></tr>)}</tbody></table>
-        <ul className="divide-y divide-border md:hidden">{services.map((service) => <li className="p-3" key={service.id}><p className="font-medium text-text">{service.name}</p><p className="mt-1 text-sm text-text-muted">{specialtyName(service.specialtyId)} · {service.durationMinutes} phút</p><div className="mt-2 flex items-center justify-between gap-3"><StatusBadge status={service.status} /><div className="flex gap-2"><button aria-label={`Sửa ${service.name}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text" onClick={() => editService(service)} type="button"><Pencil aria-hidden="true" size={15} /></button><button aria-label={`Vô hiệu hóa ${service.name}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger disabled:opacity-50" disabled={service.status === "inactive" || deactivateMutation.isPending} onClick={() => deactivateMutation.mutate(service.id)} type="button"><XCircle aria-hidden="true" size={16} /></button></div></div></li>)}</ul>
+        <table aria-label="Dịch vụ" className="hidden min-w-full text-left text-sm md:table"><thead className="bg-surface-muted text-text-muted"><tr><th className="p-3">Dịch vụ</th><th className="p-3">Chuyên khoa</th><th className="p-3">Thời lượng</th><th className="p-3">Trạng thái</th><th className="p-3 text-right">Thao tác</th></tr></thead><tbody>{services.map((service) => <tr className="border-t border-border" key={service.id}><td className="p-3 font-medium text-text">{service.name}</td><td className="p-3">{specialtyName(service.specialtyId)}</td><td className="p-3">{service.durationMinutes} phút</td><td className="p-3"><StatusBadge status={service.status} /></td><td className="p-3"><div className="flex justify-end gap-2"><button aria-label={`Sửa ${service.name}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted" onClick={() => editService(service)} title="Sửa" type="button"><Pencil aria-hidden="true" size={15} /></button><button aria-label={`Vô hiệu hóa ${service.name}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50" disabled={service.status === "inactive" || deactivateMutation.isPending} onClick={() => setDeactivateTarget(service)} title="Vô hiệu hóa" type="button"><XCircle aria-hidden="true" size={16} /></button></div></td></tr>)}</tbody></table>
+        <ul className="divide-y divide-border md:hidden">{services.map((service) => <li className="p-3" key={service.id}><p className="font-medium text-text">{service.name}</p><p className="mt-1 text-sm text-text-muted">{specialtyName(service.specialtyId)} · {service.durationMinutes} phút</p><div className="mt-2 flex items-center justify-between gap-3"><StatusBadge status={service.status} /><div className="flex gap-2"><button aria-label={`Sửa ${service.name}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-text" onClick={() => editService(service)} type="button"><Pencil aria-hidden="true" size={15} /></button><button aria-label={`Vô hiệu hóa ${service.name}`} className="inline-flex size-8 items-center justify-center rounded-md border border-border text-danger disabled:opacity-50" disabled={service.status === "inactive" || deactivateMutation.isPending} onClick={() => setDeactivateTarget(service)} type="button"><XCircle aria-hidden="true" size={16} /></button></div></div></li>)}</ul>
       </div>
+      <ConfirmDialog
+        confirmLabel="Vô hiệu hóa"
+        description={`Dịch vụ ${deactivateTarget?.name ?? ""} sẽ không còn xuất hiện cho lịch đặt mới. Dữ liệu lịch sử và kiểm toán vẫn được giữ lại.`}
+        isOpen={Boolean(deactivateTarget)}
+        onCancel={() => setDeactivateTarget(null)}
+        onConfirm={() => deactivateTarget && deactivateMutation.mutate(deactivateTarget.id)}
+        title="Xác nhận vô hiệu hóa dịch vụ"
+      />
     </section>
   );
 }

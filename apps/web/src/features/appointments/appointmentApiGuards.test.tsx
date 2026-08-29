@@ -198,7 +198,7 @@ describe("API appointment workflows", () => {
     const { App } = await import("../../app/App");
     const user = userEvent.setup();
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
     await user.type(screen.getByLabelText("Email"), "patient@example.test");
     await user.type(screen.getByLabelText("Mật khẩu"), "secret");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
@@ -235,7 +235,7 @@ describe("API appointment workflows", () => {
     const { App } = await import("../../app/App");
     const user = userEvent.setup();
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
     await user.type(screen.getByLabelText("Email"), "patient@example.test");
     await user.type(screen.getByLabelText("Mật khẩu"), "secret");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));

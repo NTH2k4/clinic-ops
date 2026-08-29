@@ -276,6 +276,38 @@ describe("Auth and RBAC", () => {
     }
   });
 
+  it("sets an HttpOnly session cookie and accepts it on authenticated routes", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email: "admin@careflow.local", password: "careflow-demo" })
+        .expect(201);
+      const cookies = loginResponse.headers["set-cookie"] as unknown as string[];
+      expect(cookies).toEqual(expect.arrayContaining([expect.stringMatching(/^careflow_session=/)]));
+      expect(cookies.join("; ")).toContain("HttpOnly");
+
+      await request(server)
+        .get("/api/v1/auth/me")
+        .set("Cookie", cookies)
+        .expect(200)
+        .expect((response) => {
+          const body: unknown = response.body;
+          const parsed = loginResponseSchema.omit({ data: true }).extend({
+            data: loginResponseSchema.shape.data.omit({ sessionToken: true }),
+          }).parse(body);
+          expect(parsed.data.currentUser).toMatchObject({
+            email: "admin@careflow.local",
+            role: "admin",
+            status: "active",
+          });
+        });
+    } finally {
+      await app.close();
+    }
+  });
+
   it("rejects unauthenticated current-user requests", async () => {
     const { app, server } = await createApp();
 
@@ -856,6 +888,28 @@ describe("Auth and RBAC", () => {
           const parsed = errorResponseSchema.parse(body);
           expect(parsed.error.code).toBe("UNAUTHENTICATED");
         });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("clears the browser session cookie at logout", async () => {
+    const { app, server } = await createApp();
+
+    try {
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email: "admin@careflow.local", password: "careflow-demo" })
+        .expect(201);
+      const cookies = loginResponse.headers["set-cookie"] as unknown as string[];
+
+      const logoutResponse = await request(server)
+        .post("/api/v1/auth/logout")
+        .set("Cookie", cookies)
+        .expect(201);
+
+      expect((logoutResponse.headers["set-cookie"] as unknown as string[]).join("; ")).toContain("careflow_session=;");
+      await request(server).get("/api/v1/auth/me").set("Cookie", cookies).expect(401);
     } finally {
       await app.close();
     }

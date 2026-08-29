@@ -35,16 +35,29 @@ afterEach(() => {
   vi.resetModules();
 });
 
-async function renderApiApp() {
+async function renderApiApp(options: { initialEntries?: string[] } = {}) {
   vi.resetModules();
   vi.stubEnv("VITE_DATA_SOURCE", "api");
+  if (!vi.isMockFunction(fetch)) {
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>(async (input) => {
+      if (String(input).endsWith("/auth/me")) {
+        return new Response(JSON.stringify({
+          error: { code: "UNAUTHENTICATED", message: "Authentication is required." },
+          meta: { requestId: "req-me" },
+        }), { status: 401 });
+      }
+      return successResponse({});
+    }));
+  }
 
   const [{ App: ApiApp }, { renderWithProviders: renderApiWithProviders }] = await Promise.all([
     import("../../app/App"),
     import("../../test/render"),
   ]);
 
-  return renderApiWithProviders(<ApiApp />);
+  const result = renderApiWithProviders(<ApiApp />, { initialEntries: options.initialEntries ?? ["/login"] });
+  await waitFor(() => expect(screen.queryByText("Đang khôi phục phiên đăng nhập...")).not.toBeInTheDocument());
+  return result;
 }
 
 function successResponse(data: unknown) {
@@ -255,6 +268,39 @@ describe("authentication and role routing", () => {
 });
 
 describe("API authentication", () => {
+  it("restores an API session from the HttpOnly cookie after a reload", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/auth/me")) {
+        return successResponse({
+          currentUser: {
+            id: "user-patient-1",
+            displayName: "API Patient",
+            email: "patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-1" },
+        });
+      }
+      if (url.includes("/services") || url.includes("/doctors") || url.includes("/specialties")) {
+        return new Response(JSON.stringify({ data: [], meta: { requestId: "req-list", page: 1, pageSize: 100, total: 0 } }), { status: 200 });
+      }
+      return successResponse({});
+    });
+    vi.stubGlobal("fetch", fetcher);
+
+    await renderApiApp({ initialEntries: ["/app"] });
+
+    expect(await screen.findByRole("heading", { name: "Trang chính bệnh nhân" })).toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/v1/auth/me",
+      expect.objectContaining({ credentials: "include" }),
+    );
+    const { getApiSessionToken } = await import("../../lib/api/session");
+    expect(getApiSessionToken()).toBeNull();
+  });
+
   it("toggles API login password visibility from inside the password field", async () => {
     const user = userEvent.setup();
 
@@ -353,7 +399,7 @@ describe("API authentication", () => {
     await user.click(screen.getByRole("button", { name: "Tạo tài khoản" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Mật khẩu xác nhận không khớp.");
-    expect(fetcher).not.toHaveBeenCalled();
+    expect(fetcher.mock.calls.filter(([url]) => !String(url).endsWith("/auth/me"))).toHaveLength(0);
   });
 
   it("toggles registration password fields independently without changing entered values", async () => {
@@ -536,8 +582,7 @@ describe("API authentication", () => {
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
 
     expect(await screen.findByText("Trang chính bệnh nhân")).toBeInTheDocument();
-    expect(fetcher).toHaveBeenNthCalledWith(
-      1,
+    expect(fetcher).toHaveBeenCalledWith(
       "/api/v1/auth/login",
       expect.objectContaining({ method: "POST", body: JSON.stringify({ email: "patient@example.test", password: "secret" }) }),
     );
@@ -565,15 +610,14 @@ describe("API authentication", () => {
 
   it("shows the backend login error without exposing a token", async () => {
     const user = userEvent.setup();
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async () =>
       new Response(
         JSON.stringify({
           error: { code: "INVALID_CREDENTIALS", message: "Email or password is incorrect." },
           meta: { requestId: "req-401" },
         }),
         { status: 401 },
-      ),
-    );
+      ));
     vi.stubGlobal("fetch", fetcher);
 
     await renderApiApp();
