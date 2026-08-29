@@ -5,6 +5,11 @@ type UpsertCall = {
   update: Record<string, never>;
 };
 
+type CatalogUpsertCall = {
+  where: { id: string };
+  update: { name?: string };
+};
+
 describe("demo auth repair", () => {
   const originalServeWebApp = process.env.SERVE_WEB_APP;
 
@@ -27,8 +32,8 @@ describe("demo auth repair", () => {
     process.env.SERVE_WEB_APP = "true";
     const prisma = {
       user: { upsert: jest.fn().mockResolvedValue({}) },
-      specialty: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
-      service: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      specialty: { upsert: jest.fn().mockResolvedValue({}) },
+      service: { upsert: jest.fn().mockResolvedValue({}) },
       patient: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
       staff: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
       doctor: { findUnique: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({}) },
@@ -54,8 +59,8 @@ describe("demo auth repair", () => {
     process.env.SERVE_WEB_APP = "true";
     const prisma = {
       user: { upsert: jest.fn().mockResolvedValue({}), deleteMany: jest.fn() },
-      specialty: { createMany: jest.fn().mockResolvedValue({ count: 3 }) },
-      service: { createMany: jest.fn().mockResolvedValue({ count: 8 }) },
+      specialty: { upsert: jest.fn().mockResolvedValue({}) },
+      service: { upsert: jest.fn().mockResolvedValue({}) },
       patient: { createMany: jest.fn().mockResolvedValue({ count: 10 }), deleteMany: jest.fn() },
       staff: { createMany: jest.fn().mockResolvedValue({ count: 5 }) },
       doctor: { findUnique: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({}) },
@@ -69,10 +74,8 @@ describe("demo auth repair", () => {
 
     await service.onApplicationBootstrap();
 
-    expect(prisma.specialty.createMany).toHaveBeenCalledWith(
-      expect.objectContaining({ skipDuplicates: true }),
-    );
-    expect(prisma.service.createMany).toHaveBeenCalledWith(expect.objectContaining({ skipDuplicates: true }));
+    expect(prisma.specialty.upsert).toHaveBeenCalledTimes(3);
+    expect(prisma.service.upsert).toHaveBeenCalledTimes(8);
     expect(prisma.staff.createMany).toHaveBeenCalledWith(expect.objectContaining({ skipDuplicates: true }));
     expect(prisma.patient.createMany).toHaveBeenCalledWith(expect.objectContaining({ skipDuplicates: true }));
     expect(prisma.doctor.create).toHaveBeenCalledTimes(6);
@@ -83,6 +86,35 @@ describe("demo auth repair", () => {
     expect(prisma.notification.createMany).toHaveBeenCalledWith(expect.objectContaining({ skipDuplicates: true }));
     expect(prisma.user.deleteMany).not.toHaveBeenCalled();
     expect(prisma.patient.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("updates hosted demo catalog labels to Vietnamese when demo rows already exist", async () => {
+    process.env.SERVE_WEB_APP = "true";
+    const prisma = {
+      user: { upsert: jest.fn().mockResolvedValue({}) },
+      specialty: { upsert: jest.fn().mockResolvedValue({}) },
+      service: { upsert: jest.fn().mockResolvedValue({}) },
+      patient: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      staff: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      doctor: { findUnique: jest.fn().mockResolvedValue({ services: [] }), update: jest.fn().mockResolvedValue({}) },
+      doctorSchedule: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      appointment: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      appointmentStatusHistory: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      auditEvent: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      notification: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
+    };
+    const service = new DemoAuthRepairService(prisma as never);
+
+    await service.onApplicationBootstrap();
+
+    const specialtyCalls = prisma.specialty.upsert.mock.calls as Array<[CatalogUpsertCall]>;
+    const serviceCalls = prisma.service.upsert.mock.calls as Array<[CatalogUpsertCall]>;
+    const generalSpecialty = specialtyCalls.find(([call]) => call.where.id === "specialty-general")?.[0];
+    const generalService = serviceCalls.find(([call]) => call.where.id === "service-general")?.[0];
+    const cardiacService = serviceCalls.find(([call]) => call.where.id === "service-cardiac")?.[0];
+    expect(generalSpecialty?.update.name).toBe("Nội tổng quát");
+    expect(generalService?.update.name).toBe("Khám tổng quát");
+    expect(cardiacService?.update.name).toBe("Khám tim mạch");
   });
 
   it("does not touch users outside hosted demo mode", async () => {

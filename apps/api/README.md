@@ -102,9 +102,9 @@ Manual QA accounts are seeded with actor-name passwords for faster role testing:
 | Nurse | `nurse@test.com` | `nurse` |
 | Patient | `patient@test.com` | `patient` |
 
-The full seed now creates at least 10 active patients, at least 10 appointments, at least 10 notifications and at least 10 active schedules for the manual QA doctor account. Hosted demo startup repair creates missing manual QA accounts and baseline records only; it does not reset existing user credentials, roles or statuses.
+The full seed now creates at least 10 active patients, at least 10 appointments, at least 10 notifications and at least 10 active schedules for the manual QA doctor account. Hosted demo startup repair creates missing manual QA accounts and baseline records, refreshes known demo catalog labels, and does not reset existing user credentials, roles or statuses.
 
-Seed data may keep English display names and labels because it is synthetic developer/test data, not final user-facing clinic content.
+Patient-facing seeded services and specialties use Vietnamese labels. Other synthetic developer/test records may keep English display names or operational notes when they are not final clinic content.
 
 Login example:
 

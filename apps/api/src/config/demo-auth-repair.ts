@@ -104,20 +104,20 @@ const demoUsers = [
 ];
 
 const demoSpecialties = [
-  { id: "specialty-general", name: "General Medicine", description: "Primary care and general consultations." },
-  { id: "specialty-cardiology", name: "Cardiology", description: "Heart and cardiovascular care." },
-  { id: "specialty-pediatrics", name: "Pediatrics", description: "Medical care for children." },
+  { id: "specialty-general", name: "Nội tổng quát", description: "Khám và tư vấn sức khỏe tổng quát." },
+  { id: "specialty-cardiology", name: "Tim mạch", description: "Khám, tư vấn và theo dõi tim mạch." },
+  { id: "specialty-pediatrics", name: "Nhi khoa", description: "Chăm sóc sức khỏe cho trẻ em." },
 ];
 
 const demoServices = [
-  { id: "service-general", name: "General Consultation", specialtyId: "specialty-general", durationMinutes: 30, price: 200000 },
-  { id: "service-follow-up", name: "Follow-up Consultation", specialtyId: "specialty-general", durationMinutes: 20, price: 150000 },
-  { id: "service-health-check", name: "Health Check", specialtyId: "specialty-general", durationMinutes: 45, price: 350000 },
-  { id: "service-cardiac", name: "Cardiac Consultation", specialtyId: "specialty-cardiology", durationMinutes: 40, price: 500000 },
-  { id: "service-ecg", name: "ECG Assessment", specialtyId: "specialty-cardiology", durationMinutes: 30, price: 300000 },
-  { id: "service-heart-follow-up", name: "Heart Follow-up", specialtyId: "specialty-cardiology", durationMinutes: 30, price: 350000 },
-  { id: "service-pediatric", name: "Pediatric Consultation", specialtyId: "specialty-pediatrics", durationMinutes: 30, price: 250000 },
-  { id: "service-vaccination", name: "Vaccination Visit", specialtyId: "specialty-pediatrics", durationMinutes: 20, price: 180000 },
+  { id: "service-general", name: "Khám tổng quát", specialtyId: "specialty-general", durationMinutes: 30, price: 200000 },
+  { id: "service-follow-up", name: "Tái khám", specialtyId: "specialty-general", durationMinutes: 20, price: 150000 },
+  { id: "service-health-check", name: "Khám sức khỏe định kỳ", specialtyId: "specialty-general", durationMinutes: 45, price: 350000 },
+  { id: "service-cardiac", name: "Khám tim mạch", specialtyId: "specialty-cardiology", durationMinutes: 40, price: 500000 },
+  { id: "service-ecg", name: "Điện tâm đồ", specialtyId: "specialty-cardiology", durationMinutes: 30, price: 300000 },
+  { id: "service-heart-follow-up", name: "Tái khám tim mạch", specialtyId: "specialty-cardiology", durationMinutes: 30, price: 350000 },
+  { id: "service-pediatric", name: "Khám nhi", specialtyId: "specialty-pediatrics", durationMinutes: 30, price: 250000 },
+  { id: "service-vaccination", name: "Tư vấn tiêm chủng", specialtyId: "specialty-pediatrics", durationMinutes: 20, price: 180000 },
 ];
 
 const demoDoctors = [
@@ -173,26 +173,43 @@ export async function ensureDemoAuthUsers(db: PrismaClient) {
 }
 
 export async function ensureDemoBaselineData(db: PrismaClient) {
-  await db.specialty.createMany({
-    data: demoSpecialties.map((specialty) => ({
-      ...specialty,
-      status: ServiceStatus.active,
-      createdAt: seedTimestamp,
-      updatedAt: seedTimestamp,
-    })),
-    skipDuplicates: true,
-  });
+  for (const specialty of demoSpecialties) {
+    await db.specialty.upsert({
+      where: { id: specialty.id },
+      update: {
+        name: specialty.name,
+        description: specialty.description,
+        status: ServiceStatus.active,
+      },
+      create: {
+        ...specialty,
+        status: ServiceStatus.active,
+        createdAt: seedTimestamp,
+        updatedAt: seedTimestamp,
+      },
+    });
+  }
 
-  await db.service.createMany({
-    data: demoServices.map((service) => ({
-      ...service,
-      currency: "VND",
-      status: ServiceStatus.active,
-      createdAt: seedTimestamp,
-      updatedAt: seedTimestamp,
-    })),
-    skipDuplicates: true,
-  });
+  for (const service of demoServices) {
+    await db.service.upsert({
+      where: { id: service.id },
+      update: {
+        name: service.name,
+        specialtyId: service.specialtyId,
+        durationMinutes: service.durationMinutes,
+        price: service.price,
+        currency: "VND",
+        status: ServiceStatus.active,
+      },
+      create: {
+        ...service,
+        currency: "VND",
+        status: ServiceStatus.active,
+        createdAt: seedTimestamp,
+        updatedAt: seedTimestamp,
+      },
+    });
+  }
 
   await db.patient.createMany({
     data: demoPatients.map((patient) => ({

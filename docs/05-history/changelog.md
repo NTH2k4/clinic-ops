@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-29
+
+- Việt hóa backend seeded services/specialties cho API mode và hosted demo repair: patient-facing catalog dùng `Khám tổng quát`, `Tái khám`, `Khám tim mạch`, `Điện tâm đồ`, `Khám nhi`, `Tư vấn tiêm chủng` thay vì các label tiếng Anh cũ. Hosted startup repair dùng upsert cho known demo catalog rows để production records đã tồn tại được cập nhật sau deploy.
+- Bổ sung regression coverage cho API catalog E2E và production smoke script để bắt trường hợp service catalog vẫn trả `General Consultation` cho patient/admin smoke.
+
 ## 2026-08-28
 
 - Chuẩn hóa README và documentation map sau nghiệm thu v1 theo hướng production-first/source-of-truth: thêm Render URL, demo account, local setup, verification gates, mock/API runtime modes và ghi rõ planning docs cũ được giữ làm implementation records.

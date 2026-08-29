@@ -113,6 +113,9 @@ describe("Catalog resources", () => {
           const parsed = listSchema.parse(response.body);
           expect(parsed.data.length).toBeGreaterThan(0);
           expect(parsed.data.every((service) => service.status === "active")).toBe(true);
+          const serviceNames = parsed.data.map((service) => service.name);
+          expect(serviceNames).toEqual(expect.arrayContaining(["Khám tổng quát", "Tái khám", "Khám tim mạch"]));
+          expect(serviceNames).not.toEqual(expect.arrayContaining(["General Consultation", "Follow-up Consultation", "Cardiac Consultation"]));
         });
     } finally {
       await app.close();

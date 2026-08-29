@@ -68,6 +68,28 @@ async function verifyList(fetchImpl, baseUrl, path, token) {
   return { path, status: result.status, total };
 }
 
+async function verifyServiceCatalog(fetchImpl, baseUrl, token) {
+  const path = "/api/v1/services?pageSize=25";
+  const result = await requestJson(fetchImpl, baseUrl, path, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  const total = totalOf(result.body);
+  const serviceNames = Array.isArray(result.body?.data)
+    ? result.body.data.map((service) => service?.name).filter((name) => typeof name === "string")
+    : [];
+  assertSmoke(result.status === 200 && total >= 1, "List smoke failed.", {
+    path,
+    status: result.status,
+    total,
+  });
+  assertSmoke(
+    serviceNames.includes("Khám tổng quát") && !serviceNames.includes("General Consultation"),
+    "Service catalog localization smoke failed.",
+    { path, serviceNames, status: result.status },
+  );
+  return { path, serviceNames, status: result.status, total };
+}
+
 export async function runProductionSmoke({ env = process.env, fetchImpl = globalThis.fetch } = {}) {
   assertSmoke(typeof fetchImpl === "function", "fetch is not available in this Node.js runtime.");
 
@@ -103,7 +125,7 @@ export async function runProductionSmoke({ env = process.env, fetchImpl = global
     });
 
     const checks = [];
-    checks.push(await verifyList(fetchImpl, baseUrl, "/api/v1/services?pageSize=1", token));
+    checks.push(await verifyServiceCatalog(fetchImpl, baseUrl, token));
     checks.push(await verifyList(fetchImpl, baseUrl, "/api/v1/doctors?pageSize=1", token));
     checks.push(await verifyList(fetchImpl, baseUrl, "/api/v1/specialties?pageSize=1", token));
     checks.push(

@@ -1,5 +1,12 @@
 # Ghi Chú Phát Hành
 
+## 2026-08-29 Vietnamese Catalog Labels
+
+- Patient-facing services and specialties in backend seed data now use Vietnamese labels in API mode.
+- Hosted demo startup repair refreshes known demo catalog rows with Vietnamese labels, so existing Render/Neon demo records can be corrected after deploy instead of only new databases receiving the change.
+- Production smoke now checks that the services endpoint includes `Khám tổng quát` and rejects the old `General Consultation` label.
+- User credentials, account statuses and patient records are not reset by this catalog label repair.
+
 ## 2026-08-28 Documentation Source-Of-Truth Refresh
 
 - Chuẩn hóa README gốc theo hướng production-first: Render URL, demo admin account, local development, architecture, verification gates và docs index.
@@ -17,7 +24,7 @@
 
 - Bổ sung nhóm tài khoản test thủ công dễ nhớ cho từng tác nhân: `admin@test.com` / `admin`, `doctor@test.com` / `doctor`, `receptionist@test.com` / `receptionist`, `nurse@test.com` / `nurse`, `patient@test.com` / `patient`.
 - Mở rộng seed data cho manual QA: tối thiểu 10 bệnh nhân, 10 lịch hẹn, 10 thông báo và 10 lịch làm việc cho bác sĩ test. Hosted startup repair chỉ tạo dữ liệu còn thiếu và không reset password/role/status của user đã tồn tại.
-- Chốt quy ước: demo data có thể giữ tiếng Anh vì đây là dữ liệu tổng hợp phục vụ test/dev, không phải nội dung phòng khám thật hướng người dùng cuối.
+- Chốt quy ước: dữ liệu demo/dev nội bộ có thể giữ tiếng Anh khi không phải nội dung phòng khám thật hướng người dùng cuối; patient-facing catalog cần dùng tiếng Việt.
 - Việt hóa audit log hiển thị trên UI: action/entity như `appointment_updated` vẫn là raw API value, nhưng người dùng thấy nhãn như `Cập nhật lịch hẹn` và `Lịch hẹn`.
 - Việt hóa thêm UI shell và các luồng gần auth cho điều hướng, nhãn vai trò, quản trị tài khoản, lịch làm việc, metric bác sĩ, đặt lịch của nhân sự và thao tác mở đối tượng từ thông báo.
 - Thêm xác nhận đăng xuất trong TopBar: bấm `Đăng xuất` mở `Xác nhận đăng xuất`; session chỉ bị xóa sau khi xác nhận `Đăng xuất khỏi hệ thống`.

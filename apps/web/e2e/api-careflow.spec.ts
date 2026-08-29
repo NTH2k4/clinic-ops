@@ -94,7 +94,7 @@ test("admin can lock and unlock a registered patient account", async ({ page, re
 test("patient can request an appointment and sees a duplicate-slot conflict", async ({ page }) => {
   await signIn(page, "patient@careflow.local");
   await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Đặt lịch", exact: true }).click();
-  await page.getByRole("button", { name: /General Consultation/ }).click();
+  await page.getByRole("button", { name: /Khám tổng quát/ }).click();
   await page.getByLabel("Chọn bác sĩ cụ thể").check();
   await page.getByLabel("Bác sĩ", { exact: true }).selectOption("doctor-4");
   await page.getByRole("button", { name: "09:00", exact: true }).click();
@@ -104,7 +104,7 @@ test("patient can request an appointment and sees a duplicate-slot conflict", as
   await expect(page.getByRole("heading", { name: "Yêu cầu đã được gửi" })).toBeVisible();
 
   await page.getByRole("link", { name: "Đặt lịch khác" }).click();
-  await page.getByRole("link", { name: "Đặt lịch General Consultation" }).click();
+  await page.getByRole("link", { name: "Đặt lịch Khám tổng quát" }).click();
   await page.getByLabel("Chọn bác sĩ cụ thể").check();
   await page.getByLabel("Bác sĩ", { exact: true }).selectOption("doctor-4");
   await page.getByRole("button", { name: "09:00", exact: true }).click();
