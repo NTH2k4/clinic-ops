@@ -97,6 +97,6 @@
 
 - [x] Document same-day booking cutoff and account page route.
 - [x] Document shimmer usage in the frontend design system.
-- [ ] Run web unit, API E2E, typecheck, lint, build and `git diff --check`.
-- [ ] Commit and push to `main`.
-- [ ] Verify GitHub Actions, Render health commit and production smoke.
+- [x] Run web unit, API E2E, typecheck, lint, build and `git diff --check`.
+- [x] Commit and push to `main`.
+- [x] Verify GitHub Actions, Render health commit and production smoke.
