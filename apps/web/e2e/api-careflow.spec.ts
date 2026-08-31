@@ -3,7 +3,7 @@ import { expect, type APIRequestContext, type Page, test } from "@playwright/tes
 const password = "careflow-demo";
 
 test.beforeEach(async ({ page }) => {
-  await page.clock.setFixedTime(new Date("2026-08-25T02:45:00.000Z"));
+  await page.clock.setFixedTime(new Date("2026-08-25T00:59:00.000Z"));
 });
 
 type PatientCredentials = {
@@ -62,7 +62,7 @@ test("password change clears the session and requires login with the new passwor
   const newPassword = `${patient.password}-new`;
 
   await registerPatient(page, patient);
-  await page.getByRole("button", { name: "Bảo mật tài khoản" }).click();
+  await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Tài khoản của tôi", exact: true }).click();
   await page.getByLabel("Mật khẩu hiện tại", { exact: true }).fill(patient.password);
   await page.getByLabel("Mật khẩu mới", { exact: true }).fill(newPassword);
   await page.getByRole("button", { name: "Đổi mật khẩu" }).click();
@@ -129,7 +129,7 @@ test("receptionist can create an appointment and check in a confirmed appointmen
   await expect(doctorSelect).toBeEnabled();
   await expect.poll(async () => doctorSelect.locator("option").allTextContents()).toContain("Dr. Hoa Le");
   await doctorSelect.selectOption({ label: "Dr. Hoa Le" });
-  await page.getByLabel("Giờ khám").selectOption("10:00");
+  await page.getByLabel("Giờ khám").selectOption("10:30");
   await page.getByRole("button", { name: "Tạo lịch hẹn" }).click();
   await expect(page.getByLabel("Xem lại trước khi tạo")).toContainText("Đã xác nhận");
 
@@ -170,6 +170,8 @@ test("schedule management block disables the matching operations booking slot wi
   await page.getByLabel("Tìm patient").fill("Demo Patient 3");
   await page.getByRole("button", { name: /Demo Patient 3/ }).click();
   await page.getByLabel("Dịch vụ").selectOption("service-general");
+  const dateGroup = page.getByRole("group", { name: /Ngày khám/ }).first();
+  await dateGroup.getByRole("spinbutton", { name: /^Ngày,/ }).fill("26");
   const schedulingGroup = page.getByRole("group", { name: "2. Chọn dịch vụ và bác sĩ" });
   const doctorSelect = schedulingGroup.getByRole("combobox").nth(1);
   await expect(doctorSelect).toBeEnabled();

@@ -1,6 +1,7 @@
 import { defineConfig } from "playwright/test";
 
 const apiMode = process.env.PLAYWRIGHT_API_MODE === "true";
+const apiModeSystemNow = "2026-08-25T00:59:00.000Z";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -13,7 +14,7 @@ export default defineConfig({
   webServer: apiMode
     ? [
       {
-        command: "npm run prisma:generate && npx prisma migrate deploy && npm run prisma:seed && npm run dev -- --port 3000",
+        command: `npm run prisma:generate && npx prisma migrate deploy && npm run prisma:seed && CAREFLOW_SYSTEM_NOW=${apiModeSystemNow} npm run dev -- --port 3000`,
         cwd: "../api",
         url: "http://127.0.0.1:3000/api/v1/health",
         reuseExistingServer: false,
