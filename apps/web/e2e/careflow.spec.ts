@@ -9,7 +9,7 @@ test("patient can request appointment on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/login");
 
-  await page.getByRole("button", { name: /Bệnh nhân/i }).click();
+  await page.getByRole("button", { name: /Người dùng/i }).click();
   await page.getByRole("link", { name: "Đặt lịch" }).click();
   await page.getByRole("button", { name: /Khám tổng quát/i }).click();
   await page.getByLabel("Bất kỳ bác sĩ nào").check();

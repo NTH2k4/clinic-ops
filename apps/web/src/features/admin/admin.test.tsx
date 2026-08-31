@@ -200,7 +200,7 @@ describe("admin workspace", () => {
     await renderApiAdminAccounts(fetcher);
 
     expect(await screen.findByText("minh.anh@example.test")).toBeInTheDocument();
-    expect(screen.getByRole("table", { name: "Tài khoản" })).toHaveTextContent("Bệnh nhân");
+    expect(screen.getByRole("table", { name: "Tài khoản" })).toHaveTextContent("Người dùng");
     expect(screen.getByRole("table", { name: "Tài khoản" })).toHaveTextContent("Đã khóa");
   });
 

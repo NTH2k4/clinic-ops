@@ -22,7 +22,7 @@ afterEach(() => {
 async function signInAsPatient() {
   const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
   renderWithProviders(<App />);
-  await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
+  await user.click(screen.getByRole("button", { name: /Người dùng/i }));
   return user;
 }
 
@@ -30,7 +30,7 @@ describe("patient portal", () => {
   it("shows the patient home with a booking quick action", async () => {
     const user = await signInAsPatient();
 
-    expect(screen.getByRole("heading", { name: "Trang chính bệnh nhân" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Trang chính người dùng" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     expect(screen.getByRole("heading", { name: "Đặt lịch" })).toBeInTheDocument();
   });

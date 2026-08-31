@@ -521,7 +521,8 @@ UI copy nên dùng tiếng Việt ngắn gọn với domain term ổn định:
 - Ưu tiên tiếng Việt cho navigation, heading, button, form label, empty/loading/error state và notification action.
 - Chỉ giữ tiếng Anh cho mã kỹ thuật, API enum hoặc dữ liệu seed/backend khi đó là record nghiệp vụ/test data đang được hiển thị nguyên văn. Patient-facing catalog như dịch vụ và chuyên khoa phải dùng tiếng Việt; dữ liệu seed/dev khác có thể dùng tiếng Anh khi không phải nội dung phòng khám thật.
 - Với user-facing audit table/filter, ưu tiên map action/entity id kỹ thuật sang nhãn tiếng Việt; raw id vẫn được giữ trong API payload, test fixture, log và docs kỹ thuật.
-- Dùng `lịch hẹn`, `đặt lịch`, `check-in`, `hàng đợi`, `nhật ký kiểm toán`, `dịch vụ`, `bác sĩ`, `bệnh nhân`, `chuyên khoa`, `trạng thái` cho label hướng người dùng.
+- Dùng `người dùng` khi hiển thị vai trò/account-facing `patient`; dùng `bệnh nhân` khi nói về hồ sơ hoặc nghiệp vụ khám tại quầy/phòng khám.
+- Dùng `lịch hẹn`, `đặt lịch`, `check-in`, `hàng đợi`, `nhật ký kiểm toán`, `dịch vụ`, `bác sĩ`, `chuyên khoa`, `trạng thái` cho label hướng người dùng.
 - Không gợi ý rằng MVP có medical record thật, prescription, payment, insurance hoặc telemedicine.
 
 ## Checklist Kiểm Tra

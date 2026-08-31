@@ -11,7 +11,7 @@ const roleLabels = {
   admin: "Quản trị",
   doctor: "Bác sĩ",
   nurse: "Điều dưỡng",
-  patient: "Bệnh nhân",
+  patient: "Người dùng",
   receptionist: "Lễ tân",
 } as const;
 

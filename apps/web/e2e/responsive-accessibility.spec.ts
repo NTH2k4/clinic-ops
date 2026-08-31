@@ -50,9 +50,9 @@ async function clickVisibleLink(page: Page, name: string) {
 
 const viewportCases: ViewportCase[] = [
   {
-    expectedHeading: "Trang chính bệnh nhân",
+    expectedHeading: "Trang chính người dùng",
     links: ["Dịch vụ", "Lịch của tôi"],
-    roleButton: /Bệnh nhân/i,
+    roleButton: /Người dùng/i,
     size: { width: 360, height: 800 },
   },
   {
@@ -92,7 +92,7 @@ for (const viewportCase of viewportCases) {
 
 test("keyboard users can operate the role switcher and notification panel", async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 900 });
-  await signIn(page, /Bệnh nhân/i);
+  await signIn(page, /Người dùng/i);
 
   const roleSwitcher = page.getByLabel("Chuyển vai trò");
   await roleSwitcher.focus();

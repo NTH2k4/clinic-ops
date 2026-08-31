@@ -28,7 +28,7 @@ Tài khoản demo gốc:
 
 | Tác nhân | Email | Mật khẩu |
 | --- | --- | --- |
-| Bệnh nhân | `patient@careflow.local` | `careflow-demo` |
+| Người dùng | `patient@careflow.local` | `careflow-demo` |
 | Bác sĩ | `minh.nguyen@careflow.local` | `careflow-demo` |
 | Lễ tân | `reception@careflow.local` | `careflow-demo` |
 | Điều dưỡng | `nurse@careflow.local` | `careflow-demo` |
@@ -42,7 +42,7 @@ Tài khoản test thủ công dễ nhớ:
 | Bác sĩ | `doctor@test.com` | `doctor` |
 | Lễ tân | `receptionist@test.com` | `receptionist` |
 | Điều dưỡng | `nurse@test.com` | `nurse` |
-| Bệnh nhân | `patient@test.com` | `patient` |
+| Người dùng | `patient@test.com` | `patient` |
 
 Dữ liệu seed phục vụ test có thể giữ tiếng Anh để developer dễ đọc và truy vết. Đây là dữ liệu tổng hợp, không phải nội dung phòng khám thật hướng tới người dùng cuối.
 

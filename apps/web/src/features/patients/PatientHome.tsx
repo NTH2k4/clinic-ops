@@ -37,8 +37,8 @@ export function PatientHome() {
       <div className="rounded-lg border border-border bg-surface p-5 shadow-panel md:p-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <p className="text-sm font-medium text-primary">CareFlow cho bệnh nhân</p>
-          <h1 className="mt-1 text-2xl font-semibold text-text">Trang chính bệnh nhân</h1>
+          <p className="text-sm font-medium text-primary">CareFlow cho người dùng</p>
+          <h1 className="mt-1 text-2xl font-semibold text-text">Trang chính người dùng</h1>
           <p className="mt-2 text-sm text-text-muted">Theo dõi lịch hẹn và chuẩn bị cho lần khám tiếp theo.</p>
         </div>
         <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-white shadow-panel transition-colors hover:bg-primary-hover" onClick={() => navigate("/app/patient/book")} type="button">

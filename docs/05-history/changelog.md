@@ -2,6 +2,7 @@
 
 ## 2026-08-31
 
+- Đổi nhãn hiển thị vai trò `patient` trong UI từ `Bệnh nhân` sang `Người dùng` ở login, role switcher, top bar, account page, admin account role label và patient home; các nhãn hồ sơ/nghiệp vụ khám vẫn dùng `bệnh nhân`.
 - Cho phép đặt lịch trong ngày nếu slot còn cách giờ hiện tại ít nhất 30 phút, đồng thời chặn slot đã qua/quá sát ở cả frontend và backend; availability explanation bổ sung reason `too_soon`.
 - Thêm trang dùng chung `Tài khoản của tôi` cho mọi vai trò, gộp đổi mật khẩu vào cùng màn account; chuyển nút đăng xuất xuống cuối sidebar/mobile nav và giữ xác nhận bằng modal giữa màn hình.
 - Bổ sung skeleton/shimmer loading state cho các màn dữ liệu chính: dịch vụ/đặt lịch patient, lịch của tôi, hàng đợi operations, calendar operations và khung giờ khả dụng API mode.

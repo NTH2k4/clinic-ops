@@ -5,7 +5,7 @@ import type { UserRole } from "../types/models";
 import { useAuth } from "../features/auth/AuthProvider";
 
 const roleOptions: Array<{ label: string; value: UserRole }> = [
-  { label: "Bệnh nhân", value: "patient" },
+  { label: "Người dùng", value: "patient" },
   { label: "Bác sĩ", value: "doctor" },
   { label: "Lễ tân", value: "receptionist" },
   { label: "Điều dưỡng", value: "nurse" },

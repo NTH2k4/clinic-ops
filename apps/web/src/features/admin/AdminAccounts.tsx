@@ -13,7 +13,7 @@ const roleLabels: Record<UserRole, string> = {
   admin: "Quản trị",
   doctor: "Bác sĩ",
   nurse: "Điều dưỡng",
-  patient: "Bệnh nhân",
+  patient: "Người dùng",
   receptionist: "Lễ tân",
 };
 const statusLabels: Record<ApiAccountStatus, string> = {
