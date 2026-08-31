@@ -1,6 +1,8 @@
-import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../features/auth/AuthProvider";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { navigationForRole } from "./navigation";
 
 type SidebarNavProps = {
@@ -64,6 +66,9 @@ export function SidebarNav({ collapsed, onCollapsedChange }: SidebarNavProps) {
           );
         })}
       </nav>
+      <div className="mt-auto border-t border-border p-3">
+        <SignOutButton collapsed={collapsed} />
+      </div>
     </aside>
   );
 }
@@ -94,7 +99,48 @@ export function MobileNav() {
             </NavLink>
           );
         })}
+        <SignOutButton mobile />
       </div>
     </nav>
+  );
+}
+
+function SignOutButton({ collapsed = false, mobile = false }: { collapsed?: boolean; mobile?: boolean }) {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+
+  async function confirmSignOut() {
+    await signOut();
+    setConfirmationOpen(false);
+    navigate("/login", { replace: true });
+  }
+
+  const className = mobile
+    ? "flex h-11 shrink-0 snap-start items-center gap-2 rounded-md px-3 text-sm font-medium text-danger transition-colors hover:bg-red-50"
+    : `flex h-10 w-full items-center rounded-md text-sm font-medium text-danger transition-colors hover:bg-red-50 ${collapsed ? "justify-center px-2" : "gap-3 px-3"}`;
+
+  return (
+    <>
+      <button
+        aria-label={collapsed && !mobile ? "Đăng xuất" : undefined}
+        className={className}
+        onClick={() => setConfirmationOpen(true)}
+        title={collapsed && !mobile ? "Đăng xuất" : undefined}
+        type="button"
+      >
+        <LogOut aria-hidden="true" size={18} />
+        <span className={collapsed && !mobile ? "sr-only" : ""}>Đăng xuất</span>
+      </button>
+      <ConfirmDialog
+        cancelLabel="Ở lại"
+        confirmLabel="Đăng xuất khỏi hệ thống"
+        description="Bạn có chắc chắn muốn đăng xuất khỏi CareFlow không?"
+        isOpen={confirmationOpen}
+        onCancel={() => setConfirmationOpen(false)}
+        onConfirm={() => void confirmSignOut()}
+        title="Xác nhận đăng xuất"
+      />
+    </>
   );
 }

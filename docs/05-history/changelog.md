@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-31
+
+- Cho phép đặt lịch trong ngày nếu slot còn cách giờ hiện tại ít nhất 30 phút, đồng thời chặn slot đã qua/quá sát ở cả frontend và backend; availability explanation bổ sung reason `too_soon`.
+- Thêm trang dùng chung `Tài khoản của tôi` cho mọi vai trò, gộp đổi mật khẩu vào cùng màn account; chuyển nút đăng xuất xuống cuối sidebar/mobile nav và giữ xác nhận bằng modal giữa màn hình.
+- Bổ sung skeleton/shimmer loading state cho các màn dữ liệu chính: dịch vụ/đặt lịch patient, lịch của tôi, hàng đợi operations, calendar operations và khung giờ khả dụng API mode.
+
 ## 2026-08-29
 
 - Chốt quy tắc lịch làm việc bác sĩ cho v1 theo tuần: `working` schedule active là mặc định có đi làm, recurrence hàng tháng để sau; Operations Calendar hiển thị danh sách bác sĩ làm việc trong ngày và admin/backend chặn tạo lịch nghỉ phép dưới 7 ngày trước ngày làm việc.

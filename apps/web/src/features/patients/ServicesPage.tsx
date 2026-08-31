@@ -2,6 +2,7 @@ import { ArrowRight, Clock3, Stethoscope } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ShimmerGrid } from "../../components/LoadingState";
 import { catalogQueryOptions } from "../catalog/catalogService";
 
 function formatPrice(value: number) {
@@ -10,11 +11,12 @@ function formatPrice(value: number) {
 
 export function ServicesPage() {
   const [specialtyId, setSpecialtyId] = useState<string | undefined>();
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties({ status: "active" }));
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices({ status: "active", specialtyId }));
-  const { data: allServiceResponse } = useQuery(catalogQueryOptions.allServices({ status: "active" }));
+  const { data: specialtyResponse, isLoading: isSpecialtyLoading } = useQuery(catalogQueryOptions.allSpecialties({ status: "active" }));
+  const { data: serviceResponse, isLoading: isServiceLoading } = useQuery(catalogQueryOptions.allServices({ status: "active", specialtyId }));
+  const { data: allServiceResponse, isLoading: isAllServiceLoading } = useQuery(catalogQueryOptions.allServices({ status: "active" }));
   const specialties = specialtyResponse?.data ?? [];
   const services = serviceResponse?.data ?? [];
+  const isLoading = isSpecialtyLoading || isServiceLoading || isAllServiceLoading;
   const summary = specialtyId
     ? `${serviceResponse?.meta.total ?? 0} dịch vụ phù hợp`
     : `${allServiceResponse?.meta.total ?? 0} dịch vụ đang mở từ ${specialtyResponse?.meta.total ?? 0} chuyên khoa`;
@@ -31,7 +33,7 @@ export function ServicesPage() {
         <button aria-pressed={!specialtyId} className="h-10 rounded-md border border-border px-3 text-sm font-medium transition-colors hover:bg-surface-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-primary" onClick={() => setSpecialtyId(undefined)} type="button">Tất cả</button>
         {specialties.map((specialty) => <button aria-pressed={specialtyId === specialty.id} className="h-10 rounded-md border border-border px-3 text-sm font-medium transition-colors hover:bg-surface-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-primary" key={specialty.id} onClick={() => setSpecialtyId(specialty.id)} type="button">{specialty.name}</button>)}
       </div>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {isLoading ? <div className="mt-6"><ShimmerGrid label="Đang tải dịch vụ" /></div> : <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {services.map((service) => {
           const specialty = specialties.find((candidate) => candidate.id === service.specialtyId);
           return <article aria-label={service.name} className="flex min-w-0 flex-col rounded-lg border border-border bg-surface p-5 shadow-panel transition-shadow hover:shadow-lg" key={service.id}>
@@ -41,7 +43,7 @@ export function ServicesPage() {
             <Link aria-label={`Đặt lịch ${service.name}`} className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-primary px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10" to={`/app/patient/book?serviceId=${service.id}`}>Đặt lịch<ArrowRight aria-hidden="true" size={16} /></Link>
           </article>;
         })}
-      </div>
+      </div>}
     </section>
   );
 }

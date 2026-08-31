@@ -49,7 +49,7 @@ const explainedAvailabilitySchema = z.object({
     startAt: z.string(),
     endAt: z.string(),
     availabilityStatus: z.enum(["available", "unavailable"]),
-    reasonCode: z.enum(["available", "blocked", "leave", "appointment_conflict"]),
+    reasonCode: z.enum(["available", "blocked", "leave", "appointment_conflict", "too_soon"]),
     reasonLabel: z.string(),
   })),
   meta: listMetaSchema,
@@ -79,6 +79,7 @@ describe("Schedule and availability reads", () => {
   const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
 
   beforeEach(async () => {
+    process.env.CAREFLOW_SYSTEM_NOW = "2026-08-23T00:00:00.000Z";
     await execFileAsync(process.execPath, ["node_modules/tsx/dist/cli.mjs", "prisma/seed.ts"], {
       cwd: process.cwd(),
       env: { ...process.env, DATABASE_URL: databaseUrl },
@@ -86,6 +87,7 @@ describe("Schedule and availability reads", () => {
   });
 
   afterAll(async () => {
+    delete process.env.CAREFLOW_SYSTEM_NOW;
     await prisma.$disconnect();
   });
 

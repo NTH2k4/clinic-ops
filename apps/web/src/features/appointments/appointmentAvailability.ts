@@ -1,4 +1,5 @@
 import { mockStore } from "../../mocks/mockStore";
+import { isAtLeastMinutesFromClinicNow } from "../../lib/dateTime";
 import { hasDoctorConflict } from "./appointmentRules";
 
 function timeToMinutes(time: string): number {
@@ -20,6 +21,8 @@ function appointmentEnd(startAt: string, durationMinutes: number): string {
 }
 
 export function isDoctorAvailableForSlot(doctorId: string, date: string, time: string, durationMinutes: number): boolean {
+  if (!isAtLeastMinutesFromClinicNow(date, time, 30)) return false;
+
   const startMinutes = timeToMinutes(time);
   const endMinutes = startMinutes + durationMinutes;
   const schedules = mockStore.doctorSchedules.filter(

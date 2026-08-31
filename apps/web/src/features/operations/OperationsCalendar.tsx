@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { EmptyState } from "../../components/EmptyState";
+import { ShimmerList } from "../../components/LoadingState";
 import { StatusBadge } from "../../components/StatusBadge";
 import { formatDateInputValue, formatTime, todayInClinicTimeZone, toDateInputValue } from "../../lib/dateTime";
 import type { Appointment, AppointmentStatus, DoctorSchedule, UserRole } from "../../types/models";
@@ -67,10 +68,10 @@ export function OperationsCalendar() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const actorUserId = user?.id ?? "user-receptionist-1";
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors({ specialtyId: specialtyId || undefined }));
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties());
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
-  const { data: scheduleResponse } = useQuery(schedulingQueryOptions.schedules({
+  const { data: doctorResponse, isLoading: isDoctorLoading } = useQuery(catalogQueryOptions.allDoctors({ specialtyId: specialtyId || undefined }));
+  const { data: specialtyResponse, isLoading: isSpecialtyLoading } = useQuery(catalogQueryOptions.allSpecialties());
+  const { data: serviceResponse, isLoading: isServiceLoading } = useQuery(catalogQueryOptions.allServices());
+  const { data: scheduleResponse, isLoading: isScheduleLoading } = useQuery(schedulingQueryOptions.schedules({
     doctorId: doctorId || undefined,
     from: date,
     to: date,
@@ -82,7 +83,7 @@ export function OperationsCalendar() {
     doctorId: doctorId || undefined,
     status: status || undefined,
   });
-  const { data: appointmentResponse = [] } = useQuery(appointmentOptions);
+  const { data: appointmentResponse = [], isLoading: isAppointmentLoading } = useQuery(appointmentOptions);
   const doctors = useMemo(() => doctorResponse?.data ?? [], [doctorResponse?.data]);
   const specialties = specialtyResponse?.data ?? [];
   const services = serviceResponse?.data ?? [];
@@ -102,6 +103,7 @@ export function OperationsCalendar() {
   const doctor = doctors.find((candidate) => candidate.id === doctorId);
   const specialty = specialties.find((candidate) => candidate.id === specialtyId);
   const selectedStatus = statuses.find((candidate) => candidate.value === status);
+  const isLoading = isDoctorLoading || isSpecialtyLoading || isServiceLoading || isScheduleLoading || isAppointmentLoading;
 
   function cacheUpdatedAppointment(updated: Appointment) {
     queryClient.setQueryData<Appointment[]>(appointmentOptions.queryKey, (current = []) =>
@@ -186,7 +188,11 @@ export function OperationsCalendar() {
           </div>
           <p className="text-sm font-semibold text-text">{workingDoctors.length} bác sĩ</p>
         </div>
-        {workingDoctors.length ? (
+        {isLoading ? (
+          <div className="mt-3">
+            <ShimmerList label="Đang tải bác sĩ làm việc trong ngày" rows={2} />
+          </div>
+        ) : workingDoctors.length ? (
           <ul className="mt-3 grid gap-2 md:grid-cols-2">
             {workingDoctors.map(({ doctor: workingDoctor, schedule }) => (
               <li className="rounded-md border border-border bg-white p-3" key={schedule.id}>
@@ -204,7 +210,7 @@ export function OperationsCalendar() {
           </div>
         )}
       </section>
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface shadow-panel"><table className="hidden min-w-full text-left text-sm md:table"><thead className="bg-surface-muted text-text-muted"><tr><th className="p-3 font-medium">Giờ</th><th className="p-3 font-medium">Bệnh nhân</th><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Dịch vụ</th><th className="p-3 font-medium">Trạng thái</th><th className="p-3 font-medium">Thao tác</th></tr></thead><tbody>{appointments.map((appointment) => { const patient = patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); const service = services.find((candidate) => candidate.id === appointment.serviceId); return <tr className="border-t border-border" key={appointment.id}><td className="p-3 font-semibold text-primary">{formatTime(appointment.startAt)}</td><td className="p-3 font-medium text-text">{patient?.fullName}</td><td className="p-3 text-text">{appointmentDoctor?.fullName}</td><td className="p-3 text-text-muted">{service?.name}</td><td className="p-3"><StatusBadge status={appointment.status} /></td><td className="p-3">{renderAppointmentActions(appointment)}</td></tr>; })}</tbody></table><ul className="divide-y divide-border md:hidden">{appointments.map((appointment) => { const patient = patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); return <li className="flex gap-3 p-3" key={appointment.id}><span className="w-12 shrink-0 font-semibold text-primary">{formatTime(appointment.startAt)}</span><div className="min-w-0 flex-1"><p className="font-medium text-text">{patient?.fullName}</p><p className="mt-1 text-sm text-text-muted">{appointmentDoctor?.fullName}</p><div className="mt-2"><StatusBadge status={appointment.status} /></div><div className="mt-3">{renderAppointmentActions(appointment)}</div></div></li>; })}</ul></div>{!appointments.length ? <p className="mt-4 text-sm text-text-muted">Không có lịch hẹn phù hợp.</p> : null}
+      {isLoading ? <div className="mt-6"><ShimmerList label="Đang tải lịch hoạt động" /></div> : <><div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface shadow-panel"><table className="hidden min-w-full text-left text-sm md:table"><thead className="bg-surface-muted text-text-muted"><tr><th className="p-3 font-medium">Giờ</th><th className="p-3 font-medium">Bệnh nhân</th><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Dịch vụ</th><th className="p-3 font-medium">Trạng thái</th><th className="p-3 font-medium">Thao tác</th></tr></thead><tbody>{appointments.map((appointment) => { const patient = patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); const service = services.find((candidate) => candidate.id === appointment.serviceId); return <tr className="border-t border-border" key={appointment.id}><td className="p-3 font-semibold text-primary">{formatTime(appointment.startAt)}</td><td className="p-3 font-medium text-text">{patient?.fullName}</td><td className="p-3 text-text">{appointmentDoctor?.fullName}</td><td className="p-3 text-text-muted">{service?.name}</td><td className="p-3"><StatusBadge status={appointment.status} /></td><td className="p-3">{renderAppointmentActions(appointment)}</td></tr>; })}</tbody></table><ul className="divide-y divide-border md:hidden">{appointments.map((appointment) => { const patient = patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); return <li className="flex gap-3 p-3" key={appointment.id}><span className="w-12 shrink-0 font-semibold text-primary">{formatTime(appointment.startAt)}</span><div className="min-w-0 flex-1"><p className="font-medium text-text">{patient?.fullName}</p><p className="mt-1 text-sm text-text-muted">{appointmentDoctor?.fullName}</p><div className="mt-2"><StatusBadge status={appointment.status} /></div><div className="mt-3">{renderAppointmentActions(appointment)}</div></div></li>; })}</ul></div>{!appointments.length ? <p className="mt-4 text-sm text-text-muted">Không có lịch hẹn phù hợp.</p> : null}</>}
     </section>
   );
 }

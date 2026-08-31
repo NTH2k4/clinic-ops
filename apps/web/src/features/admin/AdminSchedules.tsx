@@ -3,6 +3,7 @@ import { Pencil, Plus, RotateCcw, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { ShimmerList } from "../../components/LoadingState";
 import { StatusBadge } from "../../components/StatusBadge";
 import type { ApiListResponse } from "../../lib/api/types";
 import { todayInClinicTimeZone } from "../../lib/dateTime";
@@ -260,7 +261,7 @@ export function AdminSchedules() {
       {error ? <p className="mt-4 text-sm text-danger" role="alert">{error instanceof Error ? error.message : "Không thể tải lịch."}</p> : null}
       {deactivateMutation.error ? <p className="mt-4 text-sm text-danger" role="alert">{deactivateMutation.error instanceof Error ? deactivateMutation.error.message : "Không thể vô hiệu hóa lịch."}</p> : null}
 
-      <div className="mt-5 overflow-x-auto rounded-md border border-border bg-surface shadow-sm">
+      {isLoading ? <div className="mt-5"><ShimmerList label="Đang tải lịch làm việc" rows={5} /></div> : <div className="mt-5 overflow-x-auto rounded-md border border-border bg-surface shadow-sm">
         <table aria-label="Lịch làm việc bác sĩ" className="min-w-full text-left text-sm">
           <thead className="bg-surface-muted text-xs text-text-muted">
             <tr>
@@ -296,8 +297,7 @@ export function AdminSchedules() {
             ))}
           </tbody>
         </table>
-      </div>
-      {isLoading ? <p className="mt-3 text-sm text-text-muted">Đang tải lịch...</p> : null}
+      </div>}
       {!isLoading && !sortedSchedules.length ? <p className="mt-3 text-sm text-text-muted">Không có lịch nào khớp bộ lọc.</p> : null}
       <ConfirmDialog
         confirmLabel="Vô hiệu hóa"

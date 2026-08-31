@@ -20,7 +20,7 @@ export interface AvailabilityListFilters {
 }
 
 export type AvailabilityStatus = "available" | "unavailable";
-export type AvailabilityReasonCode = "available" | "blocked" | "leave" | "appointment_conflict";
+export type AvailabilityReasonCode = "available" | "blocked" | "leave" | "appointment_conflict" | "too_soon";
 
 export interface ApiAvailabilitySlotRecord {
   doctorId: string;

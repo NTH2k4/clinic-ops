@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EmptyState } from "../../components/EmptyState";
+import { ShimmerList } from "../../components/LoadingState";
 import { StatusBadge } from "../../components/StatusBadge";
 import { formatDateInputValue, formatTime, todayInClinicTimeZone, toDateInputValue } from "../../lib/dateTime";
 import type { Appointment, AppointmentStatus, UserRole } from "../../types/models";
@@ -61,12 +62,12 @@ const successMessages: Partial<Record<AppointmentStatus, string>> = {
 export function QueuePage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
+  const { data: serviceResponse, isLoading: isServiceLoading } = useQuery(catalogQueryOptions.allServices());
   const services = serviceResponse?.data ?? [];
   const today = todayInClinicTimeZone();
   const [date, setDate] = useState(() => todayInClinicTimeZone());
   const appointmentOptions = appointmentQueryOptions.list(appointmentDateRange(date));
-  const { data: appointmentResponse = [] } = useQuery(appointmentOptions);
+  const { data: appointmentResponse = [], isLoading: isAppointmentLoading } = useQuery(appointmentOptions);
   const appointments = useMemo(
     () => appointmentResponse.slice().sort((left, right) => left.startAt.localeCompare(right.startAt)),
     [appointmentResponse],
@@ -77,6 +78,7 @@ export function QueuePage() {
   const [notice, setNotice] = useState("");
   const actorUserId = user?.id ?? "user-receptionist-1";
   const groupedAppointments = useMemo(() => queueGroups.map((group) => ({ ...group, appointments: appointments.filter((appointment) => group.statuses.includes(appointment.status)) })), [appointments]);
+  const isLoading = isServiceLoading || isAppointmentLoading;
 
   function cacheUpdatedAppointment(updated: Appointment) {
     queryClient.setQueryData<Appointment[]>(appointmentOptions.queryKey, (current = []) =>
@@ -135,7 +137,7 @@ export function QueuePage() {
       </fieldset>
       {notice && <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-success" role="status">{notice}</p>}
       {error && <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger" role="alert">{error}</p>}
-      <div className="mt-6 grid gap-4 xl:grid-cols-2">
+      {isLoading ? <div className="mt-6"><ShimmerList label="Đang tải hàng đợi khám" rows={6} /></div> : <div className="mt-6 grid gap-4 xl:grid-cols-2">
         {groupedAppointments.map((group) => (
           <section aria-label={group.label} className="min-w-0 rounded-lg border border-border bg-surface p-4 shadow-panel" key={group.label}>
             <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-text">{group.label}</h2><p className="mt-1 text-sm text-text-muted">{group.description}</p></div><span className="rounded-md bg-surface-muted px-2.5 py-1 text-sm font-semibold text-text">{group.appointments.length}</span></div>
@@ -148,7 +150,7 @@ export function QueuePage() {
             })}</ul> : <EmptyState description="Không có lịch hẹn trong nhóm này." title="Trống" />}
           </section>
         ))}
-      </div>
+      </div>}
       <ConfirmDialog cancelLabel="Giữ lịch" confirmLabel="Hủy lịch" description="Thao tác này sẽ chuyển lịch hẹn sang trạng thái đã hủy và ghi nhận trong audit log." isOpen={Boolean(cancelTarget)} onCancel={() => setCancelTarget(null)} onConfirm={() => void cancelAppointment()} title="Xác nhận hủy lịch hẹn" />
     </section>
   );

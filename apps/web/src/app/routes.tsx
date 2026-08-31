@@ -3,6 +3,7 @@ import { AppShell } from "../components/AppShell";
 import { LoginPage } from "../features/auth/LoginPage";
 import { RegisterPage } from "../features/auth/RegisterPage";
 import { ChangePasswordPage } from "../features/auth/ChangePasswordPage";
+import { AccountPage } from "../features/auth/AccountPage";
 import { AdminDashboard } from "../features/admin/AdminDashboard";
 import { AdminDoctors } from "../features/admin/AdminDoctors";
 import { AdminSchedules } from "../features/admin/AdminSchedules";
@@ -34,6 +35,7 @@ export function AppRoutes() {
       <Route element={<RequireAuth />}>
         <Route element={<RoleHomeRedirect />} path="/app" />
         <Route element={<AppShell />} path="/app">
+          <Route element={<AccountPage />} path="account" />
           <Route element={<ChangePasswordPage />} path="account/security" />
           <Route element={<PatientHome />} path="patient" />
           <Route element={<ServicesPage />} path="patient/services" />

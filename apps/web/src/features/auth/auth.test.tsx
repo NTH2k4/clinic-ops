@@ -193,7 +193,7 @@ describe("authentication and role routing", () => {
     renderWithProviders(<App />);
 
     await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
-    await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
+    await user.click(screen.getAllByRole("button", { name: "Đăng xuất" })[0]);
 
     expect(screen.getByRole("dialog", { name: "Xác nhận đăng xuất" })).toBeInTheDocument();
     expect(screen.getByText("Bạn có chắc chắn muốn đăng xuất khỏi CareFlow không?")).toBeInTheDocument();
@@ -204,7 +204,7 @@ describe("authentication and role routing", () => {
     expect(screen.queryByRole("dialog", { name: "Xác nhận đăng xuất" })).not.toBeInTheDocument();
     expect(screen.getByText("Trang chính bệnh nhân")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
+    await user.click(screen.getAllByRole("button", { name: "Đăng xuất" })[0]);
     await user.click(screen.getByRole("button", { name: "Đăng xuất khỏi hệ thống" }));
 
     expect(screen.getByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
@@ -221,6 +221,27 @@ describe("authentication and role routing", () => {
     await user.click(within(mobileNavigation).getByRole("link", { name: "Dịch vụ" }));
 
     expect(screen.getByRole("heading", { name: "Dịch vụ" })).toBeInTheDocument();
+  });
+
+  it("provides account management from every role navigation", async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole("button", { name: /Bệnh nhân/i }));
+
+    const mainNavigation = screen.getByRole("navigation", { name: "Điều hướng chính" });
+    expect(navigationForRole("patient").at(-1)).toMatchObject({ label: "Tài khoản của tôi", to: "/app/account" });
+    expect(navigationForRole("doctor").at(-1)).toMatchObject({ label: "Tài khoản của tôi", to: "/app/account" });
+    expect(navigationForRole("receptionist").at(-1)).toMatchObject({ label: "Tài khoản của tôi", to: "/app/account" });
+    expect(navigationForRole("nurse").at(-1)).toMatchObject({ label: "Tài khoản của tôi", to: "/app/account" });
+    expect(navigationForRole("admin").at(-1)).toMatchObject({ label: "Tài khoản của tôi", to: "/app/account" });
+
+    await user.click(within(mainNavigation).getByRole("link", { name: "Tài khoản của tôi" }));
+
+    expect(screen.getByRole("heading", { name: "Tài khoản của tôi" })).toBeInTheDocument();
+    expect(screen.getByText("Thông tin cá nhân")).toBeInTheDocument();
+    expect(screen.getByText("Đổi mật khẩu")).toBeInTheDocument();
   });
 
   it("keeps admin mobile navigation sticky and scannable with longer role menus", async () => {
@@ -472,8 +493,9 @@ describe("API authentication", () => {
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
     await screen.findByText("Trang chính bệnh nhân");
 
-    await user.click(screen.getByRole("button", { name: "Bảo mật tài khoản" }));
+    await user.click(within(screen.getByRole("navigation", { name: "Điều hướng chính" })).getByRole("link", { name: "Tài khoản của tôi" }));
 
+    expect(screen.getByRole("heading", { name: "Tài khoản của tôi" })).toBeInTheDocument();
     expect(screen.getByLabelText("Mật khẩu hiện tại")).toBeRequired();
     expect(screen.getByLabelText("Mật khẩu mới")).toBeRequired();
     await user.type(screen.getByLabelText("Mật khẩu hiện tại"), "current-password");
@@ -598,7 +620,7 @@ describe("API authentication", () => {
     const { queryClient } = await import("../../lib/queryClient");
     queryClient.setQueryData(["auth-cache"], { value: "stale" });
 
-    await user.click(screen.getByRole("button", { name: "Đăng xuất" }));
+    await user.click(screen.getAllByRole("button", { name: "Đăng xuất" })[0]);
     await user.click(screen.getByRole("button", { name: "Đăng xuất khỏi hệ thống" }));
 
     await waitFor(() => expect(fetcher).toHaveBeenCalledWith(

@@ -40,6 +40,7 @@ describe("Appointment workflows", () => {
   const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
 
   beforeEach(async () => {
+    process.env.CAREFLOW_SYSTEM_NOW = "2026-08-23T00:00:00.000Z";
     await execFileAsync(process.execPath, ["node_modules/tsx/dist/cli.mjs", "prisma/seed.ts"], {
       cwd: process.cwd(),
       env: { ...process.env, DATABASE_URL: databaseUrl },
@@ -47,6 +48,7 @@ describe("Appointment workflows", () => {
   });
 
   afterAll(async () => {
+    delete process.env.CAREFLOW_SYSTEM_NOW;
     await prisma.$disconnect();
   });
 

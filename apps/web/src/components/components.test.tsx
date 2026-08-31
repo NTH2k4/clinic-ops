@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
 import { ClinicDateField } from "./ClinicDateField";
-import { LoadingState } from "./LoadingState";
+import { LoadingState, ShimmerGrid, ShimmerList } from "./LoadingState";
 import { MetricCard } from "./MetricCard";
 import { SegmentedControl } from "./SegmentedControl";
 import { StatusBadge } from "./StatusBadge";
@@ -237,6 +237,8 @@ describe("shared UI components", () => {
         <MetricCard label="Lịch hẹn hôm nay" value={12} helper="Tăng 3 lịch so với hôm qua" tone="primary" trend="+3 hôm nay" />
         <EmptyState title="Không có dữ liệu" description="Chưa có lịch hẹn trong bộ lọc này." />
         <LoadingState label="Đang tải lịch hẹn" />
+        <ShimmerList label="Đang tải danh sách" rows={2} />
+        <ShimmerGrid label="Đang tải lưới dữ liệu" items={2} />
         <ErrorState title="Không tải được dữ liệu" description="Vui lòng thử lại sau." />
       </>,
     );
@@ -246,6 +248,8 @@ describe("shared UI components", () => {
     expect(screen.getByText("+3 hôm nay")).toBeInTheDocument();
     expect(screen.getByText("Không có dữ liệu")).toBeInTheDocument();
     expect(screen.getByText("Đang tải lịch hẹn")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Đang tải danh sách" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Đang tải lưới dữ liệu" })).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Không tải được dữ liệu");
   });
 

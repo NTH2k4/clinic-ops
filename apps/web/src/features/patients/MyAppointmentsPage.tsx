@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { EmptyState } from "../../components/EmptyState";
+import { ShimmerList } from "../../components/LoadingState";
 import { StatusBadge } from "../../components/StatusBadge";
 import { isApiMode } from "../../lib/dataSource";
 import { formatDateTime } from "../../lib/dateTime";
@@ -29,15 +30,15 @@ function appointmentsForTab(appointments: Appointment[], tab: AppointmentTab): A
 export function MyAppointmentsPage() {
   const { linkedProfile, user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: mockPatient } = useQuery({ ...patientQueryOptions.current(user?.id ?? ""), enabled: Boolean(user?.role === "patient" && !isApiMode) });
+  const { data: mockPatient, isLoading: isPatientLoading } = useQuery({ ...patientQueryOptions.current(user?.id ?? ""), enabled: Boolean(user?.role === "patient" && !isApiMode) });
   const patientId = linkedProfile?.type === "patient" ? linkedProfile.id : mockPatient?.id;
   const [tab, setTab] = useState<AppointmentTab>("upcoming");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const appointmentOptions = appointmentQueryOptions.list({ patientId });
-  const { data: appointments = [] } = useQuery({ ...appointmentOptions, enabled: Boolean(patientId) });
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors());
+  const { data: appointments = [], isLoading: isAppointmentLoading } = useQuery({ ...appointmentOptions, enabled: Boolean(patientId) });
+  const { data: serviceResponse, isLoading: isServiceLoading } = useQuery(catalogQueryOptions.allServices());
+  const { data: doctorResponse, isLoading: isDoctorLoading } = useQuery(catalogQueryOptions.allDoctors());
   const services = serviceResponse?.data ?? [];
   const doctors = doctorResponse?.data ?? [];
 
@@ -60,6 +61,7 @@ export function MyAppointmentsPage() {
   ) as Record<AppointmentTab, number>;
   const activeTab = tabs.find((item) => item.id === tab) ?? tabs[0];
   const visibleAppointments = appointmentsForTab(appointments, tab).slice().sort((left, right) => left.startAt.localeCompare(right.startAt));
+  const isLoading = isPatientLoading || isAppointmentLoading || isServiceLoading || isDoctorLoading;
 
   return (
     <section className="mx-auto max-w-5xl">
@@ -75,7 +77,7 @@ export function MyAppointmentsPage() {
         })}
       </div>
       <div aria-labelledby={`tab-${tab}`} className="mt-5 space-y-3" id={`appointments-${tab}`} role="tabpanel">
-        {visibleAppointments.length === 0 ? <EmptyState description="Không có lịch hẹn trong nhóm này." title="Chưa có lịch hẹn" /> : visibleAppointments.map((appointment) => {
+        {isLoading ? <ShimmerList label="Đang tải lịch hẹn của tôi" /> : visibleAppointments.length === 0 ? <EmptyState description="Không có lịch hẹn trong nhóm này." title="Chưa có lịch hẹn" /> : visibleAppointments.map((appointment) => {
           const service = services.find((candidate) => candidate.id === appointment.serviceId);
           const doctor = doctors.find((candidate) => candidate.id === appointment.doctorId);
           const cancellable = canTransitionAppointment(appointment.status, "cancelled", user?.role);

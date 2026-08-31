@@ -239,6 +239,7 @@ describe("operations workspace", () => {
     await user.click(screen.getByRole("button", { name: /Nguyen Minh Anh/i }));
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
+    await setClinicDateDay(user, "Ngày khám", 26);
     expectClinicDateField("Ngày khám", { day: 26, month: 8, year: 2026 });
     await user.selectOptions(screen.getByLabelText("Giờ khám"), "09:00");
     await user.click(screen.getByRole("button", { name: "Tạo lịch hẹn" }));
@@ -258,6 +259,22 @@ describe("operations workspace", () => {
     expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "09:00" })).toBeDisabled();
   });
 
+  it("allows staff same-day booking only for slots at least 30 minutes from now", async () => {
+    vi.setSystemTime(new Date("2026-08-25T00:59:00.000Z"));
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    mockStore.appointments.forEach((appointment) => {
+      appointment.status = "completed";
+    });
+    renderWithProviders(<CreateAppointmentPage />);
+
+    await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
+    await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
+    await setClinicDateDay(user, "Ngày khám", 25);
+
+    await waitFor(() => expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "08:30" })).toBeEnabled());
+    expect(within(screen.getByLabelText("Giờ khám")).getByRole("option", { name: "08:00" })).toBeDisabled();
+  });
+
   it("does not submit a second appointment after a successful staff creation", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<CreateAppointmentPage />);
@@ -266,6 +283,7 @@ describe("operations workspace", () => {
     await user.click(screen.getByRole("button", { name: /Nguyen Minh Anh/i }));
     await user.selectOptions(screen.getByLabelText("Dịch vụ"), "service-cardiology-consult");
     await user.selectOptions(screen.getByLabelText("Bác sĩ"), "doctor-2");
+    await setClinicDateDay(user, "Ngày khám", 26);
     await user.selectOptions(screen.getByLabelText("Giờ khám"), "09:00");
     await user.click(screen.getByRole("button", { name: "Tạo lịch hẹn" }));
     await user.click(screen.getByRole("button", { name: "Tạo lịch hẹn" }));
@@ -372,7 +390,7 @@ describe("operations workspace", () => {
       expect(availabilityQueryOptions).toHaveBeenLastCalledWith({
         serviceId: "service-general",
         doctorId: "doctor-1",
-        date: "2026-08-26",
+        date: "2026-08-25",
         includeUnavailable: true,
         page: 1,
         pageSize: 100,

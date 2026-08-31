@@ -1429,7 +1429,7 @@
           "startAt": { "type": "string", "format": "date-time" },
           "endAt": { "type": "string", "format": "date-time" },
           "availabilityStatus": { "enum": ["available", "unavailable"] },
-          "reasonCode": { "enum": ["available", "blocked", "leave", "appointment_conflict"] },
+          "reasonCode": { "enum": ["available", "blocked", "leave", "appointment_conflict", "too_soon"] },
           "reasonLabel": { "type": "string" }
         }
       },
@@ -1505,6 +1505,7 @@
           "VALIDATION_ERROR",
           "NOT_FOUND",
           "APPOINTMENT_CONFLICT",
+          "APPOINTMENT_TOO_SOON",
           "INVALID_STATUS_TRANSITION",
           "RESOURCE_IN_USE",
           "RATE_LIMITED",

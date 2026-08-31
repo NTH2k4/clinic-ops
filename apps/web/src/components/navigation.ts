@@ -1,4 +1,4 @@
-import { Activity, CalendarDays, ClipboardList, Home, Settings, Users } from "lucide-react";
+import { Activity, CalendarDays, ClipboardList, Home, Settings, UserRound, Users } from "lucide-react";
 import type { UserRole } from "../types/models";
 
 export type NavItem = {
@@ -41,5 +41,5 @@ const navigationByRole: Record<UserRole, NavItem[]> = {
 };
 
 export function navigationForRole(role: UserRole): NavItem[] {
-  return navigationByRole[role];
+  return [...navigationByRole[role], { icon: UserRound, label: "Tài khoản của tôi", to: "/app/account" }];
 }

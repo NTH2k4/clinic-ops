@@ -192,7 +192,7 @@ describe("OpenAPI contract", () => {
     const slot = spec.components?.schemas?.AvailabilitySlot;
     expect(slot?.required).toEqual(["doctorId", "serviceId", "startAt", "endAt"]);
     expect(slot?.properties?.availabilityStatus).toEqual({ enum: ["available", "unavailable"] });
-    expect(slot?.properties?.reasonCode).toEqual({ enum: ["available", "blocked", "leave", "appointment_conflict"] });
+    expect(slot?.properties?.reasonCode).toEqual({ enum: ["available", "blocked", "leave", "appointment_conflict", "too_soon"] });
     expect(slot?.properties?.reasonLabel).toEqual({ type: "string" });
     expect(spec.components?.schemas?.AvailabilitySlotListEnvelope?.properties?.data).toEqual({
       type: "array",

@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ClinicDateField } from "../../components/ClinicDateField";
+import { ShimmerGrid } from "../../components/LoadingState";
 import { StatusBadge } from "../../components/StatusBadge";
 import { isApiMode } from "../../lib/dataSource";
-import { addDays, formatDate, formatDateInputValue, formatTime, todayInClinicTimeZone } from "../../lib/dateTime";
+import { formatDate, formatDateInputValue, formatTime, todayInClinicTimeZone } from "../../lib/dateTime";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
 import { useAuth } from "../auth/AuthProvider";
@@ -27,7 +28,7 @@ function AppointmentBookingForm() {
     enabled: Boolean(user?.role === "patient" && (!isApiMode || linkedPatientId)),
   });
   const initialServiceId = searchParams.get("serviceId") ?? "";
-  const minimumBookingDate = addDays(todayInClinicTimeZone(), 1);
+  const minimumBookingDate = todayInClinicTimeZone();
   const [serviceId, setServiceId] = useState(initialServiceId);
   const [doctorMode, setDoctorMode] = useState<"any" | "specific">("any");
   const [doctorId, setDoctorId] = useState("");
@@ -36,11 +37,12 @@ function AppointmentBookingForm() {
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices({ status: "active" }));
-  const { data: specialtyResponse } = useQuery(catalogQueryOptions.allSpecialties({ status: "active" }));
-  const { data: doctorResponse } = useQuery(catalogQueryOptions.allDoctors({ status: "active", serviceId: serviceId || undefined }));
+  const { data: serviceResponse, isLoading: isServiceLoading } = useQuery(catalogQueryOptions.allServices({ status: "active" }));
+  const { data: specialtyResponse, isLoading: isSpecialtyLoading } = useQuery(catalogQueryOptions.allSpecialties({ status: "active" }));
+  const { data: doctorResponse, isLoading: isDoctorLoading } = useQuery(catalogQueryOptions.allDoctors({ status: "active", serviceId: serviceId || undefined }));
   const services = serviceResponse?.data ?? [];
   const specialties = specialtyResponse?.data ?? [];
+  const isCatalogLoading = isServiceLoading || isSpecialtyLoading || isDoctorLoading;
 
   const service = services.find((candidate) => candidate.id === serviceId);
   const specialty = service ? specialties.find((candidate) => candidate.id === service.specialtyId) : undefined;
@@ -108,9 +110,9 @@ function AppointmentBookingForm() {
       </nav>
       <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="space-y-5">
-          <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">1. Dịch vụ và chuyên khoa</legend><div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">1. Dịch vụ và chuyên khoa</legend>{isCatalogLoading ? <div className="mt-3"><ShimmerGrid label="Đang tải dịch vụ đặt lịch" items={4} /></div> : <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {services.map((candidate) => <button aria-pressed={serviceId === candidate.id} className="min-w-0 rounded-md border border-border p-3 text-left text-sm aria-pressed:border-primary aria-pressed:bg-surface-muted" key={candidate.id} onClick={() => selectService(candidate.id)} type="button"><span className="block text-xs text-primary">{specialties.find((item) => item.id === candidate.specialtyId)?.name}</span><span className="mt-1 block font-semibold text-text">{candidate.name}</span><span className="mt-1 block text-text-muted">{candidate.durationMinutes} phút</span></button>)}
-          </div></fieldset>
+          </div>}</fieldset>
           {service && <>
             <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">2. Bác sĩ</legend><div className="mt-3 space-y-3"><label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3" htmlFor="any-available-doctor"><input aria-label="Bất kỳ bác sĩ nào" checked={doctorMode === "any"} id="any-available-doctor" name="doctor-mode" onChange={() => { setDoctorMode("any"); setDoctorId(""); setSlot(""); }} type="radio" value="any" /><span><span className="block font-medium text-text">Bất kỳ bác sĩ nào</span><span className="block text-sm text-text-muted">Tự động chọn bác sĩ còn trống cho khung giờ.</span></span></label><label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3" htmlFor="specific-doctor"><input checked={doctorMode === "specific"} id="specific-doctor" name="doctor-mode" onChange={() => { setDoctorMode("specific"); setDoctorId(""); setSlot(""); }} type="radio" value="specific" /><span className="font-medium text-text">Chọn bác sĩ cụ thể</span></label>{doctorMode === "specific" && <select aria-label="Bác sĩ" className="h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" onChange={(event) => { setDoctorId(event.target.value); setSlot(""); }} value={doctorId}><option value="">Chọn bác sĩ</option>{eligibleDoctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.fullName} - {doctor.title}</option>)}</select>}</div></fieldset>
             <fieldset className="rounded-lg border border-border bg-surface p-5 shadow-panel"><legend className="px-1 text-base font-semibold">3. Ngày và khung giờ</legend><ClinicDateField controlClassName="sm:max-w-64" id="appointment-date" label="Ngày khám" labelClassName="mt-3 block text-sm font-medium text-text" min={minimumBookingDate} onChange={(nextDate) => { setDate(nextDate); setDoctorId(""); setSlot(""); }} value={date} /><p className="mt-3 text-sm text-text-muted">{isApiMode ? "Khả dụng cuối cùng được xác nhận khi gửi yêu cầu." : "Khung giờ màu xám là không khả dụng do lịch làm việc hoặc lịch hẹn đã trùng."}</p><div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">{slotTimes.map((time) => { const unavailable = isApiMode ? (doctorMode === "specific" ? !doctorId : eligibleDoctors.length === 0) : doctorMode === "specific" ? !doctorId || !isDoctorAvailableForSlot(doctorId, date, time, service.durationMinutes) : !eligibleDoctors.some((doctor) => isDoctorAvailableForSlot(doctor.id, date, time, service.durationMinutes)); return <button aria-pressed={slot === time} className="h-10 rounded-md border border-border text-sm font-medium disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 aria-pressed:border-primary aria-pressed:bg-surface-muted aria-pressed:text-primary" disabled={unavailable} key={time} onClick={() => { if (doctorMode === "any") setDoctorId(isApiMode ? "" : eligibleDoctors.find((doctor) => isDoctorAvailableForSlot(doctor.id, date, time, service.durationMinutes))?.id ?? ""); setSlot(time); setError(""); }} type="button">{time}</button>; })}</div></fieldset>

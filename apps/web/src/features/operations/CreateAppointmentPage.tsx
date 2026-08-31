@@ -2,9 +2,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Search, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ClinicDateField } from "../../components/ClinicDateField";
+import { ShimmerBlock } from "../../components/LoadingState";
 import { StatusBadge } from "../../components/StatusBadge";
 import { isApiMode } from "../../lib/dataSource";
-import { addDays, formatDateInputValue, formatTime, todayInClinicTimeZone } from "../../lib/dateTime";
+import { formatDateInputValue, formatTime, todayInClinicTimeZone } from "../../lib/dateTime";
 import type { Appointment, Patient } from "../../types/models";
 import { appointmentStart, isDoctorAvailableForSlot } from "../appointments/appointmentAvailability";
 import { appointmentService } from "../appointments/appointmentService";
@@ -19,6 +20,7 @@ const availabilityReasonLabels = {
   appointment_conflict: "Bác sĩ đã có lịch hẹn",
   blocked: "Bác sĩ bị chặn lịch",
   leave: "Bác sĩ nghỉ phép",
+  too_soon: "Thời gian đã qua hoặc quá sát giờ khám",
 } as const;
 
 function timeFromSlot(slot: AvailabilitySlot): string {
@@ -45,7 +47,7 @@ function AppointmentCreationForm() {
   const [newPatientPhone, setNewPatientPhone] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [doctorId, setDoctorId] = useState("");
-  const [date, setDate] = useState(() => addDays(todayInClinicTimeZone(), 1));
+  const [date, setDate] = useState(() => todayInClinicTimeZone());
   const [time, setTime] = useState("");
   const [error, setError] = useState("");
   const [created, setCreated] = useState<Appointment | null>(null);
@@ -166,7 +168,14 @@ function AppointmentCreationForm() {
               <ClinicDateField id="operations-create-date" label="Ngày khám" labelClassName="text-sm font-medium text-text" onChange={(nextDate) => { setDate(nextDate); setTime(""); setCreated(null); }} value={date} />
               <label className="text-sm font-medium text-text">Giờ khám<select className="mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm" disabled={!selectedService || !doctorId || (isApiMode && isAvailabilityLoading)} onChange={(event) => { setTime(event.target.value); setCreated(null); }} value={time}><option value="">Chọn giờ</option>{isApiMode ? apiTimeOptions.map((option) => <option disabled={option.disabled} key={option.time} value={option.time}>{option.label}</option>) : appointmentTimes.map((appointmentTime) => <option disabled={!selectedService || !doctorId || !isDoctorAvailableForSlot(doctorId, date, appointmentTime, selectedService.durationMinutes)} key={appointmentTime} value={appointmentTime}>{appointmentTime}</option>)}</select></label>
             </div>
-            {isApiMode && isAvailabilityLoading ? <p className="mt-3 text-sm text-text-muted">Đang tải khung giờ khả dụng...</p> : null}
+            {isApiMode && isAvailabilityLoading ? (
+              <div aria-label="Đang tải khung giờ khả dụng" className="mt-3 grid gap-2 sm:grid-cols-3" role="status">
+                <ShimmerBlock className="h-10" />
+                <ShimmerBlock className="h-10" />
+                <ShimmerBlock className="h-10" />
+                <span className="sr-only">Đang tải khung giờ khả dụng</span>
+              </div>
+            ) : null}
             {isApiMode && isAvailabilityError ? <p className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert">Không thể tải khung giờ khả dụng.</p> : null}
             <p className="mt-3 text-sm text-text-muted">Chỉ các khung giờ còn khả dụng theo lịch làm việc và lịch hẹn hiện có mới được chọn.</p>
           </fieldset>

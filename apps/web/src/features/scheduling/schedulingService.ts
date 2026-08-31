@@ -11,6 +11,7 @@ import type {
 import { createSessionApiHttpClient } from "../../lib/api/session";
 import type { ApiListMeta, ApiListResponse } from "../../lib/api/types";
 import { dataSource } from "../../lib/dataSource";
+import { isAtLeastMinutesFromClinicNow } from "../../lib/dateTime";
 import { createId } from "../../lib/ids";
 import { mockStore } from "../../mocks/mockStore";
 import type { Appointment, DoctorSchedule, ScheduleType } from "../../types/models";
@@ -37,6 +38,7 @@ const availabilityReasonLabels: Record<AvailabilityReasonCode, string> = {
   blocked: "Bác sĩ bị chặn lịch",
   leave: "Bác sĩ nghỉ phép",
   appointment_conflict: "Bác sĩ đã có lịch hẹn",
+  too_soon: "Thời gian đã qua hoặc quá sát giờ khám",
 };
 
 function defaultApi(fetcher?: typeof fetch): SchedulingApi {
@@ -133,6 +135,8 @@ function availabilityReason(
   endMinutes: number,
   schedules: DoctorSchedule[],
 ): AvailabilityReasonCode {
+  if (!isAtLeastMinutesFromClinicNow(startAt.slice(0, 10), startAt.slice(11, 16), 30)) return "too_soon";
+
   const unavailableSchedule = schedules.find((schedule) =>
     (schedule.type === "blocked" || schedule.type === "leave") && overlapsMinutes(startMinutes, endMinutes, schedule),
   );

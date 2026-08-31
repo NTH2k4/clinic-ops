@@ -19,6 +19,7 @@ const activeAppointmentStatuses = [
   AppointmentStatus.checked_in,
   AppointmentStatus.in_progress,
 ];
+const minimumSameDayLeadMinutes = 30;
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: clinicTimeZone,
@@ -29,6 +30,10 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
   minute: "2-digit",
   hourCycle: "h23",
 });
+
+function currentSystemTime(): Date {
+  return process.env.CAREFLOW_SYSTEM_NOW ? new Date(process.env.CAREFLOW_SYSTEM_NOW) : new Date();
+}
 
 type DoctorWithSchedules = Doctor & { schedules: DoctorSchedule[] };
 
@@ -69,6 +74,7 @@ export class AppointmentConflictsService {
     if (service.status !== ServiceStatus.active) throw new ApiError(409, "SERVICE_INACTIVE", "service is not active.");
 
     const endAt = new Date(input.startAt.getTime() + service.durationMinutes * 60_000);
+    this.assertSameDayLeadTime(input.startAt);
     if (input.doctorId) {
       const doctor = await this.findDoctor(transaction, input.doctorId);
       await this.assertDoctorCanProvide(transaction, doctor, service, input, endAt);
@@ -85,7 +91,7 @@ export class AppointmentConflictsService {
         await this.assertDoctorCanProvide(transaction, doctor, service, input, endAt);
         return { doctor, service, startAt: input.startAt, endAt };
       } catch (error) {
-        if (!(error instanceof ApiError) || !["OUTSIDE_WORKING_HOURS", "DOCTOR_UNAVAILABLE", "APPOINTMENT_CONFLICT"].includes(error.code)) throw error;
+        if (!(error instanceof ApiError) || !["OUTSIDE_WORKING_HOURS", "DOCTOR_UNAVAILABLE", "APPOINTMENT_CONFLICT", "APPOINTMENT_TOO_SOON"].includes(error.code)) throw error;
       }
     }
 
@@ -175,6 +181,15 @@ export class AppointmentConflictsService {
       .map((part) => [part.type, part.value]));
     const localDate = `${parts.year}-${parts.month}-${parts.day}`;
     return { date: localDate, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+  }
+
+  private assertSameDayLeadTime(startAt: Date) {
+    const now = currentSystemTime();
+    const slot = this.localDateTime(startAt);
+    const current = this.localDateTime(now);
+    if (slot.date < current.date || (slot.date === current.date && startAt.getTime() < now.getTime() + minimumSameDayLeadMinutes * 60_000)) {
+      throw new ApiError(409, "APPOINTMENT_TOO_SOON", "Appointment start time must be at least 30 minutes from now.");
+    }
   }
 
   private dayOfWeek(date: string) {

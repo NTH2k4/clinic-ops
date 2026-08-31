@@ -1,13 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, Check, KeyRound, LogOut, X } from "lucide-react";
+import { Bell, Check, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthProvider";
 import { notificationQueryOptions, notificationService } from "../features/notifications/notificationService";
 import { formatDateTime } from "../lib/dateTime";
-import { isApiMode } from "../lib/dataSource";
 import type { ReferenceType, UserRole } from "../types/models";
-import { ConfirmDialog } from "./ConfirmDialog";
 import { RoleSwitcher } from "./RoleSwitcher";
 
 const roleLabels: Record<UserRole, string> = {
@@ -40,10 +38,9 @@ function notificationDestination(referenceType: ReferenceType | undefined, role:
 export function TopBar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { signOut, user } = useAuth();
+  const { user } = useAuth();
   const notificationsRef = useRef<HTMLDivElement | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [signOutConfirmationOpen, setSignOutConfirmationOpen] = useState(false);
   const { data: notificationResponse } = useQuery({ ...notificationQueryOptions.list(user?.id ?? ""), enabled: Boolean(user) });
   const markRead = useMutation({
     mutationFn: notificationService.markRead,
@@ -67,12 +64,6 @@ export function TopBar() {
     return () => document.removeEventListener("pointerdown", closeWhenOutside);
   }, [notificationsOpen]);
 
-  function confirmSignOut() {
-    signOut();
-    setSignOutConfirmationOpen(false);
-    navigate("/login", { replace: true });
-  }
-
   return (
     <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-2 border-b border-border bg-white/90 px-3 shadow-[0_1px_0_rgb(212_226_223/0.55)] backdrop-blur md:gap-3 md:px-6">
       <p className="font-semibold text-text md:hidden">CareFlow</p>
@@ -82,17 +73,6 @@ export function TopBar() {
           <p className="text-xs text-text-muted">{user ? roleLabels[user.role] : ""}</p>
         </div>
         <RoleSwitcher />
-        {isApiMode ? (
-          <button
-            aria-label="Bảo mật tài khoản"
-            className="flex size-11 items-center justify-center rounded-md border border-border bg-surface text-text-muted transition-colors hover:border-border-strong hover:bg-surface-muted hover:text-text"
-            onClick={() => navigate("/app/account/security")}
-            title="Bảo mật tài khoản"
-            type="button"
-          >
-            <KeyRound aria-hidden="true" size={18} />
-          </button>
-        ) : null}
         <div className="relative" ref={notificationsRef}>
           <button
             aria-label="Thông báo"
@@ -165,25 +145,7 @@ export function TopBar() {
             </section>
           ) : null}
         </div>
-        <button
-          aria-label="Đăng xuất"
-          className="flex size-11 items-center justify-center rounded-md border border-border bg-surface text-text-muted transition-colors hover:border-border-strong hover:bg-surface-muted hover:text-text"
-          onClick={() => setSignOutConfirmationOpen(true)}
-          title="Đăng xuất"
-          type="button"
-        >
-          <LogOut aria-hidden="true" size={18} />
-        </button>
       </div>
-      <ConfirmDialog
-        cancelLabel="Ở lại"
-        confirmLabel="Đăng xuất khỏi hệ thống"
-        description="Bạn có chắc chắn muốn đăng xuất khỏi CareFlow không?"
-        isOpen={signOutConfirmationOpen}
-        onCancel={() => setSignOutConfirmationOpen(false)}
-        onConfirm={confirmSignOut}
-        title="Xác nhận đăng xuất"
-      />
     </header>
   );
 }

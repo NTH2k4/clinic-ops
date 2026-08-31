@@ -88,3 +88,12 @@ export function getIsoWeekNumber(date: string): number {
 export function addMinutes(dateTime: string, minutes: number): string {
   return new Date(new Date(dateTime).getTime() + minutes * 60_000).toISOString();
 }
+
+export function isAtLeastMinutesFromClinicNow(date: string, time: string, minutes: number, now = new Date()): boolean {
+  const today = todayInClinicTimeZone(now);
+  if (date < today) return false;
+  if (date > today) return true;
+
+  const appointmentTime = new Date(`${date}T${time}:00+07:00`).getTime();
+  return appointmentTime >= now.getTime() + minutes * 60_000;
+}

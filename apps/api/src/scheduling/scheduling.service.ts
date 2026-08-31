@@ -6,7 +6,7 @@ import { AppointmentConflictsService } from "../appointments/appointment-conflic
 import { PrismaService } from "../prisma/prisma.service";
 import type { AvailabilityQuery, ScheduleCreateInput, ScheduleListQuery, ScheduleUpdateInput } from "./scheduling.dto";
 
-const unavailableCodes = new Set(["APPOINTMENT_CONFLICT", "DOCTOR_UNAVAILABLE", "NO_DOCTOR_AVAILABLE", "OUTSIDE_WORKING_HOURS"]);
+const unavailableCodes = new Set(["APPOINTMENT_CONFLICT", "APPOINTMENT_TOO_SOON", "DOCTOR_UNAVAILABLE", "NO_DOCTOR_AVAILABLE", "OUTSIDE_WORKING_HOURS"]);
 const clinicTimeZone = "Asia/Ho_Chi_Minh";
 const activeAppointmentStatuses = [
   "requested",
@@ -20,6 +20,7 @@ const availabilityReasonLabels = {
   blocked: "Bác sĩ bị chặn lịch",
   leave: "Bác sĩ nghỉ phép",
   appointment_conflict: "Bác sĩ đã có lịch hẹn",
+  too_soon: "Thời gian đã qua hoặc quá sát giờ khám",
 } as const;
 
 type AvailabilityReasonCode = keyof typeof availabilityReasonLabels;
@@ -42,6 +43,10 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
   minute: "2-digit",
   hourCycle: "h23",
 });
+
+function currentSystemTime(): Date {
+  return process.env.CAREFLOW_SYSTEM_NOW ? new Date(process.env.CAREFLOW_SYSTEM_NOW) : new Date();
+}
 
 @Injectable()
 export class SchedulingService {
@@ -230,6 +235,8 @@ export class SchedulingService {
     startAt: Date,
     endAt: Date,
   ): AvailabilityReasonCode {
+    if (this.isTooSoon(startAt)) return "too_soon";
+
     const schedule = unavailableSchedules.find((candidate) =>
       startMinutes < this.minutes(candidate.endTime) && endMinutes > this.minutes(candidate.startTime),
     );
@@ -330,6 +337,13 @@ export class SchedulingService {
   private addDays(date: string, days: number) {
     const [year, month, day] = date.split("-").map(Number);
     return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+  }
+
+  private isTooSoon(startAt: Date) {
+    const now = currentSystemTime();
+    const slot = this.localDateTime(startAt);
+    const current = this.localDateTime(now);
+    return slot.date < current.date || (slot.date === current.date && startAt.getTime() < now.getTime() + 30 * 60_000);
   }
 
   private serializeSchedule(schedule: { effectiveFrom: Date; effectiveTo: Date } & Record<string, unknown>) {

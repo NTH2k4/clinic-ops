@@ -67,6 +67,7 @@ Common error codes:
 - `VALIDATION_ERROR`
 - `NOT_FOUND`
 - `APPOINTMENT_CONFLICT`
+- `APPOINTMENT_TOO_SOON`
 - `INVALID_STATUS_TRANSITION`
 - `RESOURCE_IN_USE`
 - `RATE_LIMITED`
@@ -239,7 +240,7 @@ serviceId=service-general&date=2026-08-25&doctorId=doctor-1&includeUnavailable=t
 `includeUnavailable=true` chỉ áp dụng khi có `doctorId`; nếu thiếu `doctorId`, backend trả `400 VALIDATION_ERROR` để tránh lý do không khả dụng mơ hồ trong any-doctor mode. Response vẫn dùng list envelope cũ nhưng mỗi item có thể thêm:
 
 - `availabilityStatus`: `available` hoặc `unavailable`.
-- `reasonCode`: `available`, `blocked`, `leave` hoặc `appointment_conflict`.
+- `reasonCode`: `available`, `blocked`, `leave`, `appointment_conflict` hoặc `too_soon`.
 - `reasonLabel`: nhãn tiếng Việt để operations staff hiểu vì sao slot không khả dụng.
 
 Backend sinh các lý do này từ lịch làm việc active của bác sĩ, lịch `blocked`/`leave` active và appointment active đang overlap slot. Nhãn ổn định:
@@ -248,8 +249,9 @@ Backend sinh các lý do này từ lịch làm việc active của bác sĩ, l�
 - `blocked`: `Bác sĩ bị chặn lịch`.
 - `leave`: `Bác sĩ nghỉ phép`.
 - `appointment_conflict`: `Bác sĩ đã có lịch hẹn`.
+- `too_soon`: `Thời gian đã qua hoặc quá sát giờ khám`.
 
-Nếu không truyền `includeUnavailable=true`, response giữ hành vi hiện có: chỉ trả các slot khả dụng.
+Nếu không truyền `includeUnavailable=true`, response giữ hành vi hiện có: chỉ trả các slot khả dụng. Với ngày khám là ngày hiện tại theo timezone `Asia/Ho_Chi_Minh`, backend chỉ cho phép tạo appointment khi `startAt` còn cách thời điểm hiện tại ít nhất 30 phút; các slot đã qua hoặc dưới ngưỡng này bị loại khỏi available-only mode và được giải thích bằng `too_soon` trong explanation mode.
 
 ## Appointments
 

@@ -6,8 +6,8 @@
 | --- | --- |
 | Tên tài liệu | Frontend Design System |
 | Sản phẩm | CareFlow - Đặt lịch khám online |
-| Phiên bản | 1.2 |
-| Ngày | 2026-08-28 |
+| Phiên bản | 1.3 |
+| Ngày | 2026-08-31 |
 | Trạng thái | v1 accepted |
 | Phạm vi | Design system as-built cho CareFlow v1 web app |
 | Đối tượng đọc | Product owner, frontend developer, QA, agent contributors |
@@ -16,6 +16,7 @@
 
 | Phiên bản | Ngày | Nội dung thay đổi |
 | --- | --- | --- |
+| 1.3 | 2026-08-31 | Bổ sung account workspace dùng chung, sidebar logout placement, same-day booking cutoff và skeleton/shimmer loading states cho các màn dữ liệu chính. |
 | 1.2 | 2026-08-28 | Chuẩn hóa tài liệu theo trạng thái CareFlow v1 accepted: auth entry, account administration, scheduling operations, production API mode và verification gates. |
 | 1.1 | 2026-08-26 | Ghi nhận production-style visual refresh cho app shell, dashboard surfaces, metric cards, timeline cards, login surface và token thực tế trong `apps/web`. |
 | 1.0 | 2026-08-25 | Bản design system đầu tiên cho frontend MVP. |
@@ -224,6 +225,13 @@ Motion:
 - Tránh entrance animation lớn trong màn hình vận hành.
 - Tôn trọng `prefers-reduced-motion`.
 
+Loading state:
+
+- Dữ liệu dạng danh sách/lưới nên dùng skeleton shimmer trước khi render nội dung chính.
+- Skeleton phải giữ kích thước gần với nội dung thật để tránh layout shift.
+- Spinner text chỉ dùng cho trạng thái nhỏ hoặc inline; màn dữ liệu chính dùng `ShimmerList` hoặc `ShimmerGrid`.
+- Skeleton phải có `role="status"` và label screen-reader tiếng Việt.
+
 ## Hệ Thống Layout
 
 ### App Shell
@@ -231,8 +239,8 @@ Motion:
 Shell desktop:
 
 - Sidebar trái cho điều hướng chính theo role.
-- Top bar cho role switcher, notifications, user identity và sign-out.
-- Nút đăng xuất trong TopBar chỉ mở xác nhận; người dùng phải chọn "Đăng xuất khỏi hệ thống" trước khi session bị xóa.
+- Top bar cho role switcher, notifications và user identity.
+- Nút đăng xuất nằm tách biệt ở cuối sidebar desktop hoặc cuối mobile nav; khi nhấn chỉ mở `ConfirmDialog` giữa màn hình và người dùng phải chọn "Đăng xuất khỏi hệ thống" trước khi session bị xóa.
 - Notification popover phải đóng khi bấm nút đóng, chọn reference action hoặc nhấn ra ngoài popover.
 - Nội dung chính dùng width có giới hạn và responsive grid.
 - Sidebar expanded as-built dùng khoảng `256px`; collapsed dùng khoảng `80px`.
@@ -241,7 +249,7 @@ Shell desktop:
 
 Shell mobile:
 
-- Top app bar hiển thị brand compact, role switcher, notifications và sign-out.
+- Top app bar hiển thị brand compact, role switcher và notifications.
 - Role switcher vẫn phải truy cập được nhưng không chiếm ưu tiên ở first screen.
 - Primary nav dùng bottom navigation sticky, scroll ngang khi role có nhiều route.
 

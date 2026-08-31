@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { ShimmerList } from "../../components/LoadingState";
 import type { ApiAccountStatus } from "../../lib/api/users";
 import type { ApiListResponse } from "../../lib/api/types";
 import type { UserRole } from "../../types/models";
@@ -81,13 +82,12 @@ export function AdminAccounts() {
       {statusAction.error ? <p className="mt-4 text-sm text-danger" role="alert">{statusAction.error instanceof Error ? statusAction.error.message : "Không thể cập nhật trạng thái tài khoản."}</p> : null}
       {resetError ? <p className="mt-4 text-sm text-danger" role="alert">{resetError}</p> : null}
       {error ? <p className="mt-4 text-sm text-danger" role="alert">{error instanceof Error ? error.message : "Không thể tải danh sách tài khoản."}</p> : null}
-      <div className="mt-4 overflow-x-auto border border-border bg-surface">
+      {isLoading ? <div className="mt-4"><ShimmerList label="Đang tải tài khoản" rows={5} /></div> : <div className="mt-4 overflow-x-auto border border-border bg-surface">
         <table aria-label="Tài khoản" className="min-w-full text-left text-sm">
           <thead className="bg-surface-muted text-xs text-text-muted"><tr><th className="p-2 font-medium">Tài khoản</th><th className="p-2 font-medium">Email</th><th className="p-2 font-medium">Vai trò</th><th className="p-2 font-medium">Trạng thái</th><th className="p-2 text-right font-medium">Thao tác</th></tr></thead>
           <tbody>{accounts.map((account) => <tr className="border-t border-border" key={account.id}><td className="p-2 font-medium text-text">{account.displayName}</td><td className="p-2 text-text-muted">{account.email}</td><td className="p-2">{roleLabels[account.role]}</td><td className="p-2">{statusLabels[account.status]}</td><td className="p-2"><div className="flex justify-end gap-2">{account.status === "locked" ? <button aria-label={`Mở khóa ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "unlock" })} type="button">Mở khóa</button> : account.status === "active" ? <button aria-label={`Khóa ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "lock" })} type="button">Khóa</button> : null}<button aria-label={`Vô hiệu hóa ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-danger hover:bg-surface-muted" disabled={account.status === "inactive" || statusAction.isPending} onClick={() => statusAction.mutate({ id: account.id, action: "deactivate" })} type="button">Vô hiệu hóa</button><button aria-label={`Đặt lại mật khẩu cho ${account.displayName}`} className="rounded-md border border-border px-2 py-1 text-xs font-semibold text-text hover:bg-surface-muted" disabled={isResettingPassword} onClick={() => { void resetPassword(account.id); }} type="button">Đặt lại mật khẩu</button></div></td></tr>)}</tbody>
         </table>
-      </div>
-      {isLoading ? <p className="mt-3 text-sm text-text-muted">Đang tải tài khoản...</p> : null}
+      </div>}
       {!isLoading && !accounts.length ? <p className="mt-3 text-sm text-text-muted">Không có tài khoản nào khớp bộ lọc.</p> : null}
     </section>
   );

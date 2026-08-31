@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
 import { appointmentService } from "../appointments/appointmentService";
@@ -60,6 +60,7 @@ describe("patient portal", () => {
     expect(screen.getByText("Tiến trình đặt lịch")).toBeInTheDocument();
     expect(screen.getByText("1. Dịch vụ")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
+    await setClinicDateDay(user, "Ngày khám", 26);
     await user.click(screen.getByLabelText("Bất kỳ bác sĩ nào"));
     expect(screen.getByRole("button", { name: /08:00/i })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: /09:00/i }));
@@ -85,6 +86,7 @@ describe("patient portal", () => {
 
     await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
     await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
+    await setClinicDateDay(user, "Ngày khám", 26);
     await user.click(screen.getByLabelText("Bất kỳ bác sĩ nào"));
     await user.click(screen.getByRole("button", { name: /09:00/i }));
     await appointmentService.createStaffAppointment({
@@ -130,6 +132,18 @@ describe("patient portal", () => {
     expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeDisabled();
   });
 
+  it("allows same-day booking only for slots at least 30 minutes from now", async () => {
+    vi.setSystemTime(new Date("2026-08-25T00:59:00.000Z"));
+    const user = await signInAsPatient();
+
+    await user.click(screen.getByRole("button", { name: "Đặt lịch" }));
+    await user.click(screen.getByRole("button", { name: /Khám tim mạch/i }));
+    expectClinicDateField("Ngày khám", { day: 25, month: 8, year: 2026 });
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /08:30/i })).toBeEnabled());
+    expect(screen.getByRole("button", { name: /08:00/i })).toBeDisabled();
+  });
+
   it("prevents the booking date field from moving before its minimum date", async () => {
     const user = await signInAsPatient();
 
@@ -140,7 +154,7 @@ describe("patient portal", () => {
     await user.click(daySegment);
     await user.keyboard("{ArrowDown}");
 
-    expectClinicDateField("Ngày khám", { day: 26, month: 8, year: 2026 });
+    expectClinicDateField("Ngày khám", { day: 25, month: 8, year: 2026 });
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
