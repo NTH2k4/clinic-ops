@@ -22,6 +22,7 @@ export interface AuthApi {
   login(input: { email: string; password: string }): Promise<AuthLoginResponse>;
   register(input: { displayName: string; email: string; phone: string; password: string }): Promise<AuthLoginResponse>;
   changePassword(input: { currentPassword: string; newPassword: string }): Promise<void>;
+  updateProfile(input: { displayName: string; email: string }): Promise<AuthSession>;
   logout(): Promise<void>;
   me(): Promise<AuthSession>;
 }
@@ -36,6 +37,9 @@ export function createAuthApi(request: ApiRequest): AuthApi {
     },
     changePassword(input) {
       return request<void>("/auth/change-password", { method: "POST", body: JSON.stringify(input) });
+    },
+    updateProfile(input) {
+      return request<AuthSession>("/auth/profile", { method: "PATCH", body: JSON.stringify(input) });
     },
     logout() {
       return request<void>("/auth/logout", { method: "POST" });

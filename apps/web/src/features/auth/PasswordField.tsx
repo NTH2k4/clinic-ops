@@ -7,6 +7,7 @@ type PasswordFieldProps = {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   minLength?: number;
   pattern?: string;
   required?: boolean;
@@ -22,6 +23,7 @@ export function PasswordField({
   id,
   label,
   minLength,
+  onBlur,
   onChange,
   pattern,
   required = false,
@@ -40,6 +42,7 @@ export function PasswordField({
           className="h-11 w-full rounded-md border border-border bg-surface px-3 pr-11 text-text transition-colors hover:border-border-strong focus:border-accent"
           id={id}
           minLength={minLength}
+          onBlur={onBlur}
           onChange={(event) => onChange(event.target.value)}
           pattern={pattern}
           required={required}

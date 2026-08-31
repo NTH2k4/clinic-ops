@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
 import type { Response } from "express";
 import { successEnvelope } from "../common/api-response";
 import { parseSchema } from "../common/validation";
-import { changePasswordSchema, patientRegistrationSchema } from "./auth.dto";
+import { changePasswordSchema, patientRegistrationSchema, updateAccountProfileSchema } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { type AuthenticatedRequest, extractSessionToken, SESSION_COOKIE_NAME, SessionGuard } from "./session.guard";
 
@@ -45,6 +45,12 @@ export class AuthController {
   async changePassword(@Req() request: AuthenticatedRequest, @Body() body: unknown) {
     await this.authService.changePassword(request.currentUser.id, parseSchema(changePasswordSchema, body));
     return successEnvelope({});
+  }
+
+  @Patch("profile")
+  @UseGuards(SessionGuard)
+  async updateProfile(@Req() request: AuthenticatedRequest, @Body() body: unknown) {
+    return successEnvelope(await this.authService.updateAccountProfile(request.currentUser.id, parseSchema(updateAccountProfileSchema, body)));
   }
 
   @Post("logout")

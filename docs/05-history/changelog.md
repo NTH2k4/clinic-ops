@@ -2,6 +2,8 @@
 
 ## 2026-08-31
 
+- Cải thiện trang `Tài khoản của tôi`: ẩn trường kỹ thuật `Hồ sơ liên kết`, thêm chế độ `Sửa thông tin` có xác nhận/hủy cho họ tên và email, và thêm `PATCH /auth/profile` để cập nhật thông tin tài khoản hiện tại trong API mode.
+- Đổi mật khẩu trên account page chỉ hiển thị form sau khi nhấn nút, bổ sung trường nhập lại mật khẩu mới và validation tức thời theo cùng policy với đăng ký tài khoản.
 - Đổi nhãn hiển thị vai trò `patient` trong UI từ `Bệnh nhân` sang `Người dùng` ở login, role switcher, top bar, account page, admin account role label và patient home; các nhãn hồ sơ/nghiệp vụ khám vẫn dùng `bệnh nhân`.
 - Cho phép đặt lịch trong ngày nếu slot còn cách giờ hiện tại ít nhất 30 phút, đồng thời chặn slot đã qua/quá sát ở cả frontend và backend; availability explanation bổ sung reason `too_soon`.
 - Thêm trang dùng chung `Tài khoản của tôi` cho mọi vai trò, gộp đổi mật khẩu vào cùng màn account; chuyển nút đăng xuất xuống cuối sidebar/mobile nav và giữ xác nhận bằng modal giữa màn hình.

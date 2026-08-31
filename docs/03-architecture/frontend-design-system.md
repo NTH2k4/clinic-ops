@@ -413,6 +413,9 @@ Quy tắc:
 - Role và user identity phải nhìn thấy trước khi submit.
 - API-mode error state không được tiết lộ password rule, token hoặc thông tin tồn tại tài khoản; mock-mode chỉ dùng demo role selection cho local prototype.
 - Password fields trên login, registration và change-password dùng icon reveal/hide nằm trong chính textbox. Mỗi textbox giữ trạng thái hiển thị riêng để người dùng có thể kiểm tra từng ô nhập mà không làm thay đổi ô còn lại.
+- Account page hiển thị thông tin cá nhân bằng input disabled mặc định; chỉ khi nhấn `Sửa thông tin` mới enable `Họ tên` và `Email`, kèm nút xác nhận/hủy.
+- Account page không hiển thị `linkedProfile`/`Hồ sơ liên kết` cho người dùng cuối. Đây là định danh kỹ thuật phục vụ phân quyền backend, không phải định danh nghiệp vụ như CCCD.
+- Change-password form trong Account page chỉ mount sau khi người dùng nhấn `Đổi mật khẩu`; form có current password, new password và confirm password, validate cùng policy với registration trước khi submit.
 
 ### Màn Hình Patient
 

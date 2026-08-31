@@ -122,6 +122,7 @@ describe("auth API", () => {
       .mockResolvedValueOnce(loginResponse)
       .mockResolvedValueOnce(loginResponse)
       .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(session)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(session);
     const authApi = createAuthApi(request);
@@ -138,6 +139,7 @@ describe("auth API", () => {
       password: "Careflow#123",
     })).resolves.toMatchObject({ sessionToken: "session-1", currentUser });
     await expect(authApi.changePassword({ currentPassword: "secret", newPassword: "Careflow#124" })).resolves.toBeUndefined();
+    await expect(authApi.updateProfile({ displayName: "Patient Updated", email: "updated.patient@example.test" })).resolves.toEqual(session);
     await expect(authApi.logout()).resolves.toBeUndefined();
     await expect(authApi.me()).resolves.toEqual(session);
 
@@ -158,7 +160,11 @@ describe("auth API", () => {
       method: "POST",
       body: JSON.stringify({ currentPassword: "secret", newPassword: "Careflow#124" }),
     });
-    expect(request).toHaveBeenNthCalledWith(4, "/auth/logout", { method: "POST" });
-    expect(request).toHaveBeenNthCalledWith(5, "/auth/me");
+    expect(request).toHaveBeenNthCalledWith(4, "/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ displayName: "Patient Updated", email: "updated.patient@example.test" }),
+    });
+    expect(request).toHaveBeenNthCalledWith(5, "/auth/logout", { method: "POST" });
+    expect(request).toHaveBeenNthCalledWith(6, "/auth/me");
   });
 });

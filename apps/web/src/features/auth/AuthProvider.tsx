@@ -10,6 +10,7 @@ import type { User, UserRole } from "../../types/models";
 type SignInInput = string | { email: string; password: string };
 type RegisterInput = { displayName: string; email: string; phone: string; password: string };
 type ChangePasswordInput = { currentPassword: string; newPassword: string };
+type UpdateProfileInput = { displayName: string; email: string };
 
 type AuthContextValue = {
   user: CurrentUser | null;
@@ -19,6 +20,7 @@ type AuthContextValue = {
   signIn: (input: SignInInput) => Promise<CurrentUser | null>;
   register: (input: RegisterInput) => Promise<CurrentUser | null>;
   changePassword: (input: ChangePasswordInput) => Promise<boolean>;
+  updateProfile: (input: UpdateProfileInput) => Promise<boolean>;
   signOut: () => Promise<void>;
   switchRole: (role: UserRole) => void;
 };
@@ -189,6 +191,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
           return true;
         } catch (error) {
           setAuthError(userFacingAuthError(error, "Không thể đổi mật khẩu."));
+          return false;
+        }
+      },
+      async updateProfile(input) {
+        setAuthError(null);
+
+        if (!user) {
+          return false;
+        }
+
+        if (!isApiMode) {
+          setUser({ ...user, ...input });
+          return true;
+        }
+
+        try {
+          const session = await authApi.updateProfile(input);
+          setUser(session.currentUser);
+          setLinkedProfile(session.linkedProfile);
+          return true;
+        } catch (error) {
+          setAuthError(userFacingAuthError(error, "Không thể cập nhật thông tin tài khoản."));
           return false;
         }
       },

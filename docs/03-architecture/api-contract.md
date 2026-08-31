@@ -80,6 +80,7 @@ Common error codes:
 | POST | `/auth/login` | public | Đăng nhập bằng email/password. |
 | POST | `/auth/register` | public | Đăng ký tài khoản bệnh nhân và tạo session mới. |
 | POST | `/auth/change-password` | authenticated | Đổi mật khẩu của tài khoản hiện tại, rồi hủy các session đang hoạt động. |
+| PATCH | `/auth/profile` | authenticated | Cập nhật họ tên và email của tài khoản hiện tại. |
 | POST | `/auth/logout` | authenticated | Hủy session/token hiện tại. |
 | GET | `/auth/me` | authenticated | Lấy current user và linked profile. |
 
@@ -118,6 +119,17 @@ Password mới cho registration và password change phải có ít nhất 10 ký
 ```
 
 Response `201` trả `data: {}`. Khi thành công, backend thay password hash và revoke mọi session chưa bị revoke của user, kể cả session đã gọi endpoint.
+
+`PATCH /auth/profile` request:
+
+```json
+{
+  "displayName": "Nguyen Patient",
+  "email": "patient.updated@example.test"
+}
+```
+
+Response `200` có cùng `data` shape với `/auth/me`, gồm `currentUser` đã cập nhật và `linkedProfile` kỹ thuật. UI account chỉ hiển thị `displayName`, `email`, `role` và `status`; `linkedProfile` vẫn dùng cho phân quyền backend nhưng không hiển thị cho người dùng cuối.
 
 `GET /auth/me` response `data`:
 

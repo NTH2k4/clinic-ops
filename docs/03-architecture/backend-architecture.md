@@ -105,6 +105,7 @@ The API uses stored password hashes and bearer sessions:
 - `GET /auth/me` returns the current user and linked profile.
 - `POST /auth/register` accepts only patient registration fields, enforces the new-password policy, creates an `active` user and patient profile transactionally, then returns a new bearer session.
 - `POST /auth/change-password` verifies the current password, enforces the new-password policy, updates its bcrypt hash and revokes every active session for that user, including the calling session.
+- `PATCH /auth/profile` lets the authenticated user update only account-facing `displayName` and `email`, then returns the same current-session shape as `/auth/me`.
 
 This is sufficient for demo deployment and E2E verification, but it is not a complete production auth system. External email reset and SSO remain outside v1.
 
@@ -199,7 +200,7 @@ Notifications are modeled as persisted inbox rows. Users can list their own noti
 | Resource | Endpoints |
 | --- | --- |
 | Health | `GET /health` |
-| Auth | `POST /auth/login`, `POST /auth/register`, `POST /auth/change-password`, `POST /auth/logout`, `GET /auth/me` |
+| Auth | `POST /auth/login`, `POST /auth/register`, `POST /auth/change-password`, `PATCH /auth/profile`, `POST /auth/logout`, `GET /auth/me` |
 | Users | `GET /users`, `GET /users/:id`, `POST /users/:id/lock`, `POST /users/:id/unlock`, `POST /users/:id/deactivate`, `POST /users/:id/reset-password` |
 | Catalog | `GET /doctors`, `GET /doctors/:id`, `POST /doctors`, `PATCH /doctors/:id`, `POST /doctors/:id/deactivate` |
 | Catalog | `GET /specialties`, `POST /specialties`, `PATCH /specialties/:id`, `POST /specialties/:id/deactivate` |

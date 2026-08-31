@@ -29,3 +29,10 @@ export const changePasswordSchema = z.object({
 }).strict();
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+export const updateAccountProfileSchema = z.object({
+  displayName: z.string().trim().min(1).max(200),
+  email: z.string().trim().email(),
+}).strict();
+
+export type UpdateAccountProfileInput = z.infer<typeof updateAccountProfileSchema>;

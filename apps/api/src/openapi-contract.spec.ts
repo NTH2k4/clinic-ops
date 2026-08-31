@@ -46,6 +46,7 @@ describe("OpenAPI contract", () => {
       ["post", "/api/v1/auth/login"],
       ["post", "/api/v1/auth/register"],
       ["post", "/api/v1/auth/change-password"],
+      ["patch", "/api/v1/auth/profile"],
       ["post", "/api/v1/auth/logout"],
       ["get", "/api/v1/auth/me"],
       ["get", "/api/v1/users"],
@@ -110,6 +111,7 @@ describe("OpenAPI contract", () => {
   it("matches account lifecycle request and response schemas", () => {
     expect(spec.paths?.["/api/v1/auth/register"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/PatientRegistration");
     expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/ChangePassword");
+    expect(spec.paths?.["/api/v1/auth/profile"]?.patch?.requestBody?.$ref).toBe("#/components/requestBodies/AccountProfileUpdate");
 
     const responseSchemaRef = (path: string, method: string, status: string) => {
       const responseRef = spec.paths?.[path]?.[method]?.responses?.[status]?.$ref;
@@ -123,6 +125,8 @@ describe("OpenAPI contract", () => {
     expect(spec.paths?.["/api/v1/auth/login"]?.post?.responses?.["200"]).toBeUndefined();
     expect(spec.paths?.["/api/v1/auth/change-password"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/Success");
     expect(responseSchemaRef("/api/v1/auth/change-password", "post", "201")).toBe("#/components/schemas/SuccessEnvelope");
+    expect(spec.paths?.["/api/v1/auth/profile"]?.patch?.responses?.["200"]?.$ref).toBe("#/components/responses/CurrentUser");
+    expect(responseSchemaRef("/api/v1/auth/profile", "patch", "200")).toBe("#/components/schemas/CurrentUserEnvelope");
     expect(spec.paths?.["/api/v1/auth/logout"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/Success");
     expect(spec.paths?.["/api/v1/auth/logout"]?.post?.responses?.["200"]).toBeUndefined();
 
@@ -136,6 +140,12 @@ describe("OpenAPI contract", () => {
     expect(changePassword?.properties?.currentPassword).toMatchObject({ type: "string", minLength: 1, maxLength: 72 });
     expect(changePassword?.properties?.newPassword).toMatchObject({ type: "string", minLength: 10, maxLength: 72 });
     expect(changePassword?.properties?.newPassword).toHaveProperty("pattern");
+
+    const accountProfileUpdate = spec.components?.schemas?.AccountProfileUpdateRequest;
+    expect(accountProfileUpdate?.required).toEqual(["displayName", "email"]);
+    expect(accountProfileUpdate).toHaveProperty("additionalProperties", false);
+    expect(accountProfileUpdate?.properties?.displayName).toMatchObject({ type: "string", minLength: 1, maxLength: 200 });
+    expect(accountProfileUpdate?.properties?.email).toMatchObject({ type: "string", format: "email" });
 
     const user = spec.components?.schemas?.User;
     expect(user?.required).toEqual(["id", "displayName", "email", "phone", "role", "status", "createdAt", "updatedAt", "linkedProfile"]);

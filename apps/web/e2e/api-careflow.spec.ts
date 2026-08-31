@@ -63,9 +63,11 @@ test("password change clears the session and requires login with the new passwor
 
   await registerPatient(page, patient);
   await page.getByRole("navigation", { name: "Điều hướng chính" }).getByRole("link", { name: "Tài khoản của tôi", exact: true }).click();
+  await page.getByRole("button", { name: "Đổi mật khẩu", exact: true }).click();
   await page.getByLabel("Mật khẩu hiện tại", { exact: true }).fill(patient.password);
   await page.getByLabel("Mật khẩu mới", { exact: true }).fill(newPassword);
-  await page.getByRole("button", { name: "Đổi mật khẩu" }).click();
+  await page.getByLabel("Nhập lại mật khẩu mới", { exact: true }).fill(newPassword);
+  await page.getByRole("button", { name: "Xác nhận đổi mật khẩu" }).click();
 
   await expect(page).toHaveURL(/\/login$/);
   await signIn(page, patient.email, patient.password);

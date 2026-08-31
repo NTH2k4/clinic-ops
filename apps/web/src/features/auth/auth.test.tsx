@@ -455,7 +455,7 @@ describe("API authentication", () => {
     expect(confirmPasswordInput).toHaveAttribute("type", "text");
   });
 
-  it("requires both passwords and clears the API session after changing a password", async () => {
+  it("opens password change on demand, validates confirmation, and clears the API session after changing a password", async () => {
     const user = userEvent.setup();
     const sessionToken = "password-session-token";
     const fetcher = vi.fn<typeof fetch>(async (input) => {
@@ -496,11 +496,29 @@ describe("API authentication", () => {
     await user.click(within(screen.getByRole("navigation", { name: "Điều hướng chính" })).getByRole("link", { name: "Tài khoản của tôi" }));
 
     expect(screen.getByRole("heading", { name: "Tài khoản của tôi" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Mật khẩu hiện tại")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hồ sơ liên kết")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Đổi mật khẩu" }));
+
     expect(screen.getByLabelText("Mật khẩu hiện tại")).toBeRequired();
     expect(screen.getByLabelText("Mật khẩu mới")).toBeRequired();
+    expect(screen.getByLabelText("Nhập lại mật khẩu mới")).toBeRequired();
+
+    await user.type(screen.getByLabelText("Mật khẩu mới"), "short");
+    await user.tab();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Mật khẩu cần có ít nhất 10 ký tự.");
+    await user.clear(screen.getByLabelText("Mật khẩu mới"));
     await user.type(screen.getByLabelText("Mật khẩu hiện tại"), "current-password");
     await user.type(screen.getByLabelText("Mật khẩu mới"), "Careflow#124");
-    await user.click(screen.getByRole("button", { name: "Đổi mật khẩu" }));
+    await user.type(screen.getByLabelText("Nhập lại mật khẩu mới"), "Careflow#125");
+    await user.tab();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Mật khẩu xác nhận không khớp.");
+    await user.clear(screen.getByLabelText("Nhập lại mật khẩu mới"));
+    await user.type(screen.getByLabelText("Nhập lại mật khẩu mới"), "Careflow#124");
+    await user.click(screen.getByRole("button", { name: "Xác nhận đổi mật khẩu" }));
 
     expect(await screen.findByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledWith(
@@ -513,6 +531,86 @@ describe("API authentication", () => {
 
     const { getApiSessionToken } = await import("../../lib/api/session");
     expect(getApiSessionToken()).toBeNull();
+  });
+
+  it("edits the current API account profile only after the user enables editing", async () => {
+    const user = userEvent.setup();
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = String(input);
+
+      if (url.endsWith("/auth/login")) {
+        return successResponse({
+          sessionToken: "profile-session-token",
+          currentUser: {
+            id: "user-patient-1",
+            displayName: "API Patient",
+            email: "patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-1" },
+        });
+      }
+
+      if (url.endsWith("/auth/profile")) {
+        return successResponse({
+          currentUser: {
+            id: "user-patient-1",
+            displayName: "API User Updated",
+            email: "updated.patient@example.test",
+            role: "patient",
+            status: "active",
+          },
+          linkedProfile: { type: "patient", id: "patient-1" },
+        });
+      }
+
+      if (url.includes("/services") || url.includes("/doctors") || url.includes("/specialties")) {
+        return new Response(JSON.stringify({ data: [], meta: { requestId: "req-list", page: 1, pageSize: 100, total: 0 } }), { status: 200 });
+      }
+
+      return successResponse({});
+    });
+    vi.stubGlobal("fetch", fetcher);
+
+    await renderApiApp();
+    await user.type(screen.getByLabelText("Email"), "patient@example.test");
+    await user.type(screen.getByLabelText("Mật khẩu"), "current-password");
+    await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    await screen.findByText("Trang chính người dùng");
+    await user.click(within(screen.getByRole("navigation", { name: "Điều hướng chính" })).getByRole("link", { name: "Tài khoản của tôi" }));
+
+    const displayNameInput = screen.getByLabelText("Họ tên");
+    const emailInput = screen.getByLabelText("Email");
+    const roleInput = screen.getByLabelText("Vai trò");
+    const statusInput = screen.getByLabelText("Trạng thái");
+    expect(displayNameInput).toBeDisabled();
+    expect(emailInput).toBeDisabled();
+    expect(roleInput).toBeDisabled();
+    expect(statusInput).toBeDisabled();
+    expect(screen.queryByText("Hồ sơ liên kết")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Sửa thông tin" }));
+
+    expect(displayNameInput).toBeEnabled();
+    expect(emailInput).toBeEnabled();
+    expect(roleInput).toBeDisabled();
+    expect(statusInput).toBeDisabled();
+    await user.clear(displayNameInput);
+    await user.type(displayNameInput, "API User Updated");
+    await user.clear(emailInput);
+    await user.type(emailInput, "updated.patient@example.test");
+    await user.click(screen.getByRole("button", { name: "Xác nhận" }));
+
+    expect(await screen.findByDisplayValue("API User Updated")).toBeDisabled();
+    expect(screen.getByDisplayValue("updated.patient@example.test")).toBeDisabled();
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/v1/auth/profile",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ displayName: "API User Updated", email: "updated.patient@example.test" }),
+      }),
+    );
   });
 
   it("returns to login when a catalog request reports an expired session", async () => {

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { createHash, randomUUID } from "node:crypto";
 import { ApiError } from "../common/api-error";
 import { PrismaService } from "../prisma/prisma.service";
-import { hasBcryptSafeByteLength, type ChangePasswordInput, type PatientRegistrationInput } from "./auth.dto";
+import { hasBcryptSafeByteLength, type ChangePasswordInput, type PatientRegistrationInput, type UpdateAccountProfileInput } from "./auth.dto";
 
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 
@@ -124,8 +124,36 @@ export class AuthService {
     });
   }
 
+  async updateAccountProfile(userId: string, input: UpdateAccountProfileInput): Promise<AuthSession> {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        displayName: input.displayName,
+        email: input.email,
+      },
+      include: { patient: true, staff: true, doctor: true },
+    });
+
+    return this.sessionFromUser(user);
+  }
+
   private async createAuthSession(user: UserWithProfiles, prisma: Pick<PrismaService, "authSession"> = this.prisma): Promise<AuthLoginResult> {
-    const session: AuthSession = {
+    const session = this.sessionFromUser(user);
+    const sessionToken = randomUUID();
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+    await prisma.authSession.create({
+      data: {
+        tokenHash: hashSessionToken(sessionToken),
+        userId: user.id,
+        expiresAt,
+      },
+    });
+
+    return { ...session, sessionToken };
+  }
+
+  private sessionFromUser(user: UserWithProfiles): AuthSession {
+    return {
       currentUser: {
         id: user.id,
         displayName: user.displayName,
@@ -141,17 +169,6 @@ export class AuthService {
             ? { type: "doctor", id: user.doctor.id }
             : null,
     };
-    const sessionToken = randomUUID();
-    const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-    await prisma.authSession.create({
-      data: {
-        tokenHash: hashSessionToken(sessionToken),
-        userId: user.id,
-        expiresAt,
-      },
-    });
-
-    return { ...session, sessionToken };
   }
 
   async getSession(sessionToken: string) {
@@ -173,22 +190,7 @@ export class AuthService {
       return undefined;
     }
 
-    return {
-      currentUser: {
-        id: user.id,
-        displayName: user.displayName,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-      },
-      linkedProfile: user.patient
-        ? { type: "patient", id: user.patient.id }
-        : user.staff
-          ? { type: "staff", id: user.staff.id }
-          : user.doctor
-            ? { type: "doctor", id: user.doctor.id }
-            : null,
-    } satisfies AuthSession;
+    return this.sessionFromUser(user);
   }
 
   async logout(sessionToken: string) {

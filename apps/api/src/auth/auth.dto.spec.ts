@@ -1,4 +1,4 @@
-import { changePasswordSchema, patientRegistrationSchema } from "./auth.dto";
+import { changePasswordSchema, patientRegistrationSchema, updateAccountProfileSchema } from "./auth.dto";
 
 describe("auth dto password policy", () => {
   const strongPassword = "Careflow#123";
@@ -51,5 +51,23 @@ describe("auth dto password policy", () => {
     if (!result.success) {
       expect(result.error.issues.some((issue) => issue.path.join(".") === "newPassword")).toBe(true);
     }
+  });
+
+  it("accepts only display name and email for account profile updates", () => {
+    expect(updateAccountProfileSchema.safeParse({
+      displayName: "Updated Profile User",
+      email: "updated.profile@example.test",
+    }).success).toBe(true);
+
+    expect(updateAccountProfileSchema.safeParse({
+      displayName: "",
+      email: "not-an-email",
+    }).success).toBe(false);
+
+    expect(updateAccountProfileSchema.safeParse({
+      displayName: "Updated Profile User",
+      email: "updated.profile@example.test",
+      role: "admin",
+    }).success).toBe(false);
   });
 });

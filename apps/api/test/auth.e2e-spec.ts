@@ -40,6 +40,7 @@ class AdminOnlyController {
 const loginResponseSchema = z.object({
   data: z.object({
     currentUser: z.object({
+      displayName: z.string(),
       email: z.string(),
       role: z.string(),
       status: z.string(),
@@ -451,6 +452,97 @@ describe("Auth and RBAC", () => {
           expect(parsed.error.code).toBe("UNAUTHENTICATED");
           expect(parsed.error.message).toBe("Current password is incorrect.");
         });
+    } finally {
+      await prisma.user.deleteMany({ where: { email } });
+      await app.close();
+    }
+  });
+
+  it("updates the authenticated user's account profile", async () => {
+    const { app, server } = await createApp();
+    const email = `profile-update-${Date.now()}@careflow.local`;
+    const updatedEmail = `profile-updated-${Date.now()}@careflow.local`;
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: "Profile Update User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+
+      await request(server)
+        .patch("/api/v1/auth/profile")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ displayName: "Updated Profile User", email: updatedEmail })
+        .expect(200)
+        .expect((response) => {
+          const parsed = loginResponseSchema.omit({ data: true }).extend({
+            data: loginResponseSchema.shape.data.omit({ sessionToken: true }),
+          }).parse(response.body);
+          expect(parsed.data.currentUser).toMatchObject({
+            email: updatedEmail,
+            role: "patient",
+            status: "active",
+          });
+          expect(parsed.data.currentUser).toHaveProperty("displayName", "Updated Profile User");
+        });
+
+      await expect(prisma.user.findUniqueOrThrow({ where: { email: updatedEmail } })).resolves.toMatchObject({
+        displayName: "Updated Profile User",
+        email: updatedEmail,
+      });
+    } finally {
+      await prisma.user.deleteMany({ where: { email: { in: [email, updatedEmail] } } });
+      await app.close();
+    }
+  });
+
+  it("validates authenticated account profile updates", async () => {
+    const { app, server } = await createApp();
+    const email = `profile-validation-${Date.now()}@careflow.local`;
+
+    try {
+      await prisma.user.create({
+        data: {
+          displayName: "Profile Validation User",
+          email,
+          passwordHash: customPasswordHash,
+          role: UserRole.patient,
+          status: "active",
+        },
+      });
+      const loginResponse = await request(server)
+        .post("/api/v1/auth/login")
+        .send({ email, password: "custom-password" })
+        .expect(201);
+      const login = loginResponseSchema.parse(loginResponse.body);
+
+      await request(server)
+        .patch("/api/v1/auth/profile")
+        .send({ displayName: "No Session", email: "no-session@example.test" })
+        .expect(401)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("UNAUTHENTICATED"));
+
+      await request(server)
+        .patch("/api/v1/auth/profile")
+        .set("Authorization", `Bearer ${login.data.sessionToken}`)
+        .send({ displayName: "", email, role: "admin" })
+        .expect(400)
+        .expect((response) => expect(errorResponseSchema.parse(response.body).error.code).toBe("VALIDATION_ERROR"));
+
+      await expect(prisma.user.findUniqueOrThrow({ where: { email } })).resolves.toMatchObject({
+        displayName: "Profile Validation User",
+        email,
+      });
     } finally {
       await prisma.user.deleteMany({ where: { email } });
       await app.close();
