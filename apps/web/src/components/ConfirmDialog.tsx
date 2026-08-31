@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { createPortal } from "react-dom";
 
 type ConfirmDialogProps = {
   cancelLabel?: string;
@@ -23,7 +24,7 @@ export function ConfirmDialog({
 
   if (!isOpen) return null;
 
-  return (
+  const dialog = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" role="presentation">
       <section aria-describedby={descriptionId} aria-modal="true" aria-label={title} className="w-full max-w-md rounded-lg bg-surface p-5 shadow-2xl" role="dialog">
         <h2 className="text-lg font-semibold text-text">{title}</h2>
@@ -35,4 +36,8 @@ export function ConfirmDialog({
       </section>
     </div>
   );
+
+  if (typeof document === "undefined") return dialog;
+
+  return createPortal(dialog, document.body);
 }

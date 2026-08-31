@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
 import { ClinicDateField } from "./ClinicDateField";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { LoadingState, ShimmerGrid, ShimmerList } from "./LoadingState";
 import { MetricCard } from "./MetricCard";
 import { SegmentedControl } from "./SegmentedControl";
@@ -251,6 +252,24 @@ describe("shared UI components", () => {
     expect(screen.getByRole("status", { name: "Đang tải danh sách" })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "Đang tải lưới dữ liệu" })).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Không tải được dữ liệu");
+  });
+
+  it("portals confirmation dialogs to the document body", () => {
+    renderWithProviders(
+      <div data-testid="nested-shell">
+        <ConfirmDialog
+          description="Bạn có chắc chắn muốn tiếp tục không?"
+          isOpen
+          onCancel={() => undefined}
+          onConfirm={() => undefined}
+          title="Xác nhận thao tác"
+        />
+      </div>,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Xác nhận thao tác" });
+
+    expect(dialog.parentElement?.parentElement).toBe(document.body);
   });
 
   it("renders segmented control as pressed buttons and handles selection", async () => {
