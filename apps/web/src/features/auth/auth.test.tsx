@@ -72,7 +72,7 @@ describe("authentication and role routing", () => {
   it("signs in with the patient account and switches to the doctor workspace", async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
 
     expect(screen.getByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
 
@@ -103,6 +103,7 @@ describe("authentication and role routing", () => {
         <App />
         <GoToRoleHome />
       </>,
+      { initialEntries: ["/login"] },
     );
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
@@ -120,6 +121,7 @@ describe("authentication and role routing", () => {
         <App />
         <GoToRoleHome />
       </>,
+      { initialEntries: ["/login"] },
     );
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
@@ -134,7 +136,7 @@ describe("authentication and role routing", () => {
 
   it("denies non-operations roles direct access to operations routes", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<><App /><GoToOperations /></>);
+    renderWithProviders(<><App /><GoToOperations /></>, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
@@ -151,7 +153,7 @@ describe("authentication and role routing", () => {
 
   it("allows receptionist and nurse direct access to operations routes", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<><App /><GoToOperations /></>);
+    renderWithProviders(<><App /><GoToOperations /></>, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "receptionist");
@@ -165,7 +167,7 @@ describe("authentication and role routing", () => {
 
   it("denies non-admin roles direct access to admin routes", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<><App /><GoToAdmin /></>);
+    renderWithProviders(<><App /><GoToAdmin /></>, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
     await user.click(screen.getByRole("button", { name: "Go to admin" }));
@@ -178,7 +180,7 @@ describe("authentication and role routing", () => {
 
   it("allows admin direct access to admin routes", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<><App /><GoToAdmin /></>);
+    renderWithProviders(<><App /><GoToAdmin /></>, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "admin");
@@ -190,7 +192,7 @@ describe("authentication and role routing", () => {
   it("asks for confirmation before signing out", async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
     await user.click(screen.getAllByRole("button", { name: "Đăng xuất" })[0]);
@@ -213,7 +215,7 @@ describe("authentication and role routing", () => {
   it("provides mobile navigation for the active role", async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
 
@@ -226,7 +228,7 @@ describe("authentication and role routing", () => {
   it("provides account management from every role navigation", async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
 
@@ -247,7 +249,7 @@ describe("authentication and role routing", () => {
   it("keeps admin mobile navigation sticky and scannable with longer role menus", async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Quản trị/i }));
 
@@ -266,7 +268,7 @@ describe("authentication and role routing", () => {
   it("lets desktop users collapse and expand the sidebar without losing navigation access", async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Người dùng/i }));
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");

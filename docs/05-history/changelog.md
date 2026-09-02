@@ -2,6 +2,7 @@
 
 ## 2026-09-02
 
+- Triển khai public homepage tại route `/`: thêm hero ảnh, chuyên khoa nổi bật, bác sĩ tiêu biểu, quy trình đặt lịch, CTA tới `/register` và `/login`; giữ authenticated workspace ở `/app/*` và login riêng tại `/login`.
 - Bổ sung bộ tài liệu enterprise-lite trước khi dọn dẹp docs cũ: stakeholder/approval matrix, AI agent delivery workflow, BRD, PRD, SRS, sequence diagrams, database ERD, test-case traceability, agent lessons learned và plan triển khai tài liệu.
 - Cập nhật documentation map/change request để ghi rõ các tài liệu mới là source-of-truth bổ sung; chưa xóa hoặc archive planning docs cũ trong lượt này.
 

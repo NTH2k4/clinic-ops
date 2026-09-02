@@ -4,6 +4,7 @@ import { LoginPage } from "../features/auth/LoginPage";
 import { RegisterPage } from "../features/auth/RegisterPage";
 import { ChangePasswordPage } from "../features/auth/ChangePasswordPage";
 import { AccountPage } from "../features/auth/AccountPage";
+import { HomePage } from "../features/home/HomePage";
 import { AdminDashboard } from "../features/admin/AdminDashboard";
 import { AdminDoctors } from "../features/admin/AdminDoctors";
 import { AdminSchedules } from "../features/admin/AdminSchedules";
@@ -30,6 +31,7 @@ import { RoleHomeRedirect } from "../routes/RoleHomeRedirect";
 export function AppRoutes() {
   return (
     <Routes>
+      <Route element={<HomePage />} path="/" />
       <Route element={<LoginPage />} path="/login" />
       <Route element={<RegisterPage />} path="/register" />
       <Route element={<RequireAuth />}>

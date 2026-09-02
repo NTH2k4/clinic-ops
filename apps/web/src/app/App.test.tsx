@@ -4,9 +4,9 @@ import { App } from "./App";
 import { renderWithProviders } from "../test/render";
 
 describe("App", () => {
-  it("renders the CareFlow sign-in entry point", () => {
+  it("renders the public homepage entry point", () => {
     renderWithProviders(<App />);
-    expect(screen.getByText("CareFlow")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Đăng nhập" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "CareFlow Clinic" })).toBeInTheDocument();
+    expect(screen.getByText("Chuyên khoa nổi bật")).toBeInTheDocument();
   });
 });

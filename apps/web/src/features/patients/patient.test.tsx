@@ -21,7 +21,7 @@ afterEach(() => {
 
 async function signInAsPatient() {
   const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-  renderWithProviders(<App />);
+  renderWithProviders(<App />, { initialEntries: ["/login"] });
   await user.click(screen.getByRole("button", { name: /Người dùng/i }));
   return user;
 }

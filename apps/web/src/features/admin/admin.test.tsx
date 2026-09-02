@@ -148,7 +148,7 @@ describe("admin workspace", () => {
       to: "/app/admin/schedules",
     });
 
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Quản trị/i }));
     await user.click((await screen.findAllByRole("link", { name: "Lịch làm việc" }))[0]);
@@ -499,7 +499,7 @@ describe("admin workspace", () => {
     mockStore.notifications[0].recipientUserId = "user-admin-1";
     mockStore.notifications[1].recipientUserId = "user-admin-1";
     mockStore.notifications[1].readAt = "2026-08-24T12:00:00+07:00";
-    renderWithProviders(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/login"] });
 
     await user.click(screen.getByRole("button", { name: /Quản trị/i }));
     await user.click(screen.getByRole("button", { name: "Thông báo" }));

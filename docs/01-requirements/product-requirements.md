@@ -37,6 +37,8 @@ CareFlow giúp phòng khám nhỏ quản lý lịch hẹn và vận hành khám 
 | `PRD-FR-009` | UI hoạt động trên desktop và mobile. | Must |
 | `PRD-FR-010` | Public homepage giới thiệu phòng khám, chuyên khoa và bác sĩ. | Should |
 
+Ghi chú 2026-09-02: `PRD-FR-010` đã được triển khai ở mức static public homepage tại route `/`; CTA chính dẫn tới `/register`, CTA phụ dẫn tới `/login`, không thay thế catalog/API trong booking flow.
+
 ## 4. Non-Functional Requirements
 
 | ID | Requirement |
@@ -106,7 +108,7 @@ Acceptance criteria:
 
 ## 6. Ưu Tiên Triển Khai Sau V1
 
-1. Public homepage thật trên route `/`.
+1. Nâng cấp public homepage từ static content sang nội dung quản trị được khi phòng khám cần vận hành marketing thật.
 2. Planning/docs cleanup sau khi đã bổ sung source-of-truth docs.
 3. Real clinic readiness: thông tin phòng khám, liên hệ, SEO cơ bản.
 4. Notification provider hoặc reminder thật nếu có quyết định riêng.

@@ -6,8 +6,8 @@
 | --- | --- |
 | Tên tài liệu | Frontend Design System |
 | Sản phẩm | CareFlow - Đặt lịch khám online |
-| Phiên bản | 1.3 |
-| Ngày | 2026-08-31 |
+| Phiên bản | 1.4 |
+| Ngày | 2026-09-02 |
 | Trạng thái | v1 accepted |
 | Phạm vi | Design system as-built cho CareFlow v1 web app |
 | Đối tượng đọc | Product owner, frontend developer, QA, agent contributors |
@@ -16,6 +16,7 @@
 
 | Phiên bản | Ngày | Nội dung thay đổi |
 | --- | --- | --- |
+| 1.4 | 2026-09-02 | Bổ sung public homepage tại route `/` và làm rõ khác biệt giữa landing page public với authenticated app shell. |
 | 1.3 | 2026-08-31 | Bổ sung account workspace dùng chung, sidebar logout placement, same-day booking cutoff và skeleton/shimmer loading states cho các màn dữ liệu chính. |
 | 1.2 | 2026-08-28 | Chuẩn hóa tài liệu theo trạng thái CareFlow v1 accepted: auth entry, account administration, scheduling operations, production API mode và verification gates. |
 | 1.1 | 2026-08-26 | Ghi nhận production-style visual refresh cho app shell, dashboard surfaces, metric cards, timeline cards, login surface và token thực tế trong `apps/web`. |
@@ -42,7 +43,7 @@ Design system này là source of truth cho implementation hiện có trong `apps
 
 ### Ưu Tiên Vận Hành
 
-CareFlow là công cụ vận hành phòng khám, không phải landing page. Giao diện cần ưu tiên scan nhanh, thao tác lặp lại và giảm nhầm lẫn khi xử lý appointment.
+Authenticated CareFlow là công cụ vận hành phòng khám, không phải landing page. Giao diện trong `/app/*` cần ưu tiên scan nhanh, thao tác lặp lại và giảm nhầm lẫn khi xử lý appointment.
 
 Quy tắc:
 
@@ -50,6 +51,18 @@ Quy tắc:
 - Không dùng decorative gradient/orb/background nặng.
 - Dashboard dùng layout dày thông tin nhưng có tổ chức: metrics, queue, timeline, filter và table/list rõ ràng.
 - Text mô tả chức năng chỉ dùng khi cần giải nghĩa domain state hoặc empty state, không dùng để quảng cáo tính năng.
+
+### Public Homepage
+
+Route `/` là ngoại lệ public-facing trước khi người dùng đăng nhập. Homepage được phép dùng hero ảnh thật, headline lớn và CTA marketing, nhưng vẫn phải giữ cảm giác y tế hiện đại, rõ ràng và không làm nhiễu đường vào `/login` hoặc `/register`.
+
+Quy tắc:
+
+- Hero dùng ảnh phòng khám/bác sĩ thật hoặc asset bitmap phù hợp, có overlay đủ tương phản.
+- Hero text không đặt trong card; CTA chính dẫn tới `/register`, CTA phụ dẫn tới `/login` hoặc section nội dung.
+- Section public nên giới thiệu chuyên khoa, bác sĩ tiêu biểu, quy trình đặt lịch và CTA cuối trang.
+- Dữ liệu bác sĩ/chuyên khoa trên homepage là curated static content; catalog/API vẫn là source of truth cho authenticated booking flow.
+- Không đưa thông tin y tế nhạy cảm, bệnh án, số điện thoại cá nhân hoặc claim điều trị chưa được xác minh vào homepage.
 
 ### Bình Tĩnh Và Chuyên Nghiệp
 

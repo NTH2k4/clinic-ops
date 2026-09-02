@@ -22,7 +22,7 @@ afterEach(() => {
 
 async function signInAsDoctor() {
   const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-  renderWithProviders(<App />);
+  renderWithProviders(<App />, { initialEntries: ["/login"] });
   await user.click(screen.getByRole("button", { name: /Bác sĩ/i }));
   return user;
 }
