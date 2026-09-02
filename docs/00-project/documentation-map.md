@@ -6,13 +6,14 @@
 | --- | --- |
 | Trạng thái | `active` |
 | Đối tượng đọc chính | Product owner, senior engineer và agent tiếp tục triển khai |
-| Cập nhật lần cuối | 2026-08-28 |
+| Cập nhật lần cuối | 2026-09-02 |
 | Phạm vi | Source-of-truth map cho bộ tài liệu CareFlow v1 |
 
 ## Revision History
 
 | Ngày | Nội dung thay đổi |
 | --- | --- |
+| 2026-09-02 | Bổ sung mapping enterprise-lite sau khi thêm stakeholder/approval matrix, AI agent workflow, BRD, PRD, SRS, sequence diagrams, database ERD, test traceability và agent lessons learned. |
 | 2026-08-28 | Chuẩn hóa sau nghiệm thu v1: production/source-of-truth orientation, mapping enterprise-lite và giữ planning docs làm implementation records. |
 
 Tài liệu này ghi rõ source of truth của CareFlow sau khi v1 đã được nghiệm thu, cách đọc bộ docs hiện có và phần nào chỉ nên bổ sung khi scope vượt quá v1.
@@ -30,21 +31,23 @@ BRD -> PRD -> SRS -> ARCHITECTURE -> TECHNICAL-DESIGN -> UC-API-SPEC -> SEQUENCE
 CareFlow áp dụng chuỗi nhẹ hơn và đã hoàn tất cho v1:
 
 ```text
-Vision/Scope -> MVP/v1 Requirements -> Product Workflows -> Architecture/API/Data Model -> Implementation Plans -> Verification -> Release Acceptance
+Vision/Scope -> Stakeholders/Agent Workflow -> BRD/PRD/SRS -> Product Workflows -> Architecture/API/Data Model/ERD/Sequence -> Implementation Plans -> Verification -> Release Acceptance
 ```
 
 ## Mapping Với Tài Liệu Mẫu
 
 | Tài liệu mẫu | Mục đích | Tài liệu CareFlow hiện tại | Trạng thái |
 | --- | --- | --- | --- |
-| BRD | Mục tiêu nghiệp vụ, stakeholder, scope, business rules | `docs/00-project/vision.md`, `docs/00-project/scope.md`, `docs/01-requirements/mvp-requirements.md` | Có bản nhẹ |
-| PRD | Product requirements, persona, user stories, acceptance criteria | `docs/01-requirements/mvp-requirements.md`, `docs/01-requirements/user-stories.md`, `docs/02-product/workflows.md`, `docs/02-product/frontend-mvp-spec.md` | Có frontend MVP spec |
-| SRS | Software requirements chi tiết | `docs/01-requirements/mvp-requirements.md`, `docs/01-requirements/v1-traceability-matrix.md`, `docs/02-product/workflows.md` | Đủ cho v1; chỉ tách SRS riêng khi scope mở rộng |
+| Stakeholder/Approval | Người duyệt, approval gate, sensitive-data boundary | `docs/00-project/stakeholder-and-approval-matrix.md` | Có baseline |
+| AI Agent Workflow | Quy trình agent từ input tới deploy/feedback | `docs/00-project/ai-agent-delivery-workflow.md` | Có baseline |
+| BRD | Mục tiêu nghiệp vụ, stakeholder, scope, business rules | `docs/01-requirements/business-requirements.md`, `docs/00-project/vision.md`, `docs/00-project/scope.md` | Có BRD baseline |
+| PRD | Product requirements, persona, user stories, acceptance criteria | `docs/01-requirements/product-requirements.md`, `docs/01-requirements/user-stories.md`, `docs/02-product/workflows.md`, `docs/02-product/frontend-mvp-spec.md` | Có PRD baseline |
+| SRS | Software requirements chi tiết | `docs/01-requirements/software-requirements-specification.md`, `docs/01-requirements/v1-traceability-matrix.md`, `docs/02-product/workflows.md` | Có SRS baseline |
 | ARCHITECTURE | Kiến trúc tổng thể | `docs/03-architecture/frontend-architecture.md`, `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/data-model.md`, `docs/03-architecture/security-notes.md`, `docs/03-architecture/audit-data-governance.md` | Có frontend và backend baseline |
 | TECHNICAL-DESIGN | Thiết kế kỹ thuật chi tiết | `docs/03-architecture/backend-architecture.md`, `docs/03-architecture/frontend-architecture.md`, `docs/04-planning/*-plan.md` | Có as-built architecture và implementation records |
 | UC-API-SPEC | Use case và API specification | `docs/03-architecture/api-contract.md`, `docs/03-architecture/openapi.json` | Có markdown contract và OpenAPI baseline |
-| SEQUENCE | Sequence cho flow chính | `docs/02-product/workflows.md`, `docs/02-product/appointment-states.md`, `docs/03-architecture/api-contract.md` | Có flow/API text; sequence diagram riêng chưa cần cho v1 |
-| DATABASE/ERD | Schema và quan hệ database | `docs/03-architecture/data-model.md`, `docs/03-architecture/database-schema.md` | Có conceptual model và schema reference |
+| SEQUENCE | Sequence cho flow chính | `docs/03-architecture/sequence-diagrams.md`, `docs/02-product/workflows.md`, `docs/02-product/appointment-states.md`, `docs/03-architecture/api-contract.md` | Có sequence baseline |
+| DATABASE/ERD | Schema và quan hệ database | `docs/03-architecture/database-erd.md`, `docs/03-architecture/data-model.md`, `docs/03-architecture/database-schema.md` | Có schema reference và ERD Mermaid |
 | Frontend DESIGN | Design tokens, layout, accessibility, responsive rules | `docs/03-architecture/frontend-design-system.md` | Có bản baseline |
 | Frontend README | Setup, scripts, mock/API boundary, auth/session và verification | `apps/web/README.md` | Source of truth cho web runtime |
 | Backend README | Setup, scripts, local database, seed accounts, API resources và verification | `apps/api/README.md` | Source of truth cho API runtime |
@@ -56,6 +59,9 @@ Vision/Scope -> MVP/v1 Requirements -> Product Workflows -> Architecture/API/Dat
 | CareFlow V1 Subagent Execution | Kế hoạch điều phối workstream v1 bằng subagent-driven development | `docs/04-planning/careflow-v1-subagent-execution-plan.md` | Đã duyệt execution map; push/deploy vẫn cần gate riêng |
 | CareFlow V1 Traceability Matrix | Link từng requirement v1 tới product docs, architecture/API docs, implementation plans và verification evidence | `docs/01-requirements/v1-traceability-matrix.md` | Accepted |
 | CareFlow V1 Acceptance Package | Checklist cuối để người dùng duyệt release v1 mà không cần đọc chat history | `docs/06-testing/v1-acceptance-package.md` | Accepted |
+| Test Traceability | Mapping requirement tới test/evidence | `docs/06-testing/test-case-traceability.md` | Có baseline |
+| Agent Lessons Learned | Bài học brief/agent/subagent/deploy | `docs/05-history/agent-lessons-learned.md` | Có baseline |
+| Documentation Completion | Kế hoạch bổ sung tài liệu trước cleanup | `docs/04-planning/documentation-completion-plan.md` | Complete |
 | Account Administration | Kế hoạch Phase 2 cho auth/account lifecycle: patient registration, password change, admin reset/status actions và account UI | `docs/04-planning/account-administration-plan.md` | Deployed complete trên Render |
 | Scheduling Operations | Kế hoạch Phase 3 cho schedule management UI, blocked/leave intervals và availability explanation | `docs/04-planning/scheduling-operations-plan.md` | Deployed complete trên Render |
 | Production Demo Operations | Kế hoạch Phase 4 cho Render/Neon operations, smoke script, deploy hook hardening và runbook closure | `docs/04-planning/production-demo-operations-plan.md` | Deployed complete trên Render |
@@ -66,9 +72,13 @@ Vision/Scope -> MVP/v1 Requirements -> Product Workflows -> Architecture/API/Dat
 ### Source Of Truth Đã Ổn
 
 - Có cấu trúc docs rõ theo nhóm project, requirements, product, architecture, planning, history và testing.
+- Có stakeholder/approval matrix và AI agent delivery workflow để ghi rõ ai duyệt, việc nào cần approval, tool access và dữ liệu nhạy cảm không được đưa cho agent.
 - Có policy tiếng Việt mặc định cho tài liệu hướng dự án/người dùng; tài liệu agent-only có thể dùng tiếng Anh khi tooling yêu cầu và phải có bản tổng quan tiếng Việt khi ảnh hưởng tới tiến độ.
 - Có change requests, changelog và decision log.
+- Có BRD/PRD/SRS baseline để map mục tiêu nghiệp vụ, yêu cầu sản phẩm và yêu cầu phần mềm theo bộ quy trình AI Agent.
 - Có conceptual data model đủ tốt hơn bản nháp ban đầu.
+- Có database ERD Mermaid để nhìn quan hệ chính mà không phụ thuộc ảnh tĩnh.
+- Có sequence diagrams cho các luồng chính: đăng ký/đăng nhập, đặt lịch, xác nhận/check-in, bác sĩ khám, admin schedule và production smoke.
 - Có appointment states và workflows cơ bản.
 - Có frontend architecture direction.
 - Có frontend MVP spec với personas, routes, screen specs, workflows, MoSCoW priority và acceptance criteria.
@@ -92,24 +102,22 @@ Vision/Scope -> MVP/v1 Requirements -> Product Workflows -> Architecture/API/Dat
 - Có kế hoạch Phase 3 tại `docs/04-planning/scheduling-operations-plan.md`, tập trung vào Scheduling Operations UI, blocked/leave intervals và availability explanation; Phase 3 đã deployed complete trên Render.
 - Có kế hoạch Phase 4 tại `docs/04-planning/production-demo-operations-plan.md`, tập trung vào smoke script, deploy hook hardening và runbook vận hành demo; Phase 4 đã deployed complete trên Render.
 - Có Phase 5 documentation closure gồm `docs/04-planning/v1-documentation-closure-plan.md`, `docs/01-requirements/v1-traceability-matrix.md` và `docs/06-testing/v1-acceptance-package.md` để người dùng duyệt v1 không cần đọc chat history.
+- Có test-case traceability baseline để nối requirement area với unit, integration, E2E, production smoke và acceptance evidence.
+- Có agent lessons learned để ghi lại bài học brief, subagent, review gate, deploy và production smoke cho các vòng sau.
 
 ### Còn Thiếu So Với Mẫu Nhưng Không Block V1
 
-- Chưa có phần kiểm soát tài liệu và lịch sử phiên bản trong mọi tài liệu; các tài liệu trọng yếu sẽ được bổ sung khi có thay đổi đáng kể.
-- Chưa có BRD/SRS chuẩn theo template riêng; frontend MVP spec hiện đóng vai trò PRD gọn cho phase đầu.
-- Đã có persona chi tiết ở `docs/02-product/frontend-mvp-spec.md`, nhưng chưa có stakeholder matrix riêng.
-- Đã có MoSCoW priority và acceptance criteria cho frontend MVP; Phase 5 bổ sung trace đầy đủ theo nhóm requirement v1 tại `docs/01-requirements/v1-traceability-matrix.md`.
-- Chưa có traceability matrix dạng enterprise chi tiết theo từng test case; v1 dùng matrix gọn theo requirement area để tránh tài liệu nặng không cần thiết.
-- API contract v1 đã có response standard, error code convention, endpoint detail và OpenAPI machine-readable spec baseline.
-- Chưa có sequence diagram/spec cho các flow chính.
-- Chưa có ERD dạng hình/diagram; hiện đã có database schema reference dạng text.
+- Một số tài liệu cũ trong `docs/04-planning/` và `docs/superpowers/plans/` vẫn cần planning index để phân biệt source of truth, implementation record, superseded record và reference-only record.
+- BRD/PRD/SRS/Sequence/ERD đã có baseline, nhưng chưa cần mở rộng thành bản enterprise dài như mẫu nếu scope vẫn là v1/demo.
+- Test traceability hiện map theo requirement area; nếu dự án vào giai đoạn production thật có thể tách tới từng test case/spec file.
+- Rollback runbook vẫn nên chi tiết hơn theo tình huống DB/API/Web failure nếu triển khai cho phòng khám thật.
 
 ## Khuyến Nghị Bước Tiếp Theo
 
 Thứ tự nên làm tiếp:
 
-1. Tạo plan riêng cho V1.1 Real Clinic Readiness trước khi thêm feature hoặc refactor runtime.
-2. Giữ `docs/04-planning/mvp-release-readiness.md` được cập nhật nếu có feedback sau nghiệm thu V1.
-3. Xin approval rõ trước khi push hoặc deploy thay đổi ảnh hưởng shared `main` hoặc production.
-4. Duy trì OpenAPI spec đã checked-in khi endpoint behavior thay đổi.
-5. Chỉ thêm SRS/diagram nặng hơn khi product/API scope vượt quá v1 hiện tại.
+1. Tạo planning index để phân loại plan nào còn active, plan nào là implementation record, plan nào đã superseded trước khi dọn dẹp tài liệu.
+2. Tạo plan riêng cho V1.1 Real Clinic Readiness trước khi thêm feature hoặc refactor runtime.
+3. Ghi mọi yêu cầu mới vào `docs/01-requirements/change-requests.md` trước khi triển khai, bao gồm homepage public.
+4. Xin approval rõ trước khi push hoặc deploy thay đổi ảnh hưởng shared `main` hoặc production.
+5. Duy trì OpenAPI spec đã checked-in khi endpoint behavior thay đổi.

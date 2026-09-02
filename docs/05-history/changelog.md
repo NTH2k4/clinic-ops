@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-02
+
+- Bổ sung bộ tài liệu enterprise-lite trước khi dọn dẹp docs cũ: stakeholder/approval matrix, AI agent delivery workflow, BRD, PRD, SRS, sequence diagrams, database ERD, test-case traceability, agent lessons learned và plan triển khai tài liệu.
+- Cập nhật documentation map/change request để ghi rõ các tài liệu mới là source-of-truth bổ sung; chưa xóa hoặc archive planning docs cũ trong lượt này.
+
 ## 2026-08-31
 
 - Cải thiện trang `Tài khoản của tôi`: ẩn trường kỹ thuật `Hồ sơ liên kết`, thêm chế độ `Sửa thông tin` có xác nhận/hủy cho họ tên và email, và thêm `PATCH /auth/profile` để cập nhật thông tin tài khoản hiện tại trong API mode.

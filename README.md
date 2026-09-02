@@ -105,12 +105,12 @@ node scripts/production-smoke.mjs https://clinic-ops.onrender.com
 
 ## Documentation
 
-- `docs/00-project/`: vision, scope, glossary, workflow, documentation standards và documentation map.
-- `docs/01-requirements/`: MVP/v1 requirements, user roles, user stories, change requests và traceability matrix.
+- `docs/00-project/`: vision, scope, glossary, workflow, stakeholder/approval matrix, AI-agent workflow, documentation standards và documentation map.
+- `docs/01-requirements/`: business/product/software requirements, MVP/v1 requirements, user roles, user stories, change requests và traceability matrix.
 - `docs/02-product/`: workflows, screens, frontend MVP spec và appointment states.
-- `docs/03-architecture/`: frontend/backend architecture, design system, API contract, OpenAPI, database schema, security notes, runbook và governance.
-- `docs/04-planning/`: roadmap, implementation plans và release/deployment readiness records. Các plan cũ được giữ làm lịch sử triển khai.
-- `docs/05-history/`: changelog, decision log và release notes.
-- `docs/06-testing/`: test strategy, acceptance checklist và v1 acceptance package.
+- `docs/03-architecture/`: frontend/backend architecture, design system, API contract, OpenAPI, database schema/ERD, sequence diagrams, security notes, runbook và governance.
+- `docs/04-planning/`: roadmap, implementation plans, documentation completion plan và release/deployment readiness records. Các plan cũ được giữ làm lịch sử triển khai.
+- `docs/05-history/`: changelog, decision log, release notes và agent lessons learned.
+- `docs/06-testing/`: test strategy, test-case traceability, acceptance checklist và v1 acceptance package.
 
 CareFlow vẫn theo nguyên tắc documentation-first: thay đổi scope, API contract, security behavior hoặc release evidence phải được cập nhật trong docs cùng với implementation.
