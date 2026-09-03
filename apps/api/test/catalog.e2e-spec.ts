@@ -154,6 +154,11 @@ describe("Catalog resources", () => {
     }
   });
 
+  it("does not seed active doctors without linked doctor user accounts", async () => {
+    const result = await prisma.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(*)::bigint AS count FROM "Doctor" WHERE "status" = 'active'::"DoctorStatus" AND "userId" IS NULL`;
+    expect(Number(result[0]?.count ?? 0)).toBe(0);
+  });
+
   it("writes audit events when an admin creates, updates, and deactivates a service", async () => {
     const { app, server } = await createApp();
 
@@ -214,6 +219,43 @@ describe("Catalog resources", () => {
           expect(parsed.data.some((service) => service.id === created.data.id)).toBe(false);
         });
     } finally {
+      await app.close();
+    }
+  });
+
+  it("creates a doctor with a linked login account", async () => {
+    const { app, server } = await createApp();
+    const email = `doctor-linked-${Date.now()}@example.test`;
+
+    try {
+      const token = await login(server, "admin@careflow.local");
+      const createResponse = await request(server)
+        .post("/api/v1/doctors")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          fullName: "Dr. Linked Account",
+          specialtyId: "specialty-general",
+          phone: "+84936660001",
+          email,
+          title: "MD",
+          room: "A901",
+          serviceIds: ["service-general"],
+        })
+        .expect(201);
+      const created = doctorSchema.parse(createResponse.body).data;
+
+      const doctor = await prisma.doctor.findUniqueOrThrow({ where: { id: created.id }, include: { user: true } });
+      expect(doctor.userId).toBeTruthy();
+      expect(doctor.user).toMatchObject({
+        displayName: "Dr. Linked Account",
+        email,
+        role: "doctor",
+        status: "active",
+      });
+      await request(server).post("/api/v1/auth/login").send({ email, password: "careflow123" }).expect(201);
+    } finally {
+      await prisma.doctor.deleteMany({ where: { email } });
+      await prisma.user.deleteMany({ where: { email } });
       await app.close();
     }
   });

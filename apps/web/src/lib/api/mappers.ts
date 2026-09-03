@@ -14,7 +14,7 @@ export function mapSpecialty(record: ApiSpecialtyRecord): Specialty {
 export function mapDoctor(record: ApiDoctorRecord): Doctor {
   return {
     id: record.id,
-    ...(record.userId ? { userId: record.userId } : {}),
+    userId: record.userId,
     fullName: record.fullName,
     specialtyId: record.specialtyId,
     serviceIds: record.services.map((service) => service.id),

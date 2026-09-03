@@ -75,7 +75,7 @@ export interface Staff {
 
 export interface Doctor {
   id: string;
-  userId?: string;
+  userId: string;
   fullName: string;
   specialtyId: string;
   serviceIds: string[];

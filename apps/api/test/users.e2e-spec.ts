@@ -39,7 +39,7 @@ const usersListResponseSchema = z.object({
 });
 
 const resetPasswordResponseSchema = z.object({
-  data: z.object({ temporaryPassword: z.string().min(8) }),
+  data: z.object({ temporaryPassword: z.literal("careflow123") }),
 });
 
 const passwordHash = "$2a$10$c1VsAHp3ekzMRZ.TnR0uSu89qTaTlpJmq1tVRFQirbbDBHvIyxrfO";

@@ -103,7 +103,7 @@ export function createAdminAccountsService(options: AdminAccountsServiceOptions)
     async resetPassword(id) {
       if (api) return api.resetPassword(id);
       requireMockUser(id);
-      return { temporaryPassword: `temporary-password-${id}` };
+      return { temporaryPassword: "careflow123" };
     },
   };
 }

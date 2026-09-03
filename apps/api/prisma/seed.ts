@@ -40,10 +40,10 @@ const services = [
 
 const doctors = [
   { id: "doctor-1", userId: "user-doctor-1", fullName: "Dr. Minh Nguyen", specialtyId: "specialty-general", phone: "+84900000001", email: "minh.nguyen@careflow.local", title: "MD", room: "A101", serviceIds: ["service-general", "service-follow-up", "service-health-check"] },
-  { id: "doctor-2", fullName: "Dr. Lan Tran", specialtyId: "specialty-cardiology", phone: "+84900000002", email: "lan.tran@careflow.local", title: "MD", room: "B201", serviceIds: ["service-cardiac", "service-ecg", "service-heart-follow-up"] },
-  { id: "doctor-3", fullName: "Dr. Quang Pham", specialtyId: "specialty-pediatrics", phone: "+84900000003", email: "quang.pham@careflow.local", title: "MD", room: "C301", serviceIds: ["service-pediatric", "service-vaccination"] },
-  { id: "doctor-4", fullName: "Dr. Hoa Le", specialtyId: "specialty-general", phone: "+84900000004", email: "hoa.le@careflow.local", title: "MD", room: "A102", serviceIds: ["service-general", "service-follow-up"] },
-  { id: "doctor-5", fullName: "Dr. Tuan Vo", specialtyId: "specialty-cardiology", phone: "+84900000005", email: "tuan.vo@careflow.local", title: "MD", room: "B202", serviceIds: ["service-cardiac", "service-ecg"] },
+  { id: "doctor-2", userId: "user-doctor-2", fullName: "Dr. Lan Tran", specialtyId: "specialty-cardiology", phone: "+84900000002", email: "lan.tran@careflow.local", title: "MD", room: "B201", serviceIds: ["service-cardiac", "service-ecg", "service-heart-follow-up"] },
+  { id: "doctor-3", userId: "user-doctor-3", fullName: "Dr. Quang Pham", specialtyId: "specialty-pediatrics", phone: "+84900000003", email: "quang.pham@careflow.local", title: "MD", room: "C301", serviceIds: ["service-pediatric", "service-vaccination"] },
+  { id: "doctor-4", userId: "user-doctor-4", fullName: "Dr. Hoa Le", specialtyId: "specialty-general", phone: "+84900000004", email: "hoa.le@careflow.local", title: "MD", room: "A102", serviceIds: ["service-general", "service-follow-up"] },
+  { id: "doctor-5", userId: "user-doctor-5", fullName: "Dr. Tuan Vo", specialtyId: "specialty-cardiology", phone: "+84900000005", email: "tuan.vo@careflow.local", title: "MD", room: "B202", serviceIds: ["service-cardiac", "service-ecg"] },
   { id: "doctor-test", userId: "user-doctor-test", fullName: "Doctor Test", specialtyId: "specialty-general", phone: "+84900000006", email: "doctor@test.com", title: "MD", room: "A103", serviceIds: ["service-general", "service-follow-up", "service-health-check"] },
 ];
 
@@ -95,6 +95,10 @@ async function seedDatabase(db: SeedClient) {
     data: [
       { id: "user-patient-1", displayName: "Patient Demo", email: "patient@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000001", role: UserRole.patient, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
       { id: "user-doctor-1", displayName: "Dr. Minh Nguyen", email: "minh.nguyen@careflow.local", passwordHash: demoPasswordHash, phone: "+84900000001", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-doctor-2", displayName: "Dr. Lan Tran", email: "lan.tran@careflow.local", passwordHash: demoPasswordHash, phone: "+84900000002", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-doctor-3", displayName: "Dr. Quang Pham", email: "quang.pham@careflow.local", passwordHash: demoPasswordHash, phone: "+84900000003", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-doctor-4", displayName: "Dr. Hoa Le", email: "hoa.le@careflow.local", passwordHash: demoPasswordHash, phone: "+84900000004", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
+      { id: "user-doctor-5", displayName: "Dr. Tuan Vo", email: "tuan.vo@careflow.local", passwordHash: demoPasswordHash, phone: "+84900000005", role: UserRole.doctor, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
       { id: "user-receptionist-1", displayName: "Reception Demo", email: "reception@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000002", role: UserRole.receptionist, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
       { id: "user-nurse-1", displayName: "Nurse Demo", email: "nurse@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000003", role: UserRole.nurse, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },
       { id: "user-admin-1", displayName: "Admin Demo", email: "admin@careflow.local", passwordHash: demoPasswordHash, phone: "+84910000004", role: UserRole.admin, status: "active", createdAt: seedTimestamp, updatedAt: seedTimestamp },

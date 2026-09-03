@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ClipboardCheck, Search, UserRoundPlus } from "lucide-react";
 import { useState } from "react";
+import { ClinicDateField } from "../../components/ClinicDateField";
 import { ShimmerBlock } from "../../components/LoadingState";
 import { formatDateTime } from "../../lib/dateTime";
 import { catalogQueryOptions } from "../catalog/catalogService";
@@ -92,7 +93,7 @@ export function WalkInIntakePage() {
               <label className="text-sm font-medium text-text">BHYT<input className="mt-1 h-11 w-full rounded-md border border-border px-3 text-sm" onChange={(event) => { setHealthInsuranceNumber(event.target.value); setQuote(null); }} value={healthInsuranceNumber} /></label>
               <label className="text-sm font-medium text-text">Họ và tên<input className="mt-1 h-11 w-full rounded-md border border-border px-3 text-sm" onChange={(event) => { setFullName(event.target.value); setQuote(null); }} value={fullName} /></label>
               <label className="text-sm font-medium text-text">Số điện thoại<input className="mt-1 h-11 w-full rounded-md border border-border px-3 text-sm" onChange={(event) => { setPhone(event.target.value); setQuote(null); }} value={phone} /></label>
-              <label className="text-sm font-medium text-text">Ngày sinh<input className="mt-1 h-11 w-full rounded-md border border-border px-3 text-sm" onChange={(event) => { setDateOfBirth(event.target.value); setQuote(null); }} type="date" value={dateOfBirth} /></label>
+              <ClinicDateField id="walk-in-date-of-birth" label="Ngày sinh" onChange={(value) => { setDateOfBirth(value); setQuote(null); }} value={dateOfBirth} />
               <label className="text-sm font-medium text-text">Người giám hộ<input className="mt-1 h-11 w-full rounded-md border border-border px-3 text-sm" onChange={(event) => { setGuardianName(event.target.value); setQuote(null); }} value={guardianName} /></label>
               <label className="text-sm font-medium text-text sm:col-span-2">Địa chỉ<input className="mt-1 h-11 w-full rounded-md border border-border px-3 text-sm" onChange={(event) => { setAddress(event.target.value); setQuote(null); }} value={address} /></label>
               <label className="text-sm font-medium text-text">SĐT người giám hộ<input className="mt-1 h-11 w-full rounded-md border border-border px-3 text-sm" onChange={(event) => { setGuardianPhone(event.target.value); setQuote(null); }} value={guardianPhone} /></label>

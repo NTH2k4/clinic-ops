@@ -35,7 +35,7 @@ export interface ApiSpecialtyRecord {
 
 export interface ApiDoctorRecord {
   id: string;
-  userId: string | null;
+  userId: string;
   fullName: string;
   specialtyId: string;
   phone: string;

@@ -162,13 +162,13 @@ Trạng thái: đã triển khai list/detail, lock/unlock, deactivate và reset 
 | POST | `/users/{id}/lock` | admin | Khóa user khác, revoke các session đang hoạt động và ghi audit event. |
 | POST | `/users/{id}/unlock` | admin | Mở khóa user và ghi audit event. |
 | POST | `/users/{id}/deactivate` | admin | Vô hiệu hóa user khác, revoke các session đang hoạt động và giữ audit history. |
-| POST | `/users/{id}/reset-password` | admin | Đặt temporary password, revoke mọi session và ghi audit event. |
+| POST | `/users/{id}/reset-password` | admin | Đặt temporary password cố định `careflow123`, revoke mọi session và ghi audit event. |
 
 User list dùng pagination chuẩn và các filter tùy chọn `q`, `role` (`patient`, `doctor`, `receptionist`, `nurse`, `admin`) và `status` (`active`, `inactive`, `locked`). User detail và status action trả object `data` gồm `id`, `displayName`, `email`, `phone`, `role`, `status`, `createdAt`, `updatedAt` và `linkedProfile`.
 
 Path parameter `id` của user endpoints được validate bằng Zod: không rỗng, tối đa 100 ký tự, chỉ gồm chữ, số, `_` hoặc `-`.
 
-Admin không thể tự khóa hoặc tự vô hiệu hóa tài khoản của mình. Status transition hợp lệ là `active -> locked`, `locked -> active` và `active|locked -> inactive`; không có reactivation từ `inactive` trong slice này. Lock/deactivate khiến session hiện tại của target không còn dùng được; unlock không tạo session mới. Reset password trả `data.temporaryPassword` duy nhất trong response, nên client quản trị phải chuyển cho người dùng bằng kênh phù hợp và không ghi giá trị này vào log/audit. Account lifecycle mutation và audit event được ghi trong cùng database transaction.
+Admin không thể tự khóa hoặc tự vô hiệu hóa tài khoản của mình. Status transition hợp lệ là `active -> locked`, `locked -> active` và `active|locked -> inactive`; không có reactivation từ `inactive` trong slice này. Lock/deactivate khiến session hiện tại của target không còn dùng được; unlock không tạo session mới. Reset password trả `data.temporaryPassword = "careflow123"` duy nhất trong response, nên client quản trị phải chuyển cho người dùng bằng kênh phù hợp và không ghi giá trị này vào log/audit. Account lifecycle mutation và audit event được ghi trong cùng database transaction.
 
 ### Patients
 
@@ -195,9 +195,11 @@ Staff search can match full CCCD/BHYT, guardian details, name or phone. List res
 | --- | --- | --- | --- |
 | GET | `/doctors` | authenticated | List doctors với `specialtyId`, `serviceId`, `status`. |
 | GET | `/doctors/{id}` | authenticated | Lấy chi tiết doctor. |
-| POST | `/doctors` | admin | Tạo doctor. |
+| POST | `/doctors` | admin | Tạo doctor và tạo luôn tài khoản đăng nhập role `doctor` với temporary password `careflow123`. |
 | PATCH | `/doctors/{id}` | admin | Sửa specialty, services, contact, title, room, status. |
 | POST | `/doctors/{id}/deactivate` | admin | Vô hiệu hóa doctor nếu không có appointment active. |
+
+Mọi `Doctor` phải liên kết với một `User` role `doctor`; `Doctor.userId` là required và unique. Khi admin cập nhật `fullName`, `email` hoặc `phone` của doctor, backend đồng bộ các trường định danh tương ứng trên tài khoản đăng nhập liên kết.
 
 ### Specialties
 

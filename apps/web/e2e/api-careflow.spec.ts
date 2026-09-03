@@ -92,8 +92,10 @@ test("admin can lock and unlock a registered patient account", async ({ page, re
   const account = page.getByRole("row", { name: new RegExp(patient.email) });
   await expect(account).toBeVisible();
   await account.getByRole("button", { name: `Khóa ${patient.displayName}` }).click();
+  await page.getByRole("button", { name: "Khóa tài khoản" }).click();
   await expect(account.getByRole("button", { name: `Mở khóa ${patient.displayName}` })).toBeVisible();
   await account.getByRole("button", { name: `Mở khóa ${patient.displayName}` }).click();
+  await page.getByRole("button", { name: "Mở khóa tài khoản" }).click();
   await expect(account.getByRole("button", { name: `Khóa ${patient.displayName}` })).toBeVisible();
 });
 

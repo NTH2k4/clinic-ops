@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { AppointmentStatus, type Prisma, ServiceStatus } from "@prisma/client";
+import { AccountStatus, AppointmentStatus, type Prisma, ServiceStatus, UserRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { ApiError } from "../common/api-error";
 import { paginationArgs, type Pagination } from "../common/validation";
 import { PrismaService } from "../prisma/prisma.service";
@@ -41,6 +42,7 @@ const activeAppointmentStatuses: AppointmentStatus[] = [
   AppointmentStatus.checked_in,
   AppointmentStatus.in_progress,
 ];
+const defaultDoctorPassword = "careflow123";
 
 @Injectable()
 export class CatalogService {
@@ -191,14 +193,20 @@ export class CatalogService {
 
   async createDoctor(input: DoctorInput, actorUserId: string) {
     const specialtyId = this.requiredString(input.specialtyId, "specialtyId");
+    const fullName = this.requiredString(input.fullName, "fullName");
+    const phone = this.requiredString(input.phone, "phone");
+    const email = this.requiredString(input.email, "email");
     await this.require(this.prisma.specialty.findUnique({ where: { id: specialtyId } }), "specialty");
+    const passwordHash = await bcrypt.hash(defaultDoctorPassword, 10);
     return this.prisma.$transaction(async (transaction) => {
       const doctor = await transaction.doctor.create({
         data: {
-          fullName: this.requiredString(input.fullName, "fullName"), specialtyId,
-          phone: this.requiredString(input.phone, "phone"), email: this.requiredString(input.email, "email"),
+          fullName,
+          phone, email,
           title: this.optionalString(input.title), room: this.optionalString(input.room),
           status: this.doctorStatusValue(input.status) ?? "active",
+          specialty: { connect: { id: specialtyId } },
+          user: { create: { displayName: fullName, email, passwordHash, phone, role: UserRole.doctor, status: AccountStatus.active } },
           services: { connect: this.serviceIds(input.serviceIds).map((id) => ({ id })) },
         }, include: { specialty: true, services: true },
       });
@@ -208,7 +216,7 @@ export class CatalogService {
   }
 
   async updateDoctor(id: string, input: DoctorInput, actorUserId: string) {
-    await this.doctor(id);
+    const existingDoctor = await this.doctor(id);
     if (input.status === "inactive") throw new ApiError(400, "VALIDATION_ERROR", "Use the doctor deactivate endpoint to set inactive status.");
     const specialtyId = this.optionalString(input.specialtyId);
     if (specialtyId) await this.require(this.prisma.specialty.findUnique({ where: { id: specialtyId } }), "specialty");
@@ -222,6 +230,14 @@ export class CatalogService {
           ...(input.serviceIds !== undefined ? { services: { set: this.serviceIds(input.serviceIds).map((serviceId) => ({ id: serviceId })) } } : {}),
         }, include: { specialty: true, services: true },
       });
+      const userUpdate = {
+        ...(input.fullName !== undefined ? { displayName: this.optionalString(input.fullName) ?? existingDoctor.fullName } : {}),
+        ...(input.email !== undefined ? { email: this.optionalString(input.email) ?? existingDoctor.email } : {}),
+        ...(input.phone !== undefined ? { phone: this.optionalString(input.phone) ?? existingDoctor.phone } : {}),
+      };
+      if (Object.keys(userUpdate).length > 0) {
+        await transaction.user.update({ where: { id: doctor.userId }, data: userUpdate });
+      }
       await this.audit(transaction, actorUserId, "doctor", doctor.id, "admin_resource_updated");
       return doctor;
     });

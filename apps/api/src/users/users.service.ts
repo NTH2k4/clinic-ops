@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { AccountStatus, type Doctor, type Patient, type Prisma, type Staff, type User } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { randomBytes } from "node:crypto";
 import { AuditService } from "../audit/audit.service";
 import { ApiError } from "../common/api-error";
 import { paginationArgs } from "../common/validation";
@@ -13,6 +12,7 @@ type UserWithProfiles = User & {
   staff: Staff | null;
   doctor: Doctor | null;
 };
+const resetTemporaryPassword = "careflow123";
 
 @Injectable()
 export class UsersService {
@@ -73,15 +73,14 @@ export class UsersService {
   }
 
   async resetPassword(id: string, actorUserId: string) {
-    const temporaryPassword = randomBytes(18).toString("base64url");
-    const passwordHash = await bcrypt.hash(temporaryPassword, 10);
+    const passwordHash = await bcrypt.hash(resetTemporaryPassword, 10);
     await this.prisma.$transaction(async (transaction) => {
       await this.require(transaction.user.findUnique({ where: { id } }));
       await transaction.user.update({ where: { id }, data: { passwordHash } });
       await transaction.authSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } });
       await this.audit.record({ actorUserId, entityType: "user", entityId: id, action: "admin_password_reset" }, transaction);
     });
-    return { temporaryPassword };
+    return { temporaryPassword: resetTemporaryPassword };
   }
 
   private readonly profiles = { patient: true, staff: true, doctor: true } satisfies Prisma.UserInclude;

@@ -198,8 +198,20 @@ export function createCatalogService(options: CatalogServiceOptions): CatalogSer
     async createDoctor(input) {
       if (options.source === "api") return mapDoctor(await (options.api ?? defaultApi(options.fetcher)).createDoctor(input));
       const now = isoNow();
+      const userId = `user-${crypto.randomUUID()}`;
+      mockStore.users.push({
+        id: userId,
+        displayName: input.fullName,
+        email: input.email,
+        phone: input.phone,
+        role: "doctor",
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      });
       const created: Doctor = {
         id: `doctor-${crypto.randomUUID()}`,
+        userId,
         fullName: input.fullName,
         specialtyId: input.specialtyId,
         serviceIds: input.serviceIds ?? [],
@@ -218,6 +230,13 @@ export function createCatalogService(options: CatalogServiceOptions): CatalogSer
       if (options.source === "api") return mapDoctor(await (options.api ?? defaultApi(options.fetcher)).updateDoctor(id, input));
       const doctor = requireMockRecord(mockStore.doctors, id, "bác sĩ");
       Object.assign(doctor, input, { updatedAt: isoNow() });
+      const user = mockStore.users.find((candidate) => candidate.id === doctor.userId);
+      if (user) {
+        if (input.fullName !== undefined) user.displayName = input.fullName;
+        if (input.email !== undefined) user.email = input.email;
+        if (input.phone !== undefined) user.phone = input.phone;
+        user.updatedAt = doctor.updatedAt;
+      }
       return structuredClone(doctor);
     },
     async deactivateDoctor(id) {

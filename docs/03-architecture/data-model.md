@@ -102,6 +102,7 @@ Hồ sơ bác sĩ.
 Quan hệ:
 
 - Một `Doctor` thuộc một `Specialty`.
+- Một `Doctor` bắt buộc liên kết với một `User` role `doctor`; bác sĩ không có tài khoản đăng nhập được xem là dữ liệu không hợp lệ.
 - Một `Doctor` có thể phụ trách nhiều `Service`.
 - Một `Doctor` có nhiều `DoctorSchedule`.
 - Một `Doctor` có nhiều `Appointment`.

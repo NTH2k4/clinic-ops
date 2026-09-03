@@ -38,6 +38,38 @@ const demoUsers = [
     passwordHash: demoPasswordHash,
   },
   {
+    id: "user-doctor-2",
+    displayName: "Dr. Lan Tran",
+    email: "lan.tran@careflow.local",
+    phone: "+84900000002",
+    role: UserRole.doctor,
+    passwordHash: demoPasswordHash,
+  },
+  {
+    id: "user-doctor-3",
+    displayName: "Dr. Quang Pham",
+    email: "quang.pham@careflow.local",
+    phone: "+84900000003",
+    role: UserRole.doctor,
+    passwordHash: demoPasswordHash,
+  },
+  {
+    id: "user-doctor-4",
+    displayName: "Dr. Hoa Le",
+    email: "hoa.le@careflow.local",
+    phone: "+84900000004",
+    role: UserRole.doctor,
+    passwordHash: demoPasswordHash,
+  },
+  {
+    id: "user-doctor-5",
+    displayName: "Dr. Tuan Vo",
+    email: "tuan.vo@careflow.local",
+    phone: "+84900000005",
+    role: UserRole.doctor,
+    passwordHash: demoPasswordHash,
+  },
+  {
     id: "user-receptionist-1",
     displayName: "Reception Demo",
     email: "reception@careflow.local",
@@ -122,10 +154,10 @@ const demoServices = [
 
 const demoDoctors = [
   { id: "doctor-1", userId: "user-doctor-1", fullName: "Dr. Minh Nguyen", specialtyId: "specialty-general", phone: "+84900000001", email: "minh.nguyen@careflow.local", title: "MD", room: "A101", serviceIds: ["service-general", "service-follow-up", "service-health-check"] },
-  { id: "doctor-2", fullName: "Dr. Lan Tran", specialtyId: "specialty-cardiology", phone: "+84900000002", email: "lan.tran@careflow.local", title: "MD", room: "B201", serviceIds: ["service-cardiac", "service-ecg", "service-heart-follow-up"] },
-  { id: "doctor-3", fullName: "Dr. Quang Pham", specialtyId: "specialty-pediatrics", phone: "+84900000003", email: "quang.pham@careflow.local", title: "MD", room: "C301", serviceIds: ["service-pediatric", "service-vaccination"] },
-  { id: "doctor-4", fullName: "Dr. Hoa Le", specialtyId: "specialty-general", phone: "+84900000004", email: "hoa.le@careflow.local", title: "MD", room: "A102", serviceIds: ["service-general", "service-follow-up"] },
-  { id: "doctor-5", fullName: "Dr. Tuan Vo", specialtyId: "specialty-cardiology", phone: "+84900000005", email: "tuan.vo@careflow.local", title: "MD", room: "B202", serviceIds: ["service-cardiac", "service-ecg"] },
+  { id: "doctor-2", userId: "user-doctor-2", fullName: "Dr. Lan Tran", specialtyId: "specialty-cardiology", phone: "+84900000002", email: "lan.tran@careflow.local", title: "MD", room: "B201", serviceIds: ["service-cardiac", "service-ecg", "service-heart-follow-up"] },
+  { id: "doctor-3", userId: "user-doctor-3", fullName: "Dr. Quang Pham", specialtyId: "specialty-pediatrics", phone: "+84900000003", email: "quang.pham@careflow.local", title: "MD", room: "C301", serviceIds: ["service-pediatric", "service-vaccination"] },
+  { id: "doctor-4", userId: "user-doctor-4", fullName: "Dr. Hoa Le", specialtyId: "specialty-general", phone: "+84900000004", email: "hoa.le@careflow.local", title: "MD", room: "A102", serviceIds: ["service-general", "service-follow-up"] },
+  { id: "doctor-5", userId: "user-doctor-5", fullName: "Dr. Tuan Vo", specialtyId: "specialty-cardiology", phone: "+84900000005", email: "tuan.vo@careflow.local", title: "MD", room: "B202", serviceIds: ["service-cardiac", "service-ecg"] },
   { id: "doctor-test", userId: "user-doctor-test", fullName: "Doctor Test", specialtyId: "specialty-general", phone: "+84900000006", email: "doctor@test.com", title: "MD", room: "A103", serviceIds: ["service-general", "service-follow-up", "service-health-check"] },
 ];
 
@@ -162,7 +194,7 @@ export async function ensureDemoAuthUsers(db: PrismaClient) {
   for (const user of demoUsers) {
     await db.user.upsert({
       where: { email: user.email },
-      update: {},
+      update: user.email === "admin@careflow.local" ? { passwordHash: demoPasswordHash, status: AccountStatus.active } : {},
       create: {
         ...user,
         passwordHash: user.passwordHash,
@@ -234,16 +266,19 @@ export async function ensureDemoBaselineData(db: PrismaClient) {
   for (const doctor of demoDoctors) {
     const existingDoctor = await db.doctor.findUnique({
       where: { id: doctor.id },
-      select: { services: { select: { id: true } } },
+      select: { services: { select: { id: true } }, userId: true },
     });
 
     if (existingDoctor) {
       const existingServiceIds = new Set(existingDoctor.services.map((service) => service.id));
       const missingServiceIds = doctor.serviceIds.filter((serviceId) => !existingServiceIds.has(serviceId));
-      if (missingServiceIds.length > 0) {
+      if (!existingDoctor.userId || missingServiceIds.length > 0) {
         await db.doctor.update({
           where: { id: doctor.id },
-          data: { services: { connect: missingServiceIds.map((id) => ({ id })) } },
+          data: {
+            ...(!existingDoctor.userId ? { userId: doctor.userId } : {}),
+            ...(missingServiceIds.length > 0 ? { services: { connect: missingServiceIds.map((id) => ({ id })) } } : {}),
+          },
         });
       }
       continue;

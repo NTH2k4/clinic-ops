@@ -435,6 +435,7 @@ Quy tắc:
 - Patient home nhấn mạnh next appointment và booking action.
 - Services screen dùng specialty filter và service list card.
 - Booking cần có cảm giác được dẫn dắt, ít ma sát.
+- Walk-in intake dùng cùng `ClinicDateField` cho ngày sinh để giữ định dạng nhập/chọn ngày `dd/MM/yyyy` nhất quán với các luồng đặt lịch khác.
 - Doctor selection mặc định là `any available doctor`, đồng thời có option rõ để chọn doctor cụ thể.
 - Appointment history tách upcoming, past và cancelled.
 

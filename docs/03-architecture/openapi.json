@@ -1387,7 +1387,7 @@
         "additionalProperties": false,
         "required": ["temporaryPassword"],
         "properties": {
-          "temporaryPassword": { "type": "string", "minLength": 8 }
+          "temporaryPassword": { "type": "string", "enum": ["careflow123"] }
         }
       },
       "PasswordResetEnvelope": {

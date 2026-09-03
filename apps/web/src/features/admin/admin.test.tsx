@@ -204,7 +204,7 @@ describe("admin workspace", () => {
     expect(screen.getByRole("table", { name: "Tài khoản" })).toHaveTextContent("Đã khóa");
   });
 
-  it("calls the lock and unlock endpoints for explicit account status actions", async () => {
+  it("confirms before calling lock and unlock account status endpoints", async () => {
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
       const url = String(input);
       if (url.endsWith("/lock")) return new Response(JSON.stringify({ data: { ...apiUsers[0], status: "locked" }, meta: { requestId: "req-lock" } }), { status: 200 });
@@ -215,12 +215,38 @@ describe("admin workspace", () => {
     await renderApiAdminAccounts(fetcher);
 
     await user.click(await screen.findByRole("button", { name: "Khóa Nguyen Minh Anh" }));
+    expect(screen.getByRole("dialog", { name: "Xác nhận khóa tài khoản" })).toBeInTheDocument();
+    expect(fetcher.mock.calls.map(([url]) => String(url))).not.toContain("/api/v1/users/user-active-1/lock");
+    await user.click(screen.getByRole("button", { name: "Khóa tài khoản" }));
+
     await user.click(screen.getByRole("button", { name: "Mở khóa Locked Doctor" }));
+    expect(screen.getByRole("dialog", { name: "Xác nhận mở khóa tài khoản" })).toBeInTheDocument();
+    expect(fetcher.mock.calls.map(([url]) => String(url))).not.toContain("/api/v1/users/user-locked-1/unlock");
+    await user.click(screen.getByRole("button", { name: "Mở khóa tài khoản" }));
 
     await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toEqual(expect.arrayContaining([
       "/api/v1/users/user-active-1/lock",
       "/api/v1/users/user-locked-1/unlock",
     ])));
+  });
+
+  it("confirms before deactivating an account", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/deactivate")) return new Response(JSON.stringify({ data: { ...apiUsers[0], status: "inactive" }, meta: { requestId: "req-deactivate" } }), { status: 200 });
+      return apiListResponse(apiUsers, "req-users");
+    });
+    const user = userEvent.setup();
+    await renderApiAdminAccounts(fetcher);
+
+    await user.click(await screen.findByRole("button", { name: "Vô hiệu hóa Nguyen Minh Anh" }));
+    expect(screen.getByRole("dialog", { name: "Xác nhận vô hiệu hóa tài khoản" })).toBeInTheDocument();
+    expect(fetcher.mock.calls.map(([url]) => String(url))).not.toContain("/api/v1/users/user-active-1/deactivate");
+
+    await user.click(screen.getByRole("button", { name: "Vô hiệu hóa tài khoản" }));
+
+    await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toContain("/api/v1/users/user-active-1/deactivate"));
+    expect(await screen.findByText("Không hoạt động")).toBeInTheDocument();
   });
 
   it("renders the returned account status before a list refetch completes", async () => {
@@ -237,6 +263,7 @@ describe("admin workspace", () => {
     await renderApiAdminAccounts(fetcher);
 
     await user.click(await screen.findByRole("button", { name: "Khóa Nguyen Minh Anh" }));
+    await user.click(screen.getByRole("button", { name: "Khóa tài khoản" }));
 
     expect(await screen.findByRole("button", { name: "Mở khóa Nguyen Minh Anh" })).toBeInTheDocument();
     expect(within(screen.getByText("Nguyen Minh Anh").closest("tr")!).getByText("Đã khóa")).toBeInTheDocument();
@@ -253,12 +280,13 @@ describe("admin workspace", () => {
     await renderApiAdminAccounts(fetcher);
 
     await user.click(await screen.findByRole("button", { name: "Khóa Nguyen Minh Anh" }));
+    await user.click(screen.getByRole("button", { name: "Khóa tài khoản" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Cannot lock this account.");
   });
 
-  it("shows a reset password only in the controlled result panel without browser or mutation cache persistence", async () => {
-    const temporaryPassword = "temporary-password-123";
+  it("confirms before resetting a password and shows the fixed temporary password only in the controlled result panel", async () => {
+    const temporaryPassword = "careflow123";
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
       if (String(input).endsWith("/reset-password")) {
         return new Response(JSON.stringify({ data: { temporaryPassword }, meta: { requestId: "req-reset" } }), { status: 200 });
@@ -269,6 +297,9 @@ describe("admin workspace", () => {
     const { queryClient } = await renderApiAdminAccounts(fetcher);
 
     await user.click(await screen.findByRole("button", { name: "Đặt lại mật khẩu cho Nguyen Minh Anh" }));
+    expect(screen.getByRole("dialog", { name: "Xác nhận đặt lại mật khẩu" })).toBeInTheDocument();
+    expect(fetcher.mock.calls.map(([url]) => String(url))).not.toContain("/api/v1/users/user-active-1/reset-password");
+    await user.click(screen.getByRole("button", { name: "Đặt lại mật khẩu" }));
 
     const result = await screen.findByRole("status", { name: "Kết quả mật khẩu tạm thời" });
     expect(result).toHaveTextContent(temporaryPassword);
@@ -290,7 +321,7 @@ describe("admin workspace", () => {
         if (resetAttempts === 2) {
           return new Response(JSON.stringify({ error: { code: "VALIDATION_ERROR", message: "Password reset failed." }, meta: { requestId: "req-reset-failed" } }), { status: 400 });
         }
-        return new Response(JSON.stringify({ data: { temporaryPassword: `temporary-password-${resetAttempts}` }, meta: { requestId: `req-reset-${resetAttempts}` } }), { status: 200 });
+        return new Response(JSON.stringify({ data: { temporaryPassword: "careflow123" }, meta: { requestId: `req-reset-${resetAttempts}` } }), { status: 200 });
       }
       return apiListResponse(apiUsers, "req-users");
     });
@@ -302,14 +333,17 @@ describe("admin workspace", () => {
     try {
       const resetButton = await screen.findByRole("button", { name: "Đặt lại mật khẩu cho Nguyen Minh Anh" });
       await user.click(resetButton);
-      expect(await screen.findByRole("status", { name: "Kết quả mật khẩu tạm thời" })).toHaveTextContent("temporary-password-1");
+      await user.click(screen.getByRole("button", { name: "Đặt lại mật khẩu" }));
+      expect(await screen.findByRole("status", { name: "Kết quả mật khẩu tạm thời" })).toHaveTextContent("careflow123");
 
       await user.click(resetButton);
+      await user.click(screen.getByRole("button", { name: "Đặt lại mật khẩu" }));
       expect(await screen.findByRole("alert")).toHaveTextContent("Password reset failed.");
       expect(screen.queryByRole("status", { name: "Kết quả mật khẩu tạm thời" })).not.toBeInTheDocument();
 
       await user.click(resetButton);
-      expect(await screen.findByRole("status", { name: "Kết quả mật khẩu tạm thời" })).toHaveTextContent("temporary-password-3");
+      await user.click(screen.getByRole("button", { name: "Đặt lại mật khẩu" }));
+      expect(await screen.findByRole("status", { name: "Kết quả mật khẩu tạm thời" })).toHaveTextContent("careflow123");
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(unhandledRejection).not.toHaveBeenCalled();
     } finally {

@@ -1,5 +1,13 @@
 # Ghi Chú Phát Hành
 
+## 2026-09-03 Walk-In Hardening And Account Safety
+
+- Walk-in intake dùng cùng custom `ClinicDateField` cho ngày sinh, giữ trải nghiệm nhập/chọn ngày thống nhất.
+- Mọi doctor record bắt buộc có tài khoản đăng nhập role `doctor`; seed, migration và hosted startup repair đều tạo/liên kết account cho bác sĩ demo còn thiếu.
+- Admin Demo được hosted startup repair về mật khẩu `careflow-demo`.
+- Admin reset password có confirmation dialog và đặt mật khẩu tạm thời dễ đọc `careflow123`.
+- Admin account lock, unlock, deactivate và reset password đều yêu cầu xác nhận trước khi gọi API.
+
 ## 2026-08-29 Admin Catalog And Audit Readability
 
 - Admin có thể thêm, sửa và vô hiệu hóa mềm services, specialties và doctors từ UI quản trị qua backend API thật.

@@ -18,6 +18,10 @@ const updatedAt = "2026-08-24T16:00:00+07:00";
 export const users: User[] = [
   { id: "user-patient-1", displayName: "Nguyen Minh Anh", email: "minh.anh@example.com", phone: "0901000001", role: "patient", status: "active", createdAt, updatedAt },
   { id: "user-doctor-1", displayName: "BS. Tran Quang Huy", email: "quang.huy@careflow.vn", phone: "0901000002", role: "doctor", status: "active", createdAt, updatedAt },
+  { id: "user-doctor-2", displayName: "BS. Nguyen Thanh Mai", email: "thanh.mai@careflow.vn", phone: "0902000002", role: "doctor", status: "active", createdAt, updatedAt },
+  { id: "user-doctor-3", displayName: "BS. Vo Minh Chau", email: "minh.chau@careflow.vn", phone: "0902000003", role: "doctor", status: "active", createdAt, updatedAt },
+  { id: "user-doctor-4", displayName: "BS. Do Phuong Linh", email: "phuong.linh@careflow.vn", phone: "0902000004", role: "doctor", status: "active", createdAt, updatedAt },
+  { id: "user-doctor-5", displayName: "BS. Bui Hoang Nam", email: "hoang.nam@careflow.vn", phone: "0902000005", role: "doctor", status: "active", createdAt, updatedAt },
   { id: "user-receptionist-1", displayName: "Le Thu Ha", email: "thu.ha@careflow.vn", phone: "0901000003", role: "receptionist", status: "active", createdAt, updatedAt },
   { id: "user-admin-1", displayName: "Pham Gia Bao", email: "gia.bao@careflow.vn", phone: "0901000004", role: "admin", status: "active", createdAt, updatedAt },
 ];
@@ -42,10 +46,10 @@ export const services: Service[] = [
 
 export const doctors: Doctor[] = [
   { id: "doctor-1", userId: "user-doctor-1", fullName: "BS. Tran Quang Huy", specialtyId: "specialty-general", serviceIds: ["service-general-consult", "service-health-check"], phone: "0902000001", email: "quang.huy@careflow.vn", title: "Bác sĩ chuyên khoa I", room: "P.101", status: "active", createdAt, updatedAt },
-  { id: "doctor-2", fullName: "BS. Nguyen Thanh Mai", specialtyId: "specialty-cardiology", serviceIds: ["service-cardiology-consult", "service-ecg"], phone: "0902000002", email: "thanh.mai@careflow.vn", title: "Bác sĩ chuyên khoa II", room: "P.201", status: "active", createdAt, updatedAt },
-  { id: "doctor-3", fullName: "BS. Vo Minh Chau", specialtyId: "specialty-pediatrics", serviceIds: ["service-pediatric-consult", "service-vaccination-consult"], phone: "0902000003", email: "minh.chau@careflow.vn", title: "Bác sĩ nhi khoa", room: "P.301", status: "active", createdAt, updatedAt },
-  { id: "doctor-4", fullName: "BS. Do Phuong Linh", specialtyId: "specialty-dermatology", serviceIds: ["service-dermatology-consult", "service-skin-care"], phone: "0902000004", email: "phuong.linh@careflow.vn", title: "Bác sĩ da liễu", room: "P.401", status: "active", createdAt, updatedAt },
-  { id: "doctor-5", fullName: "BS. Bui Hoang Nam", specialtyId: "specialty-general", serviceIds: ["service-general-consult"], phone: "0902000005", email: "hoang.nam@careflow.vn", title: "Bác sĩ đa khoa", room: "P.102", status: "on_leave", createdAt, updatedAt },
+  { id: "doctor-2", userId: "user-doctor-2", fullName: "BS. Nguyen Thanh Mai", specialtyId: "specialty-cardiology", serviceIds: ["service-cardiology-consult", "service-ecg"], phone: "0902000002", email: "thanh.mai@careflow.vn", title: "Bác sĩ chuyên khoa II", room: "P.201", status: "active", createdAt, updatedAt },
+  { id: "doctor-3", userId: "user-doctor-3", fullName: "BS. Vo Minh Chau", specialtyId: "specialty-pediatrics", serviceIds: ["service-pediatric-consult", "service-vaccination-consult"], phone: "0902000003", email: "minh.chau@careflow.vn", title: "Bác sĩ nhi khoa", room: "P.301", status: "active", createdAt, updatedAt },
+  { id: "doctor-4", userId: "user-doctor-4", fullName: "BS. Do Phuong Linh", specialtyId: "specialty-dermatology", serviceIds: ["service-dermatology-consult", "service-skin-care"], phone: "0902000004", email: "phuong.linh@careflow.vn", title: "Bác sĩ da liễu", room: "P.401", status: "active", createdAt, updatedAt },
+  { id: "doctor-5", userId: "user-doctor-5", fullName: "BS. Bui Hoang Nam", specialtyId: "specialty-general", serviceIds: ["service-general-consult"], phone: "0902000005", email: "hoang.nam@careflow.vn", title: "Bác sĩ đa khoa", room: "P.102", status: "on_leave", createdAt, updatedAt },
 ];
 
 export const patients: Patient[] = [

@@ -2,6 +2,7 @@
 
 ## 2026-09-03
 
+- Hoàn thiện hardening sau walk-in: ngày sinh trong walk-in intake dùng `ClinicDateField`, Admin Accounts yêu cầu xác nhận trước khi lock/unlock/deactivate/reset password, reset password trả `careflow123`, Admin Demo được startup repair về `careflow-demo`, và `Doctor.userId` trở thành required để không còn bác sĩ thiếu tài khoản.
 - Triển khai walk-in intake tại quầy: thêm CCCD/BHYT và fallback định danh người giám hộ vào hồ sơ patient, thêm API `/walk-in-intake/quote` và `/walk-in-intake`, tự xếp bệnh nhân vào phòng/bác sĩ có hàng đợi thấp nhất, bỏ cutoff online `now + 30 phút` cho walk-in và thêm quy tắc chuyển ca 5 phút.
 - Chỉnh public homepage để bám sát file preview HTML đã duyệt: sticky nav nền trắng, hero ảnh full-bleed, trust strip `15 phút`/`8 chuyên khoa`/`24/7`, card chuyên khoa, card bác sĩ có ảnh, quy trình đặt lịch và booking form mô phỏng dẫn tiếp tới luồng đăng ký.
 

@@ -84,7 +84,7 @@ Important rules:
 
 Important rules:
 
-- `userId` is optional and unique.
+- `userId` is required and unique; every bookable doctor must have a linked `User` with role `doctor`.
 - `role` uses `UserRole` and should stay aligned with the linked `User.role`.
 - Staff profiles are operational records; route access still comes from `User.role`.
 
@@ -220,7 +220,7 @@ Important rules:
 
 The deterministic seed creates:
 
-- 5 users: patient, doctor, receptionist, nurse and admin.
+- Demo users for patient, receptionist, nurse, admin and every seeded doctor.
 - 0 auth sessions; sessions are created by login and cleared by seed resets.
 - 6 patients.
 - 3 staff profiles.
@@ -239,6 +239,10 @@ Seeded login emails include:
 | --- | --- | --- |
 | Patient | `patient@careflow.local` | `careflow-demo` |
 | Doctor | `minh.nguyen@careflow.local` | `careflow-demo` |
+| Doctor | `lan.tran@careflow.local` | `careflow-demo` |
+| Doctor | `quang.pham@careflow.local` | `careflow-demo` |
+| Doctor | `hoa.le@careflow.local` | `careflow-demo` |
+| Doctor | `tuan.vo@careflow.local` | `careflow-demo` |
 | Receptionist | `reception@careflow.local` | `careflow-demo` |
 | Nurse | `nurse@careflow.local` | `careflow-demo` |
 | Admin | `admin@careflow.local` | `careflow-demo` |

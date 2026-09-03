@@ -52,7 +52,7 @@ describe("catalog service", () => {
       }], 1, 25, 1))
       .mockResolvedValueOnce(listResponse([{
         id: "doctor-api",
-        userId: null,
+        userId: "user-doctor-api",
         fullName: "Dr. API",
         specialtyId: "specialty-api",
         phone: "+84900000099",
@@ -97,6 +97,7 @@ describe("catalog service", () => {
     });
     expect(doctors.data[0]).toEqual({
       id: "doctor-api",
+      userId: "user-doctor-api",
       fullName: "Dr. API",
       specialtyId: "specialty-api",
       serviceIds: ["service-api"],

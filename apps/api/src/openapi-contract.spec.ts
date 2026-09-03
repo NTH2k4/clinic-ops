@@ -173,6 +173,7 @@ describe("OpenAPI contract", () => {
     expect(spec.paths?.["/api/v1/users/{id}/reset-password"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/PasswordReset");
     expect(responseSchemaRef("/api/v1/users/{id}/reset-password", "post", "201")).toBe("#/components/schemas/PasswordResetEnvelope");
     expect(spec.components?.schemas?.PasswordResetResponse?.required).toEqual(["temporaryPassword"]);
+    expect(spec.components?.schemas?.PasswordResetResponse?.properties?.temporaryPassword).toMatchObject({ type: "string", enum: ["careflow123"] });
   });
 
   it("documents partial update bodies separately from create bodies", () => {

@@ -1,4 +1,5 @@
 import { AccountStatus, PrismaClient, UserRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { ensureDemoAuthUsers } from "../src/config/demo-auth-repair";
 
 describe("Demo auth seed", () => {
@@ -8,7 +9,7 @@ describe("Demo auth seed", () => {
     await prisma.$disconnect();
   });
 
-  it("preserves existing demo account credentials and lifecycle while creating missing users", async () => {
+  it("repairs Admin Demo credentials while creating missing users without resetting other accounts", async () => {
     const originalAdmin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@careflow.local" } });
     const originalNurse = await prisma.user.findUniqueOrThrow({ where: { email: "nurse@careflow.local" } });
     const nurseStaff = await prisma.staff.findUniqueOrThrow({ where: { userId: originalNurse.id } });
@@ -23,11 +24,11 @@ describe("Demo auth seed", () => {
 
       await ensureDemoAuthUsers(prisma);
 
-      await expect(prisma.user.findUniqueOrThrow({ where: { id: originalAdmin.id } })).resolves.toMatchObject({
-        passwordHash: "stale-hash",
-        role: UserRole.receptionist,
-        status: AccountStatus.locked,
-      });
+      const repairedAdmin = await prisma.user.findUniqueOrThrow({ where: { id: originalAdmin.id } });
+      expect(repairedAdmin.role).toBe(UserRole.receptionist);
+      expect(repairedAdmin.status).toBe(AccountStatus.active);
+      expect(repairedAdmin.passwordHash).not.toBe("stale-hash");
+      await expect(bcrypt.compare("careflow-demo", repairedAdmin.passwordHash)).resolves.toBe(true);
       await expect(prisma.user.findUniqueOrThrow({ where: { id: originalNurse.id } })).resolves.toMatchObject({
         email: "nurse@careflow.local",
         role: UserRole.nurse,

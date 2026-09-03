@@ -2,7 +2,7 @@ import { DemoAuthRepairService, shouldRepairDemoAuthUsers } from "./demo-auth-re
 
 type UpsertCall = {
   where: { email: string };
-  update: Record<string, never>;
+  update: Record<string, unknown>;
 };
 
 type CatalogUpsertCall = {
@@ -28,7 +28,7 @@ describe("demo auth repair", () => {
     expect(shouldRepairDemoAuthUsers({})).toBe(false);
   });
 
-  it("creates missing demo users without resetting existing users in hosted demo mode", async () => {
+  it("creates missing demo users and repairs the hosted Admin Demo password", async () => {
     process.env.SERVE_WEB_APP = "true";
     const prisma = {
       user: { upsert: jest.fn().mockResolvedValue({}) },
@@ -47,10 +47,18 @@ describe("demo auth repair", () => {
 
     await service.onApplicationBootstrap();
 
-    expect(prisma.user.upsert).toHaveBeenCalledTimes(10);
+    expect(prisma.user.upsert).toHaveBeenCalledTimes(14);
     const calls = prisma.user.upsert.mock.calls as Array<[UpsertCall]>;
     const adminUpsert = calls.find(([call]) => call.where.email === "admin@careflow.local")?.[0];
-    expect(adminUpsert?.update).toEqual({});
+    expect(adminUpsert?.update).toMatchObject({ status: "active" });
+    expect(adminUpsert?.update.passwordHash).toEqual(expect.any(String));
+    const doctorUpserts = calls.filter(([call]) => call.where.email.endsWith("@careflow.local") && call.where.email !== "admin@careflow.local");
+    expect(doctorUpserts.map(([call]) => call.where.email)).toEqual(expect.arrayContaining([
+      "lan.tran@careflow.local",
+      "quang.pham@careflow.local",
+      "hoa.le@careflow.local",
+      "tuan.vo@careflow.local",
+    ]));
     const testAdminUpsert = calls.find(([call]) => call.where.email === "admin@test.com")?.[0];
     expect(testAdminUpsert?.update).toEqual({});
   });

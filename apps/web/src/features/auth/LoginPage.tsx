@@ -17,6 +17,8 @@ const roleLabels: Record<UserRole, string> = {
   receptionist: "Lễ tân",
 };
 
+const mockLoginUsers = mockStore.users.filter((user, index, users) => users.findIndex((candidate) => candidate.role === user.role) === index);
+
 export function LoginPage() {
   const navigate = useNavigate();
   const { authError, signIn } = useAuth();
@@ -99,7 +101,7 @@ export function LoginPage() {
           <>
             <p className="mt-4 text-sm text-text-muted">Chọn tài khoản để vào không gian làm việc tương ứng.</p>
             <div className="mt-6 grid gap-3">
-              {mockStore.users.map((user) => (
+              {mockLoginUsers.map((user) => (
                 <button
                   className="flex items-center justify-between gap-3 rounded-md border border-border bg-white px-4 py-3 text-left text-sm font-medium text-text shadow-[0_1px_0_rgb(20_35_38/0.03)] transition-colors hover:border-primary hover:bg-teal-50"
                   key={user.id}

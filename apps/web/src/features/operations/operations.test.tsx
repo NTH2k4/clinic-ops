@@ -238,6 +238,7 @@ describe("operations workspace", () => {
     expect(navigationForRole("receptionist").map((item) => item.label)).toContain("Tiếp nhận trực tiếp");
     renderWithProviders(<WalkInIntakePage />);
 
+    expect(getClinicDateSegment("Ngày sinh", "day")).toBeInTheDocument();
     await user.type(screen.getByLabelText("CCCD"), "079203000333");
     await user.type(screen.getByLabelText("Họ và tên"), "Tran Van Walkin");
     await user.type(screen.getByLabelText("Số điện thoại"), "+84930000333");

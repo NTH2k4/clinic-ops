@@ -131,7 +131,7 @@ model Staff {
 
 model Doctor {
   id           String           @id @default(uuid())
-  userId       String?          @unique
+  userId       String           @unique
   fullName     String
   specialtyId  String
   phone        String
@@ -141,7 +141,7 @@ model Doctor {
   status       DoctorStatus     @default(active)
   createdAt    DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
-  user         User?            @relation(fields: [userId], references: [id])
+  user         User             @relation(fields: [userId], references: [id])
   specialty    Specialty        @relation(fields: [specialtyId], references: [id])
   services     Service[]
   schedules    DoctorSchedule[]
