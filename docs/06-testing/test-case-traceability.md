@@ -6,7 +6,7 @@
 | --- | --- |
 | Trạng thái | `baseline` |
 | Đối tượng đọc chính | QA, product owner, implementation agent |
-| Cập nhật lần cuối | 2026-09-02 |
+| Cập nhật lần cuối | 2026-09-03 |
 | Phạm vi | Mapping từ requirement đến test/evidence cho CareFlow v1 |
 
 ## Mục Đích
@@ -20,6 +20,7 @@ Tài liệu này nối requirements với verification gates để agent không 
 | Auth/session | `SRS-AUTH-*`, `V1-AUTH` | API auth unit/E2E, OpenAPI contract test, Web auth tests, API-mode Playwright, production smoke login |
 | Account profile/password | `SRS-AUTH-003`, `SRS-AUTH-007`, `SRS-AUTH-008` | Account/auth frontend tests, API auth E2E, Playwright API-mode password change regression |
 | Patient booking | `SRS-APT-*`, `US-BOOK-001`, `V1-PATIENT` | API appointments E2E, Web booking tests, Playwright patient booking smoke |
+| Walk-in intake | `CR-017`, `SRS-APT-*`, `V1-OPS` | API walk-in E2E, patient identity E2E, Operations walk-in component tests, OpenAPI contract test |
 | Operations queue/calendar | `SRS-APT-*`, `US-OPS-001`, `V1-OPS` | Operations component tests, mock Playwright, API-mode Playwright |
 | Doctor workflow | `SRS-AUTHZ-004`, `US-DOCTOR-001`, `V1-DOCTOR` | API authorization E2E, doctor Playwright start/complete flow |
 | Admin catalog/account | `SRS-CAT-*`, `SRS-USER-*`, `US-ADMIN-001` | API catalog/users E2E, admin frontend tests, production smoke catalog totals |

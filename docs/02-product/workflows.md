@@ -15,6 +15,16 @@
 3. System tạo appointment.
 4. Appointment xuất hiện trên clinic schedule.
 
+## Luồng Tiếp Nhận Trực Tiếp
+
+1. Patient đến quầy và đọc CCCD, BHYT hoặc thông tin định danh thay thế.
+2. Receptionist tìm hồ sơ bằng CCCD/BHYT; nếu chưa có thì nhập thông tin trên giấy tờ hoặc thông tin người giám hộ.
+3. Receptionist chọn dịch vụ khám.
+4. System tìm phòng/bác sĩ đang trống hoặc có hàng đợi ít nhất.
+5. Nếu còn dưới 5 phút tới lúc chuyển ca, system chỉ nhận ngay khi cùng bác sĩ tiếp tục ca liền sau; nếu không thì chuyển sang ca kế tiếp phù hợp.
+6. Receptionist xác nhận xếp hàng.
+7. System tạo appointment `checked_in`, ghi thời điểm check-in và audit event.
+
 ## Luồng Check-In
 
 1. Patient đến phòng khám.

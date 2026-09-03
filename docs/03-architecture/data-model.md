@@ -43,9 +43,14 @@ Hồ sơ người đặt lịch hoặc người được khám.
 - fullName
 - phone
 - email
+- citizenIdNumber
+- healthInsuranceNumber
 - dateOfBirth
 - gender
 - address
+- guardianName
+- guardianPhone
+- identityDocumentType
 - notes
 - status
 - createdAt
@@ -55,6 +60,8 @@ Quan hệ:
 
 - Một `Patient` có nhiều `Appointment`.
 - `userId` có thể rỗng trong trường hợp receptionist tạo patient cho walk-in hoặc đặt lịch qua điện thoại.
+- CCCD (`citizenIdNumber`) và BHYT (`healthInsuranceNumber`) là định danh nghiệp vụ unique khi có.
+- Trẻ dưới 14 tuổi hoặc người không có giấy tờ có thể được định danh bằng tổ hợp `fullName`, `dateOfBirth`, `address`, `guardianName` và `guardianPhone`.
 
 ### Staff
 

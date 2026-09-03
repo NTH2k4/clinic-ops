@@ -64,9 +64,14 @@ erDiagram
     string fullName
     string phone UK
     string email
+    string citizenIdNumber UK
+    string healthInsuranceNumber UK
     date dateOfBirth
     string gender
     string address
+    string guardianName
+    string guardianPhone
+    string identityDocumentType
     string notes
     AccountStatus status
   }

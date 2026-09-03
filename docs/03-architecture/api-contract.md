@@ -180,6 +180,15 @@ Admin không thể tự khóa hoặc tự vô hiệu hóa tài khoản của mì
 | PATCH | `/patients/{id}` | patient owner, receptionist, nurse, admin | Sửa thông tin liên hệ/hồ sơ. |
 | POST | `/patients/{id}/deactivate` | admin | Ẩn hồ sơ khỏi workflow mới, giữ lịch sử. |
 
+Patient profile supports reception identity fields:
+
+- `citizenIdNumber`: CCCD, unique when present.
+- `healthInsuranceNumber`: BHYT, unique when present.
+- `guardianName` and `guardianPhone`: fallback contact for children or patients without CCCD/BHYT.
+- `identityDocumentType`: lightweight source marker such as `citizen_card`, `health_insurance_card` or `guardian_verified`.
+
+Staff search can match full CCCD/BHYT, guardian details, name or phone. List responses mask CCCD/BHYT values; authorized detail responses may include full values for staff workflows.
+
 ### Doctors
 
 | Method | Path | Role | Mục đích |
@@ -264,6 +273,52 @@ Backend sinh các lý do này từ lịch làm việc active của bác sĩ, l�
 - `too_soon`: `Thời gian đã qua hoặc quá sát giờ khám`.
 
 Nếu không truyền `includeUnavailable=true`, response giữ hành vi hiện có: chỉ trả các slot khả dụng. Với ngày khám là ngày hiện tại theo timezone `Asia/Ho_Chi_Minh`, backend chỉ cho phép tạo appointment khi `startAt` còn cách thời điểm hiện tại ít nhất 30 phút; các slot đã qua hoặc dưới ngưỡng này bị loại khỏi available-only mode và được giải thích bằng `too_soon` trong explanation mode.
+
+### Walk-in Intake
+
+| Method | Path | Role | Mục đích |
+| --- | --- | --- | --- |
+| POST | `/walk-in-intake/quote` | receptionist, nurse, admin | Tìm phòng/bác sĩ phù hợp nhất cho bệnh nhân đến trực tiếp. |
+| POST | `/walk-in-intake` | receptionist, nurse, admin | Tạo hoặc dùng hồ sơ patient hiện có, xếp hàng đợi và tạo appointment `checked_in`. |
+
+`POST /walk-in-intake/quote` and `POST /walk-in-intake` share the same request shape:
+
+```json
+{
+  "patient": {
+    "fullName": "Le Minh Nhi",
+    "phone": "+84930000225",
+    "dateOfBirth": "2018-05-12",
+    "address": "Ward 1, District 3, Ho Chi Minh City",
+    "guardianName": "Le Van Guardian",
+    "guardianPhone": "+84930000226",
+    "identityDocumentType": "guardian_verified"
+  },
+  "serviceId": "service-general",
+  "reason": "Walk-in consultation"
+}
+```
+
+The request must provide either `patientId` or `patient`.
+
+Identity matching order:
+
+- existing `patientId`;
+- exact `citizenIdNumber`;
+- exact `healthInsuranceNumber`;
+- fallback demographics for patients without CCCD/BHYT: `fullName`, `dateOfBirth`, `address` and optional `guardianName`.
+
+Assignment rules:
+
+- Walk-in intake is a reception queue workflow, not online appointment booking.
+- The online booking `now + 30 phút` cutoff is not applied.
+- The engine prioritizes an empty room/doctor queue, then the lowest active queue load.
+- Active queue load counts `confirmed`, `checked_in` and `in_progress` appointments due by the candidate start time.
+- If the current time is less than 5 minutes before a shift end, the engine avoids assigning the current shift unless the same doctor has a contiguous next working shift.
+- If no current room/doctor is usable, the quote moves to the next eligible shift today.
+- V1 treats `Doctor.room` as the room resource; a separate `Room` model remains a later enhancement.
+
+`POST /walk-in-intake` creates the appointment as `checked_in`, sets `checkedInAt`, and records `walk_in_intake_created` audit metadata without full CCCD/BHYT.
 
 ## Appointments
 

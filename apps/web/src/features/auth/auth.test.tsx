@@ -134,7 +134,7 @@ describe("authentication and role routing", () => {
     expect(screen.getByRole("heading", { name: "Không gian điều hành" })).toBeInTheDocument();
   });
 
-  it("denies non-operations roles direct access to operations routes", async () => {
+  it("denies patient and doctor direct access to operations routes", async () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToOperations /></>, { initialEntries: ["/login"] });
 
@@ -145,13 +145,9 @@ describe("authentication and role routing", () => {
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "doctor");
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
     expect(screen.getByRole("heading", { name: "Không gian bác sĩ" })).toBeInTheDocument();
-
-    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "admin");
-    await user.click(screen.getByRole("button", { name: "Go to operations" }));
-    expect(screen.getByRole("heading", { name: "Bảng điều khiển quản trị" })).toBeInTheDocument();
   });
 
-  it("allows receptionist and nurse direct access to operations routes", async () => {
+  it("allows receptionist, nurse and admin direct access to operations routes", async () => {
     const user = userEvent.setup();
     renderWithProviders(<><App /><GoToOperations /></>, { initialEntries: ["/login"] });
 
@@ -161,6 +157,10 @@ describe("authentication and role routing", () => {
     expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "nurse");
+    await user.click(screen.getByRole("button", { name: "Go to operations" }));
+    expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Chuyển vai trò"), "admin");
     await user.click(screen.getByRole("button", { name: "Go to operations" }));
     expect(screen.getByRole("heading", { name: "Hàng đợi khám" })).toBeInTheDocument();
   });

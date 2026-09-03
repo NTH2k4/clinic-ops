@@ -19,6 +19,7 @@
     { "name": "Patients" },
     { "name": "Scheduling" },
     { "name": "Appointments" },
+    { "name": "Walk-in Intake" },
     { "name": "Audit" },
     { "name": "Notifications" }
   ],
@@ -517,6 +518,38 @@
         }
       }
     },
+    "/api/v1/walk-in-intake/quote": {
+      "post": {
+        "tags": ["Walk-in Intake"],
+        "summary": "Quote the best room and doctor for immediate walk-in intake",
+        "description": "Staff-only workflow for patients arriving at reception without requiring a user account. The assignment engine prioritizes empty rooms or the lowest active queue and does not apply the online booking 30-minute cutoff.",
+        "requestBody": { "$ref": "#/components/requestBodies/WalkInQuote" },
+        "responses": {
+          "201": { "$ref": "#/components/responses/WalkInQuote" },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "409": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/api/v1/walk-in-intake": {
+      "post": {
+        "tags": ["Walk-in Intake"],
+        "summary": "Create a checked-in walk-in appointment",
+        "description": "Finds or creates the patient profile, assigns the walk-in to the best available doctor-room queue, creates a checked-in appointment and records an audit event without full CCCD/BHYT metadata.",
+        "requestBody": { "$ref": "#/components/requestBodies/WalkInCreate" },
+        "responses": {
+          "201": { "$ref": "#/components/responses/WalkInIntake" },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "409": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
     "/api/v1/appointments": {
       "get": {
         "tags": ["Appointments"],
@@ -971,6 +1004,22 @@
           }
         }
       },
+      "WalkInQuote": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/WalkInQuoteRequest" }
+          }
+        }
+      },
+      "WalkInCreate": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/WalkInQuoteRequest" }
+          }
+        }
+      },
       "ScheduleCreate": {
         "required": true,
         "content": {
@@ -1092,6 +1141,22 @@
             "schema": { "$ref": "#/components/schemas/AvailabilitySlotListEnvelope" }
           }
         }
+      },
+      "WalkInQuote": {
+        "description": "Best walk-in queue assignment envelope",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/WalkInQuoteEnvelope" }
+          }
+        }
+      },
+      "WalkInIntake": {
+        "description": "Created walk-in appointment envelope",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/WalkInIntakeEnvelope" }
+          }
+        }
       }
     },
     "schemas": {
@@ -1124,6 +1189,28 @@
           },
           "meta": { "$ref": "#/components/schemas/PaginationMeta" }
         }
+      },
+      "WalkInQuoteEnvelope": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SuccessEnvelope" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/WalkInQuoteResponse" }
+            }
+          }
+        ]
+      },
+      "WalkInIntakeEnvelope": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SuccessEnvelope" },
+          {
+            "type": "object",
+            "properties": {
+              "data": { "$ref": "#/components/schemas/WalkInIntakeResponse" }
+            }
+          }
+        ]
       },
       "ErrorEnvelope": {
         "type": "object",
@@ -1401,6 +1488,11 @@
           "fullName": { "type": "string" },
           "phone": { "type": "string" },
           "email": { "type": ["string", "null"], "format": "email" },
+          "citizenIdNumber": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "healthInsuranceNumber": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "guardianName": { "type": ["string", "null"], "maxLength": 500 },
+          "guardianPhone": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "identityDocumentType": { "type": ["string", "null"], "maxLength": 500 },
           "dateOfBirth": { "type": ["string", "null"], "format": "date" },
           "gender": { "type": ["string", "null"], "maxLength": 500 },
           "address": { "type": ["string", "null"], "maxLength": 500 },
@@ -1415,10 +1507,85 @@
           "fullName": { "type": "string" },
           "phone": { "type": "string" },
           "email": { "type": ["string", "null"], "format": "email" },
+          "citizenIdNumber": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "healthInsuranceNumber": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "guardianName": { "type": ["string", "null"], "maxLength": 500 },
+          "guardianPhone": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "identityDocumentType": { "type": ["string", "null"], "maxLength": 500 },
           "dateOfBirth": { "type": ["string", "null"], "format": "date" },
           "gender": { "type": ["string", "null"], "maxLength": 500 },
           "address": { "type": ["string", "null"], "maxLength": 500 },
           "notes": { "type": ["string", "null"], "maxLength": 500 }
+        }
+      },
+      "WalkInPatientInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["fullName", "phone"],
+        "properties": {
+          "fullName": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "phone": { "type": "string", "minLength": 1, "maxLength": 30 },
+          "email": { "type": ["string", "null"], "format": "email" },
+          "citizenIdNumber": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "healthInsuranceNumber": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "dateOfBirth": { "type": ["string", "null"], "format": "date" },
+          "gender": { "type": ["string", "null"], "maxLength": 500 },
+          "address": { "type": ["string", "null"], "maxLength": 500 },
+          "guardianName": { "type": ["string", "null"], "maxLength": 500 },
+          "guardianPhone": { "type": ["string", "null"], "minLength": 1, "maxLength": 30 },
+          "identityDocumentType": { "type": ["string", "null"], "maxLength": 500 },
+          "notes": { "type": ["string", "null"], "maxLength": 500 }
+        }
+      },
+      "WalkInQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["serviceId"],
+        "properties": {
+          "patientId": { "type": "string" },
+          "patient": { "$ref": "#/components/schemas/WalkInPatientInput" },
+          "serviceId": { "type": "string" },
+          "specialtyId": { "type": "string" },
+          "reason": { "type": "string", "maxLength": 1000 },
+          "internalNote": { "type": "string", "maxLength": 1000 }
+        },
+        "description": "Requires either patientId or patient. CCCD/BHYT can identify adults; children or patients without documents can use demographics and guardian contact."
+      },
+      "WalkInQuoteResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "patientMatch",
+          "patientId",
+          "doctorId",
+          "doctorName",
+          "room",
+          "serviceId",
+          "startAt",
+          "estimatedWaitMinutes",
+          "queueAhead",
+          "assignmentReason"
+        ],
+        "properties": {
+          "patientMatch": { "enum": ["existing", "new"] },
+          "patientId": { "type": ["string", "null"] },
+          "doctorId": { "type": "string" },
+          "doctorName": { "type": "string" },
+          "room": { "type": ["string", "null"] },
+          "serviceId": { "type": "string" },
+          "startAt": { "type": "string", "format": "date-time" },
+          "estimatedWaitMinutes": { "type": "integer", "minimum": 0 },
+          "queueAhead": { "type": "integer", "minimum": 0 },
+          "assignmentReason": { "enum": ["room_empty", "lowest_queue", "continued_shift", "next_shift"] }
+        }
+      },
+      "WalkInIntakeResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["appointment", "quote"],
+        "properties": {
+          "appointment": { "type": "object", "additionalProperties": true },
+          "quote": { "$ref": "#/components/schemas/WalkInQuoteResponse" }
         }
       },
       "ScheduleCreateRequest": {

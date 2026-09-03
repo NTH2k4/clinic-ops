@@ -71,6 +71,9 @@ Important rules:
 
 - `userId` is optional and unique so walk-in/imported patients can exist without login access.
 - `phone` is unique.
+- `citizenIdNumber` is optional and unique when present.
+- `healthInsuranceNumber` is optional and unique when present.
+- `guardianName`, `guardianPhone` and `identityDocumentType` support walk-in identity fallback for children or patients without CCCD/BHYT.
 - `dateOfBirth` is a database `Date`, not a timestamp.
 - Patient-scoped API reads must filter by the linked patient profile.
 - `notes` is a staff-only operational field and is omitted from patient owner projections.

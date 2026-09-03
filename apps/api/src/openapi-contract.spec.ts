@@ -79,6 +79,8 @@ describe("OpenAPI contract", () => {
       ["patch", "/api/v1/doctor-schedules/{id}"],
       ["post", "/api/v1/doctor-schedules/{id}/deactivate"],
       ["get", "/api/v1/availability/slots"],
+      ["post", "/api/v1/walk-in-intake/quote"],
+      ["post", "/api/v1/walk-in-intake"],
       ["get", "/api/v1/appointments"],
       ["get", "/api/v1/appointments/{id}"],
       ["post", "/api/v1/appointments"],
@@ -214,7 +216,38 @@ describe("OpenAPI contract", () => {
     const patientCreate = spec.components?.schemas?.PatientCreateRequest;
     expect(patientCreate?.required).toEqual(["fullName", "phone"]);
     expect(patientCreate?.properties?.email).toEqual({ type: ["string", "null"], format: "email" });
+    expect(patientCreate?.properties?.citizenIdNumber).toMatchObject({ type: ["string", "null"], maxLength: 30 });
+    expect(patientCreate?.properties?.healthInsuranceNumber).toMatchObject({ type: ["string", "null"], maxLength: 30 });
+    expect(patientCreate?.properties?.guardianName).toMatchObject({ type: ["string", "null"], maxLength: 500 });
     expect(patientCreate?.properties).not.toHaveProperty("status");
+  });
+
+  it("documents walk-in intake queue assignment", () => {
+    expect(spec.paths?.["/api/v1/walk-in-intake/quote"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/WalkInQuote");
+    expect(spec.paths?.["/api/v1/walk-in-intake"]?.post?.requestBody?.$ref).toBe("#/components/requestBodies/WalkInCreate");
+    expect(spec.paths?.["/api/v1/walk-in-intake/quote"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/WalkInQuote");
+    expect(spec.paths?.["/api/v1/walk-in-intake"]?.post?.responses?.["201"]?.$ref).toBe("#/components/responses/WalkInIntake");
+
+    const walkInPatient = spec.components?.schemas?.WalkInPatientInput;
+    expect(walkInPatient?.required).toEqual(["fullName", "phone"]);
+    expect(walkInPatient?.properties?.citizenIdNumber).toMatchObject({ type: ["string", "null"], maxLength: 30 });
+    expect(walkInPatient?.properties?.healthInsuranceNumber).toMatchObject({ type: ["string", "null"], maxLength: 30 });
+    expect(walkInPatient?.properties?.guardianName).toMatchObject({ type: ["string", "null"], maxLength: 500 });
+
+    const quote = spec.components?.schemas?.WalkInQuoteResponse;
+    expect(quote?.required).toEqual([
+      "patientMatch",
+      "patientId",
+      "doctorId",
+      "doctorName",
+      "room",
+      "serviceId",
+      "startAt",
+      "estimatedWaitMinutes",
+      "queueAhead",
+      "assignmentReason",
+    ]);
+    expect(quote?.properties?.assignmentReason).toEqual({ enum: ["room_empty", "lowest_queue", "continued_shift", "next_shift"] });
   });
 
   it("documents audit date-time filters", () => {
