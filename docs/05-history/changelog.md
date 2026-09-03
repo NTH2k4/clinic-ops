@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-03
+
+- Chỉnh public homepage để bám sát file preview HTML đã duyệt: sticky nav nền trắng, hero ảnh full-bleed, trust strip `15 phút`/`8 chuyên khoa`/`24/7`, card chuyên khoa, card bác sĩ có ảnh, quy trình đặt lịch và booking form mô phỏng dẫn tiếp tới luồng đăng ký.
+
 ## 2026-09-02
 
 - Triển khai public homepage tại route `/`: thêm hero ảnh, chuyên khoa nổi bật, bác sĩ tiêu biểu, quy trình đặt lịch, CTA tới `/register` và `/login`; giữ authenticated workspace ở `/app/*` và login riêng tại `/login`.
