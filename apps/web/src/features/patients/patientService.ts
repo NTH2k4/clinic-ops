@@ -39,7 +39,14 @@ function mockPatients(filters: PatientListFilters = {}): ApiListResponse<Patient
   const q = filters.q ? normalized(filters.q) : undefined;
   const items = mockStore.patients.filter((patient) =>
     (!filters.status || patient.status === filters.status)
-    && (!q || normalized(`${patient.fullName} ${patient.phone}`).includes(q)));
+    && (!q || normalized([
+      patient.fullName,
+      patient.phone,
+      patient.citizenIdNumber,
+      patient.healthInsuranceNumber,
+      patient.guardianName,
+      patient.guardianPhone,
+    ].filter(Boolean).join(" ")).includes(q)));
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 20;
   const start = (page - 1) * pageSize;
@@ -82,6 +89,11 @@ export function createPatientService(options: PatientServiceOptions): PatientSer
         fullName: input.fullName,
         phone: input.phone,
         ...(input.email ? { email: input.email } : {}),
+        ...(input.citizenIdNumber ? { citizenIdNumber: input.citizenIdNumber } : {}),
+        ...(input.healthInsuranceNumber ? { healthInsuranceNumber: input.healthInsuranceNumber } : {}),
+        ...(input.guardianName ? { guardianName: input.guardianName } : {}),
+        ...(input.guardianPhone ? { guardianPhone: input.guardianPhone } : {}),
+        ...(input.identityDocumentType ? { identityDocumentType: input.identityDocumentType } : {}),
         dateOfBirth: input.dateOfBirth ?? "",
         gender: input.gender ?? "prefer_not_to_say",
         ...(input.address ? { address: input.address } : {}),

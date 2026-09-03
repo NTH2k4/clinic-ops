@@ -15,6 +15,13 @@ export interface ApiPatientRecord {
   fullName: string;
   phone: string;
   email: string | null;
+  citizenIdNumber?: string | null;
+  healthInsuranceNumber?: string | null;
+  guardianName?: string | null;
+  guardianPhone?: string | null;
+  identityDocumentType?: string | null;
+  maskedCitizenIdNumber?: string | null;
+  maskedHealthInsuranceNumber?: string | null;
   dateOfBirth: string | null;
   gender: Gender | string | null;
   address: string | null;
@@ -28,6 +35,11 @@ export interface PatientCreateInput {
   fullName: string;
   phone: string;
   email?: string | null;
+  citizenIdNumber?: string | null;
+  healthInsuranceNumber?: string | null;
+  guardianName?: string | null;
+  guardianPhone?: string | null;
+  identityDocumentType?: string | null;
   dateOfBirth?: string | null;
   gender?: Gender | null;
   address?: string | null;

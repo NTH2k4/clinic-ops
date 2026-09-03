@@ -49,8 +49,8 @@ export const doctors: Doctor[] = [
 ];
 
 export const patients: Patient[] = [
-  { id: "patient-1", userId: "user-patient-1", fullName: "Nguyen Minh Anh", phone: "0901000001", email: "minh.anh@example.com", dateOfBirth: "1992-04-18", gender: "female", status: "active", createdAt, updatedAt },
-  { id: "patient-2", fullName: "Tran Duc Long", phone: "0903000002", dateOfBirth: "1988-08-09", gender: "male", status: "active", createdAt, updatedAt },
+  { id: "patient-1", userId: "user-patient-1", fullName: "Nguyen Minh Anh", phone: "0901000001", email: "minh.anh@example.com", citizenIdNumber: "079203000001", maskedCitizenIdNumber: "********0001", dateOfBirth: "1992-04-18", gender: "female", status: "active", createdAt, updatedAt },
+  { id: "patient-2", fullName: "Tran Duc Long", phone: "0903000002", citizenIdNumber: "079203000002", maskedCitizenIdNumber: "********0002", dateOfBirth: "1988-08-09", gender: "male", status: "active", createdAt, updatedAt },
   { id: "patient-3", fullName: "Le Ngoc Han", phone: "0903000003", dateOfBirth: "1995-01-30", gender: "female", status: "active", createdAt, updatedAt },
   { id: "patient-4", fullName: "Pham Gia Khang", phone: "0903000004", dateOfBirth: "2018-05-12", gender: "male", status: "active", createdAt, updatedAt },
   { id: "patient-5", fullName: "Do Bao Tram", phone: "0903000005", dateOfBirth: "1984-11-21", gender: "female", status: "active", createdAt, updatedAt },

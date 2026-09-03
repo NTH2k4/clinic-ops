@@ -45,6 +45,13 @@ export interface Patient {
   fullName: string;
   phone: string;
   email?: string;
+  citizenIdNumber?: string;
+  healthInsuranceNumber?: string;
+  guardianName?: string;
+  guardianPhone?: string;
+  identityDocumentType?: string;
+  maskedCitizenIdNumber?: string;
+  maskedHealthInsuranceNumber?: string;
   dateOfBirth: string;
   gender: Gender;
   address?: string;

@@ -5,6 +5,12 @@ import { paginationArgs } from "../common/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import type { PatientCreateInput, PatientListQuery, PatientUpdateInput } from "./patients.dto";
 
+type PatientRecord = Awaited<ReturnType<PrismaService["patient"]["findFirstOrThrow"]>>;
+type PatientListRecord = Omit<PatientRecord, "citizenIdNumber" | "healthInsuranceNumber"> & {
+  maskedCitizenIdNumber: string | null;
+  maskedHealthInsuranceNumber: string | null;
+};
+
 @Injectable()
 export class PatientsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -12,13 +18,20 @@ export class PatientsService {
   async list(query: PatientListQuery, includeRequestedStatus: boolean) {
     const where: Prisma.PatientWhereInput = {
       status: includeRequestedStatus && query.status !== undefined ? query.status : AccountStatus.active,
-      ...(query.q ? { OR: [{ fullName: { contains: query.q, mode: "insensitive" } }, { phone: { contains: query.q, mode: "insensitive" } }] } : {}),
+      ...(query.q ? { OR: [
+        { fullName: { contains: query.q, mode: "insensitive" } },
+        { phone: { contains: query.q, mode: "insensitive" } },
+        { citizenIdNumber: { contains: query.q, mode: "insensitive" } },
+        { healthInsuranceNumber: { contains: query.q, mode: "insensitive" } },
+        { guardianName: { contains: query.q, mode: "insensitive" } },
+        { guardianPhone: { contains: query.q, mode: "insensitive" } },
+      ] } : {}),
     };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.patient.findMany({ where, orderBy: { fullName: "asc" }, ...paginationArgs(query) }),
       this.prisma.patient.count({ where }),
     ]);
-    return { items, total };
+    return { items: items.map((patient) => this.listRecord(patient)), total };
   }
 
   async patient(id: string, includeOperationalNotes = true) {
@@ -37,7 +50,7 @@ export class PatientsService {
         },
       });
       await this.audit(transaction, actorUserId, patient.id, "patient_created");
-      return includeOperationalNotes ? patient : this.omitOperationalNotes(patient);
+      return this.detailRecord(patient, includeOperationalNotes);
     });
   }
 
@@ -46,7 +59,7 @@ export class PatientsService {
       await this.require(transaction.patient.findUnique({ where: { id } }));
       const patient = await transaction.patient.update({ where: { id }, data: this.updateData(input) });
       await this.audit(transaction, actorUserId, patient.id, "patient_updated");
-      return includeOperationalNotes ? patient : this.omitOperationalNotes(patient);
+      return this.detailRecord(patient, includeOperationalNotes);
     });
   }
 
@@ -68,6 +81,11 @@ export class PatientsService {
       fullName: input.fullName,
       phone: input.phone,
       email: input.email,
+      citizenIdNumber: input.citizenIdNumber,
+      healthInsuranceNumber: input.healthInsuranceNumber,
+      guardianName: input.guardianName,
+      guardianPhone: input.guardianPhone,
+      identityDocumentType: input.identityDocumentType,
       dateOfBirth: input.dateOfBirth === undefined || input.dateOfBirth === null ? input.dateOfBirth : new Date(`${input.dateOfBirth}T00:00:00.000Z`),
       gender: input.gender,
       address: input.address,
@@ -80,6 +98,11 @@ export class PatientsService {
       fullName: input.fullName,
       phone: input.phone,
       email: input.email,
+      citizenIdNumber: input.citizenIdNumber,
+      healthInsuranceNumber: input.healthInsuranceNumber,
+      guardianName: input.guardianName,
+      guardianPhone: input.guardianPhone,
+      identityDocumentType: input.identityDocumentType,
       dateOfBirth: input.dateOfBirth === undefined || input.dateOfBirth === null ? input.dateOfBirth : new Date(`${input.dateOfBirth}T00:00:00.000Z`),
       gender: input.gender,
       address: input.address,
@@ -91,6 +114,30 @@ export class PatientsService {
     const publicPatient = { ...patient };
     delete publicPatient.notes;
     return publicPatient;
+  }
+
+  private detailRecord<T extends PatientRecord>(patient: T, includeOperationalNotes: boolean) {
+    const detail = {
+      ...(includeOperationalNotes ? patient : this.omitOperationalNotes(patient)),
+      maskedCitizenIdNumber: this.maskIdentityNumber(patient.citizenIdNumber),
+      maskedHealthInsuranceNumber: this.maskIdentityNumber(patient.healthInsuranceNumber),
+    };
+    return detail;
+  }
+
+  private listRecord(patient: PatientRecord): PatientListRecord {
+    const { citizenIdNumber: _citizenIdNumber, healthInsuranceNumber: _healthInsuranceNumber, ...safePatient } = patient;
+    return {
+      ...safePatient,
+      maskedCitizenIdNumber: this.maskIdentityNumber(patient.citizenIdNumber),
+      maskedHealthInsuranceNumber: this.maskIdentityNumber(patient.healthInsuranceNumber),
+    };
+  }
+
+  maskIdentityNumber(value: string | null | undefined): string | null {
+    if (!value) return null;
+    const visible = value.slice(-4);
+    return `${"*".repeat(Math.max(value.length - visible.length, 0))}${visible}`;
   }
 
   private async require<T>(value: Promise<T | null>): Promise<T> { const patient = await value; if (!patient) throw new ApiError(404, "NOT_FOUND", "patient was not found."); return patient; }
