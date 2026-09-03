@@ -5,5 +5,5 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { PatientsController } from "./patients.controller";
 import { PatientsService } from "./patients.service";
 
-@Module({ imports: [AuthModule, PrismaModule], controllers: [PatientsController], providers: [PatientsService, RolesGuard] })
+@Module({ imports: [AuthModule, PrismaModule], controllers: [PatientsController], providers: [PatientsService, RolesGuard], exports: [PatientsService] })
 export class PatientsModule {}

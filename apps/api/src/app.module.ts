@@ -13,9 +13,10 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { PatientsModule } from "./patients/patients.module";
 import { SchedulingModule } from "./scheduling/scheduling.module";
 import { UsersModule } from "./users/users.module";
+import { WalkInModule } from "./walk-in/walk-in.module";
 
 @Module({
-  imports: [PrismaModule, AuthModule, CatalogModule, PatientsModule, AppointmentsModule, SchedulingModule, AuditModule, NotificationsModule, UsersModule],
+  imports: [PrismaModule, AuthModule, CatalogModule, PatientsModule, AppointmentsModule, SchedulingModule, AuditModule, NotificationsModule, UsersModule, WalkInModule],
   controllers: [HealthController],
   providers: [RequestLoggingMiddleware, DemoAuthRepairService, { provide: APP_FILTER, useClass: ApiExceptionFilter }],
   exports: [AuthModule],

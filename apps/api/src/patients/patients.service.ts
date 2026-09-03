@@ -126,9 +126,11 @@ export class PatientsService {
   }
 
   private listRecord(patient: PatientRecord): PatientListRecord {
-    const { citizenIdNumber: _citizenIdNumber, healthInsuranceNumber: _healthInsuranceNumber, ...safePatient } = patient;
+    const safePatient = { ...patient } as Omit<PatientRecord, "citizenIdNumber" | "healthInsuranceNumber"> & Partial<Pick<PatientRecord, "citizenIdNumber" | "healthInsuranceNumber">>;
+    delete safePatient.citizenIdNumber;
+    delete safePatient.healthInsuranceNumber;
     return {
-      ...safePatient,
+      ...(safePatient as Omit<PatientRecord, "citizenIdNumber" | "healthInsuranceNumber">),
       maskedCitizenIdNumber: this.maskIdentityNumber(patient.citizenIdNumber),
       maskedHealthInsuranceNumber: this.maskIdentityNumber(patient.healthInsuranceNumber),
     };
