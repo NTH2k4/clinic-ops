@@ -20,6 +20,7 @@ import { CreateAppointmentPage } from "../features/operations/CreateAppointmentP
 import { OperationsCalendar } from "../features/operations/OperationsCalendar";
 import { OperationsDashboard } from "../features/operations/OperationsDashboard";
 import { QueuePage } from "../features/operations/QueuePage";
+import { WalkInIntakePage } from "../features/operations/WalkInIntakePage";
 import { BookAppointmentPage } from "../features/patients/BookAppointmentPage";
 import { MyAppointmentsPage } from "../features/patients/MyAppointmentsPage";
 import { PatientHome } from "../features/patients/PatientHome";
@@ -46,9 +47,10 @@ export function AppRoutes() {
           <Route element={<DoctorDashboard />} path="doctor" />
           <Route element={<DoctorDaySchedule />} path="doctor/day" />
           <Route element={<DoctorWeekSchedule />} path="doctor/week" />
-          <Route element={<RequireRole allowedRoles={["receptionist", "nurse"]} />}>
+          <Route element={<RequireRole allowedRoles={["receptionist", "nurse", "admin"]} />}>
             <Route element={<OperationsDashboard />} path="operations" />
             <Route element={<QueuePage />} path="operations/queue" />
+            <Route element={<WalkInIntakePage />} path="operations/walk-in" />
             <Route element={<OperationsCalendar />} path="operations/calendar" />
             <Route element={<CreateAppointmentPage />} path="operations/appointments/new" />
           </Route>

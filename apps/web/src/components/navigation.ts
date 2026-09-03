@@ -1,4 +1,4 @@
-import { Activity, CalendarDays, ClipboardList, Home, Settings, UserRound, Users } from "lucide-react";
+import { Activity, CalendarDays, ClipboardList, Home, Settings, UserRound, UserRoundPlus, Users } from "lucide-react";
 import type { UserRole } from "../types/models";
 
 export type NavItem = {
@@ -10,6 +10,7 @@ export type NavItem = {
 const operationsNavigation: NavItem[] = [
   { icon: Home, label: "Tổng quan", to: "/app/operations" },
   { icon: ClipboardList, label: "Hàng đợi", to: "/app/operations/queue" },
+  { icon: UserRoundPlus, label: "Tiếp nhận trực tiếp", to: "/app/operations/walk-in" },
   { icon: CalendarDays, label: "Lịch", to: "/app/operations/calendar" },
   { icon: CalendarDays, label: "Tạo lịch", to: "/app/operations/appointments/new" },
 ];
@@ -30,6 +31,7 @@ const navigationByRole: Record<UserRole, NavItem[]> = {
   nurse: operationsNavigation,
   admin: [
     { icon: Home, label: "Tổng quan", to: "/app/admin" },
+    { icon: UserRoundPlus, label: "Tiếp nhận trực tiếp", to: "/app/operations/walk-in" },
     { icon: Users, label: "Tài khoản", to: "/app/admin/accounts" },
     { icon: Users, label: "Bác sĩ", to: "/app/admin/doctors" },
     { icon: CalendarDays, label: "Lịch làm việc", to: "/app/admin/schedules" },

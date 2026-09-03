@@ -5,6 +5,7 @@ import { CreateAppointmentPage } from "./CreateAppointmentPage";
 import { OperationsCalendar } from "./OperationsCalendar";
 import { OperationsDashboard } from "./OperationsDashboard";
 import { QueuePage } from "./QueuePage";
+import { WalkInIntakePage } from "./WalkInIntakePage";
 import { appointmentService } from "../appointments/appointmentService";
 import { createSchedulingService } from "../scheduling/schedulingService";
 import type { SchedulingApi } from "../../lib/api/scheduling";
@@ -12,6 +13,7 @@ import { mockStore } from "../../mocks/mockStore";
 import { expectClinicDateField, getClinicDateSegment, setClinicDateDay } from "../../test/dateField";
 import { renderWithProviders } from "../../test/render";
 import { queryClient } from "../../lib/queryClient";
+import { navigationForRole } from "../../components/navigation";
 
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -227,6 +229,30 @@ describe("operations workspace", () => {
     expect(screen.getByRole("group", { name: "2. Chọn dịch vụ và bác sĩ" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "3. Chọn thời gian" })).toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "Xem lại trước khi tạo" })).toBeInTheDocument();
+  });
+
+  it("lets operations staff quote and confirm a walk-in intake", async () => {
+    vi.setSystemTime(new Date("2026-08-25T02:00:00.000Z"));
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+
+    expect(navigationForRole("receptionist").map((item) => item.label)).toContain("Tiếp nhận trực tiếp");
+    renderWithProviders(<WalkInIntakePage />);
+
+    await user.type(screen.getByLabelText("CCCD"), "079203000333");
+    await user.type(screen.getByLabelText("Họ và tên"), "Tran Van Walkin");
+    await user.type(screen.getByLabelText("Số điện thoại"), "+84930000333");
+    await user.type(screen.getByLabelText("Người giám hộ"), "Tran Van Guardian");
+    await user.selectOptions(screen.getByLabelText("Dịch vụ khám"), "service-general-consult");
+    await user.click(screen.getByRole("button", { name: "Tìm phòng phù hợp" }));
+
+    expect(await screen.findByText(/Phòng/)).toBeInTheDocument();
+    expect(screen.getByText(/Số người chờ/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Xếp vào hàng đợi" }));
+
+    expect(await screen.findByText("Đã xếp bệnh nhân vào hàng đợi khám.")).toBeInTheDocument();
+    expect(mockStore.patients.at(-1)).toMatchObject({ citizenIdNumber: "079203000333", guardianName: "Tran Van Guardian" });
+    expect(mockStore.appointments.at(-1)).toMatchObject({ status: "checked_in", serviceId: "service-general-consult" });
   });
 
   it("creates a confirmed appointment for staff", async () => {
