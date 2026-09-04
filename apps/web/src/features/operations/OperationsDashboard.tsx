@@ -1,12 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarPlus, ClipboardList } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
+import { DetailDrawer } from "../../components/DetailDrawer";
 import { EmptyState } from "../../components/EmptyState";
 import { MetricCard } from "../../components/MetricCard";
 import { formatDateInputValue, todayInClinicTimeZone } from "../../lib/dateTime";
-import type { AppointmentStatus } from "../../types/models";
+import type { Appointment, AppointmentStatus } from "../../types/models";
 import { appointmentDateRange, appointmentQueryOptions, patientsFromAppointments } from "../appointments/appointmentService";
+import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
 
 const metrics: Array<{ label: string; statuses?: AppointmentStatus[] }> = [
@@ -19,13 +22,23 @@ const metrics: Array<{ label: string; statuses?: AppointmentStatus[] }> = [
 ];
 
 export function OperationsDashboard() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: serviceResponse } = useQuery(catalogQueryOptions.allServices());
   const services = serviceResponse?.data ?? [];
   const today = todayInClinicTimeZone();
-  const { data: appointmentResponse = [] } = useQuery(appointmentQueryOptions.list(appointmentDateRange(today)));
+  const appointmentOptions = appointmentQueryOptions.list(appointmentDateRange(today));
+  const { data: appointmentResponse = [] } = useQuery(appointmentOptions);
   const appointments = appointmentResponse.slice().sort((left, right) => left.startAt.localeCompare(right.startAt));
   const patients = patientsFromAppointments(appointments);
   const waiting = appointments.filter((appointment) => appointment.status === "requested" || appointment.status === "confirmed" || appointment.status === "checked_in");
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+
+  function updateAppointment(updated: Appointment) {
+    queryClient.setQueryData<Appointment[]>(appointmentOptions.queryKey, (current = []) =>
+      current.map((appointment) => appointment.id === updated.id ? updated : appointment));
+    setSelectedAppointment(updated);
+  }
 
   return (
     <section className="mx-auto max-w-6xl">
@@ -49,7 +62,7 @@ export function OperationsDashboard() {
             </div>
             <Link className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-3 text-sm font-semibold text-text transition-colors hover:border-border-strong hover:bg-surface-muted" to="/app/operations/queue"><ClipboardList aria-hidden="true" size={17} />Mở hàng đợi</Link>
           </div>
-          <div className="mt-4">{waiting.length ? <AppointmentTimeline appointments={waiting} compact onSelect={() => undefined} patients={patients} services={services} /> : <EmptyState description="Chưa có lịch hẹn cần tiếp đón." title="Hàng đợi trống" />}</div>
+          <div className="mt-4">{waiting.length ? <AppointmentTimeline appointments={waiting} compact onSelect={setSelectedAppointment} patients={patients} services={services} /> : <EmptyState description="Chưa có lịch hẹn cần tiếp đón." title="Hàng đợi trống" />}</div>
         </section>
         <aside className="rounded-lg border border-border bg-surface p-5 shadow-panel">
           <h2 className="text-base font-semibold text-text">Tác vụ nhanh</h2>
@@ -59,6 +72,7 @@ export function OperationsDashboard() {
           </div>
         </aside>
       </div>
+      <DetailDrawer actorRole={user?.role ?? "receptionist"} actorUserId={user?.id ?? ""} appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onUpdated={updateAppointment} />
     </section>
   );
 }

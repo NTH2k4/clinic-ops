@@ -631,4 +631,17 @@ describe("operations workspace", () => {
     expect(screen.getByText("Yêu cầu mới, lịch đã xác nhận và bệnh nhân đã check-in.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tạo lịch hẹn" })).toBeInTheDocument();
   });
+
+  it("opens appointment details from the operations dashboard waiting queue", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderWithProviders(<OperationsDashboard />);
+
+    const waitingQueue = screen.getByRole("heading", { name: "Hàng đợi chờ xử lý" }).closest("section")!;
+    await user.click(within(waitingQueue).getAllByRole("button", { name: /Xem chi tiết .+/ })[0]);
+
+    const detailDialog = screen.getByRole("dialog", { name: "Chi tiết lịch hẹn" });
+    expect(within(detailDialog).getByText("Thông tin khám")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("Lý do khám")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("Khám và tư vấn theo lịch hẹn.")).toBeInTheDocument();
+  });
 });
