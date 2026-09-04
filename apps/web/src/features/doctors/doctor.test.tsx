@@ -68,7 +68,7 @@ describe("doctor workspace", () => {
     expect(screen.queryByRole("heading", { name: "Chưa có lịch hẹn" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(8);
     expect(within(screen.getByText("Lịch hẹn hôm nay").closest("section")!).getByText("8")).toBeInTheDocument();
-    const waitingMetric = screen.getByText("Chờ xác nhận", { selector: "p" }).closest("section")!;
+    const waitingMetric = screen.getByText("Chờ khám", { selector: "p" }).closest("section")!;
     expect(waitingMetric).toBeInTheDocument();
     expect(within(waitingMetric).getByText("1")).toBeInTheDocument();
     expect(screen.getAllByText("Đã check-in").length).toBeGreaterThan(0);

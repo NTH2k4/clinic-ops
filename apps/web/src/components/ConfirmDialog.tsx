@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 
 type ConfirmDialogProps = {
   cancelLabel?: string;
+  confirmDisabled?: boolean;
   confirmLabel?: string;
   description: string;
   isOpen: boolean;
@@ -13,6 +14,7 @@ type ConfirmDialogProps = {
 
 export function ConfirmDialog({
   cancelLabel = "Quay lại",
+  confirmDisabled = false,
   confirmLabel = "Xác nhận",
   description,
   isOpen,
@@ -31,7 +33,7 @@ export function ConfirmDialog({
         <p className="mt-2 text-sm text-text-muted" id={descriptionId}>{description}</p>
         <div className="mt-5 flex justify-end gap-3">
           <button className="h-10 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={onCancel} type="button">{cancelLabel}</button>
-          <button className="h-10 rounded-md bg-danger px-3 text-sm font-semibold text-white hover:bg-red-700" onClick={onConfirm} type="button">{confirmLabel}</button>
+          <button className="h-10 rounded-md bg-danger px-3 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60" disabled={confirmDisabled} onClick={onConfirm} type="button">{confirmLabel}</button>
         </div>
       </section>
     </div>

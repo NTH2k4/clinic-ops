@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ShimmerList } from "../../components/LoadingState";
 import type { ApiAccountStatus } from "../../lib/api/users";
@@ -59,6 +59,7 @@ export function AdminAccounts() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAccountAction>(null);
+  const [deactivationCountdown, setDeactivationCountdown] = useState<number | null>(null);
   const filters = { q: q || undefined, role: role || undefined, status: status || undefined, page: 1, pageSize: 100 };
   const { data: response, isLoading, error } = useQuery(adminAccountsQueryOptions.list(filters));
   const accounts = response?.data ?? [];
@@ -95,10 +96,23 @@ export function AdminAccounts() {
     }
   }
 
+  useEffect(() => {
+    if (!pendingAction || pendingAction.action !== "deactivate") return undefined;
+    if (deactivationCountdown === null) {
+      setDeactivationCountdown(5);
+      return undefined;
+    }
+    if (deactivationCountdown <= 0) return undefined;
+    const timeoutId = window.setTimeout(() => setDeactivationCountdown((current) => current === null ? null : current - 1), 1000);
+    return () => window.clearTimeout(timeoutId);
+  }, [deactivationCountdown, pendingAction]);
+
   function confirmPendingAction() {
     if (!pendingAction) return;
     if (pendingAction.action === "reset-password") {
       void resetPassword(pendingAction.account.id);
+    } else if (pendingAction.action === "deactivate" && deactivationCountdown !== null && deactivationCountdown > 0) {
+      return;
     } else {
       statusAction.mutate({ id: pendingAction.account.id, action: pendingAction.action });
     }
@@ -106,6 +120,13 @@ export function AdminAccounts() {
   }
 
   const pendingActionCopy = pendingAction ? actionDialogCopy[pendingAction.action] : null;
+  const isWaitingForDeactivation = pendingAction?.action === "deactivate" && deactivationCountdown !== null && deactivationCountdown > 0;
+  const confirmLabel = isWaitingForDeactivation
+    ? `Vô hiệu hóa sau ${deactivationCountdown} giây`
+    : pendingActionCopy?.confirmLabel;
+  const description = pendingAction && pendingActionCopy
+    ? `${pendingActionCopy.description(pendingAction.account.displayName)}${pendingAction.action === "deactivate" ? " Sau khi vô hiệu hóa, hệ thống hiện chưa có chức năng hoàn tác hoặc kích hoạt lại tài khoản này." : ""}`
+    : "";
 
   return (
     <section className="mx-auto max-w-7xl">
@@ -131,10 +152,14 @@ export function AdminAccounts() {
       </div>}
       {!isLoading && !accounts.length ? <p className="mt-3 text-sm text-text-muted">Không có tài khoản nào khớp bộ lọc.</p> : null}
       <ConfirmDialog
-        confirmLabel={pendingActionCopy?.confirmLabel}
-        description={pendingAction && pendingActionCopy ? pendingActionCopy.description(pendingAction.account.displayName) : ""}
+        confirmDisabled={isWaitingForDeactivation}
+        confirmLabel={confirmLabel}
+        description={description}
         isOpen={Boolean(pendingAction)}
-        onCancel={() => setPendingAction(null)}
+        onCancel={() => {
+          setPendingAction(null);
+          setDeactivationCountdown(null);
+        }}
         onConfirm={confirmPendingAction}
         title={pendingActionCopy?.title ?? "Xác nhận thao tác"}
       />

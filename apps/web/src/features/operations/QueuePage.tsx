@@ -11,6 +11,7 @@ import { appointmentDateRange, appointmentQueryOptions, appointmentService, pati
 import { canTransitionAppointment } from "../appointments/appointmentRules";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
+import { RequestedAppointmentReviewDialog } from "./RequestedAppointmentReviewDialog";
 
 type QueueGroup = {
   description: string;
@@ -62,7 +63,9 @@ const successMessages: Partial<Record<AppointmentStatus, string>> = {
 export function QueuePage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { data: doctorResponse, isLoading: isDoctorLoading } = useQuery(catalogQueryOptions.allDoctors());
   const { data: serviceResponse, isLoading: isServiceLoading } = useQuery(catalogQueryOptions.allServices());
+  const doctors = doctorResponse?.data ?? [];
   const services = serviceResponse?.data ?? [];
   const today = todayInClinicTimeZone();
   const [date, setDate] = useState(() => todayInClinicTimeZone());
@@ -74,11 +77,12 @@ export function QueuePage() {
   );
   const patients = useMemo(() => patientsFromAppointments(appointments), [appointments]);
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<Appointment | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const actorUserId = user?.id ?? "user-receptionist-1";
   const groupedAppointments = useMemo(() => queueGroups.map((group) => ({ ...group, appointments: appointments.filter((appointment) => group.statuses.includes(appointment.status)) })), [appointments]);
-  const isLoading = isServiceLoading || isAppointmentLoading;
+  const isLoading = isDoctorLoading || isServiceLoading || isAppointmentLoading;
 
   function cacheUpdatedAppointment(updated: Appointment) {
     queryClient.setQueryData<Appointment[]>(appointmentOptions.queryKey, (current = []) =>
@@ -93,6 +97,7 @@ export function QueuePage() {
       const updated = await appointmentService.updateAppointmentStatus(appointment.id, status, actorUserId);
       cacheUpdatedAppointment(updated);
       setNotice(successMessages[status] ?? "Đã cập nhật lịch hẹn.");
+      if (reviewTarget?.id === appointment.id) setReviewTarget(null);
     } catch {
       setError("Không thể cập nhật lịch hẹn. Vui lòng thử lại.");
     }
@@ -111,6 +116,7 @@ export function QueuePage() {
       cacheUpdatedAppointment(updated);
       setNotice("Đã hủy lịch hẹn.");
       setCancelTarget(null);
+      if (reviewTarget?.id === cancelTarget.id) setReviewTarget(null);
     } catch {
       setError("Không thể hủy lịch hẹn. Vui lòng thử lại.");
     }
@@ -146,11 +152,25 @@ export function QueuePage() {
               const patient = patients.find((candidate) => candidate.id === appointment.patientId);
               const service = services.find((candidate) => candidate.id === appointment.serviceId);
               const guardMessage = checkInGuardMessage(appointment, date, today);
-              return <li className="py-3 first:pt-0 last:pb-0" key={appointment.id}><div className="flex flex-wrap items-center gap-2"><p className="w-12 text-sm font-semibold text-primary">{formatTime(appointment.startAt)}</p><p className="min-w-36 flex-1 font-medium text-text">{patient?.fullName ?? "Bệnh nhân chưa xác định"}</p><StatusBadge status={appointment.status} /></div><p className="mt-1 pl-14 text-sm text-text-muted">{service?.name ?? "Dịch vụ chưa xác định"}</p>{guardMessage ? <p className="mt-2 pl-14 text-sm font-medium text-text-muted">{guardMessage}</p> : null}<div className="mt-3 flex flex-wrap gap-2 pl-14">{actionsForAppointment(appointment, user?.role ?? "receptionist", date, today).map((action) => <button aria-label={action.cancel ? `Hủy lịch ${patient?.fullName ?? "bệnh nhân"} ${formatTime(appointment.startAt)}` : undefined} className="h-9 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" key={action.label} onClick={() => { if (action.cancel) setCancelTarget(appointment); else if (action.next) void updateStatus(appointment, action.next); }} type="button">{action.label}</button>)}</div></li>;
+              const actions = actionsForAppointment(appointment, user?.role ?? "receptionist", date, today);
+              return <li className="py-3 first:pt-0 last:pb-0" key={appointment.id}><div className="flex flex-wrap items-center gap-2"><p className="w-12 text-sm font-semibold text-primary">{formatTime(appointment.startAt)}</p><p className="min-w-36 flex-1 font-medium text-text">{patient?.fullName ?? "Bệnh nhân chưa xác định"}</p><StatusBadge status={appointment.status} /></div><p className="mt-1 pl-14 text-sm text-text-muted">{service?.name ?? "Dịch vụ chưa xác định"}</p>{guardMessage ? <p className="mt-2 pl-14 text-sm font-medium text-text-muted">{guardMessage}</p> : null}<div className="mt-3 flex flex-wrap gap-2 pl-14">{appointment.status === "requested" && actions.length ? <button aria-label={`Xem chi tiết ${patient?.fullName ?? "bệnh nhân"} ${formatTime(appointment.startAt)}`} className="h-9 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={() => setReviewTarget(appointment)} type="button">Xem chi tiết</button> : actions.map((action) => <button aria-label={action.cancel ? `Hủy lịch ${patient?.fullName ?? "bệnh nhân"} ${formatTime(appointment.startAt)}` : undefined} className="h-9 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" key={action.label} onClick={() => { if (action.cancel) setCancelTarget(appointment); else if (action.next) void updateStatus(appointment, action.next); }} type="button">{action.label}</button>)}</div></li>;
             })}</ul> : <EmptyState description="Không có lịch hẹn trong nhóm này." title="Trống" />}
           </section>
         ))}
       </div>}
+      <RequestedAppointmentReviewDialog
+        actions={reviewTarget ? actionsForAppointment(reviewTarget, user?.role ?? "receptionist", date, today) : []}
+        appointment={reviewTarget}
+        doctor={doctors.find((candidate) => candidate.id === reviewTarget?.doctorId)}
+        onAction={(action) => {
+          if (!reviewTarget) return;
+          if (action.cancel) setCancelTarget(reviewTarget);
+          else if (action.next) void updateStatus(reviewTarget, action.next);
+        }}
+        onClose={() => setReviewTarget(null)}
+        patient={patients.find((candidate) => candidate.id === reviewTarget?.patientId)}
+        service={services.find((candidate) => candidate.id === reviewTarget?.serviceId)}
+      />
       <ConfirmDialog cancelLabel="Giữ lịch" confirmLabel="Hủy lịch" description="Thao tác này sẽ chuyển lịch hẹn sang trạng thái đã hủy và ghi nhận trong audit log." isOpen={Boolean(cancelTarget)} onCancel={() => setCancelTarget(null)} onConfirm={() => void cancelAppointment()} title="Xác nhận hủy lịch hẹn" />
     </section>
   );

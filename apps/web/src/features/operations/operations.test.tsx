@@ -105,12 +105,42 @@ describe("operations workspace", () => {
     const requestedCount = within(requestedGroup).getAllByLabelText("Trạng thái: Chờ xác nhận").length;
     const confirmedCount = within(confirmedGroup).queryAllByLabelText("Trạng thái: Đã xác nhận").length;
 
-    await user.click(within(requestedGroup).getAllByRole("button", { name: "Xác nhận lịch" })[0]);
+    await user.click(within(requestedGroup).getAllByRole("button", { name: /Xem chi tiết .+/ })[0]);
+    await user.click(within(screen.getByRole("dialog", { name: "Chi tiết yêu cầu đặt lịch" })).getByRole("button", { name: "Xác nhận lịch" }));
 
     expect(await within(confirmedGroup).findByLabelText("Trạng thái: Đã xác nhận")).toBeInTheDocument();
     expect(within(requestedGroup).queryAllByLabelText("Trạng thái: Chờ xác nhận")).toHaveLength(requestedCount - 1);
     expect(within(confirmedGroup).getAllByLabelText("Trạng thái: Đã xác nhận")).toHaveLength(confirmedCount + 1);
     expect(screen.getByRole("status")).toHaveTextContent("Đã xác nhận lịch hẹn.");
+  });
+
+  it("requires staff to review requested appointment details before confirming", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    mockStore.appointments.forEach((appointment) => {
+      if (appointment.status === "confirmed") appointment.status = "completed";
+    });
+    renderWithProviders(<QueuePage />);
+
+    const requestedGroup = screen.getByRole("region", { name: "Chờ xác nhận" });
+    expect(within(requestedGroup).queryByRole("button", { name: "Xác nhận lịch" })).not.toBeInTheDocument();
+    expect(within(requestedGroup).queryByRole("button", { name: /Hủy lịch .+/ })).not.toBeInTheDocument();
+
+    await user.click(within(requestedGroup).getAllByRole("button", { name: /Xem chi tiết .+/ })[0]);
+
+    const detailDialog = screen.getByRole("dialog", { name: "Chi tiết yêu cầu đặt lịch" });
+    expect(within(detailDialog).getByText("Thông tin bệnh nhân")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("Số điện thoại")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("Lý do khám")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("Khám và tư vấn theo lịch hẹn.")).toBeInTheDocument();
+    expect(within(detailDialog).getByRole("button", { name: "Xác nhận lịch" })).toBeInTheDocument();
+    expect(within(detailDialog).getByRole("button", { name: "Hủy lịch" })).toBeInTheDocument();
+
+    await user.click(within(detailDialog).getByRole("button", { name: "Xác nhận lịch" }));
+
+    const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
+    expect(await within(confirmedGroup).findByLabelText("Trạng thái: Đã xác nhận")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Đã xác nhận lịch hẹn.");
+    expect(screen.queryByRole("dialog", { name: "Chi tiết yêu cầu đặt lịch" })).not.toBeInTheDocument();
   });
 
   it("confirms requested appointments for a future selected queue date", async () => {
@@ -124,7 +154,8 @@ describe("operations workspace", () => {
     const confirmedGroup = screen.getByRole("region", { name: "Đã xác nhận" });
     expect(within(requestedGroup).getByText("09:00")).toBeInTheDocument();
 
-    await user.click(within(requestedGroup).getByRole("button", { name: "Xác nhận lịch" }));
+    await user.click(within(requestedGroup).getByRole("button", { name: /Xem chi tiết .+/ }));
+    await user.click(within(screen.getByRole("dialog", { name: "Chi tiết yêu cầu đặt lịch" })).getByRole("button", { name: "Xác nhận lịch" }));
 
     expect(await within(confirmedGroup).findByLabelText("Trạng thái: Đã xác nhận")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Đã xác nhận lịch hẹn.");
@@ -547,6 +578,24 @@ describe("operations workspace", () => {
     expect(screen.queryByLabelText("Trạng thái: Đã xác nhận")).not.toBeInTheDocument();
   });
 
+  it("requires calendar requested appointments to be reviewed before confirmation", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    addFutureRequestedAppointment();
+    renderWithProviders(<OperationsCalendar />);
+
+    await setClinicDateToSeptemberThird(user, "Ngày");
+    await user.selectOptions(screen.getByLabelText("Trạng thái"), "requested");
+
+    expect(screen.queryByRole("button", { name: "Xác nhận lịch" })).not.toBeInTheDocument();
+
+    await user.click(screen.getAllByRole("button", { name: /Xem chi tiết .+/ })[0]);
+
+    const detailDialog = screen.getByRole("dialog", { name: "Chi tiết yêu cầu đặt lịch" });
+    expect(within(detailDialog).getByText("Thông tin bệnh nhân")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("Lý do khám")).toBeInTheDocument();
+    expect(within(detailDialog).getByRole("button", { name: "Xác nhận lịch" })).toBeInTheDocument();
+  });
+
   it("confirms requested appointments from the operations calendar", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     addFutureRequestedAppointment();
@@ -555,7 +604,8 @@ describe("operations workspace", () => {
     await setClinicDateToSeptemberThird(user, "Ngày");
     await user.selectOptions(screen.getByLabelText("Trạng thái"), "requested");
 
-    await user.click(screen.getAllByRole("button", { name: "Xác nhận lịch" })[0]);
+    await user.click(screen.getAllByRole("button", { name: /Xem chi tiết .+/ })[0]);
+    await user.click(within(screen.getByRole("dialog", { name: "Chi tiết yêu cầu đặt lịch" })).getByRole("button", { name: "Xác nhận lịch" }));
 
     expect(await screen.findByRole("status")).toHaveTextContent("Đã xác nhận lịch hẹn.");
     expect(screen.getAllByLabelText("Trạng thái: Đã xác nhận").length).toBeGreaterThan(0);

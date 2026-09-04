@@ -11,6 +11,7 @@ import { canTransitionAppointment } from "../appointments/appointmentRules";
 import { useAuth } from "../auth/AuthProvider";
 import { catalogQueryOptions } from "../catalog/catalogService";
 import { schedulingQueryOptions } from "../scheduling/schedulingService";
+import { RequestedAppointmentReviewDialog } from "./RequestedAppointmentReviewDialog";
 
 const statuses: Array<{ value: "" | AppointmentStatus; label: string }> = [{ value: "", label: "Tất cả trạng thái" }, { value: "requested", label: "Chờ xác nhận" }, { value: "confirmed", label: "Đã xác nhận" }, { value: "checked_in", label: "Đã check-in" }, { value: "in_progress", label: "Đang khám" }, { value: "completed", label: "Hoàn tất" }, { value: "cancelled", label: "Đã hủy" }, { value: "no_show", label: "Không đến" }];
 const dayLabels: Record<number, string> = {
@@ -65,6 +66,7 @@ export function OperationsCalendar() {
   const [doctorId, setDoctorId] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
   const [status, setStatus] = useState<"" | AppointmentStatus>("");
+  const [reviewTarget, setReviewTarget] = useState<Appointment | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const actorUserId = user?.id ?? "user-receptionist-1";
@@ -118,6 +120,7 @@ export function OperationsCalendar() {
       const updated = await appointmentService.updateAppointmentStatus(appointment.id, nextStatus, actorUserId);
       cacheUpdatedAppointment(updated);
       setNotice(successMessages[nextStatus] ?? "Đã cập nhật lịch hẹn.");
+      if (reviewTarget?.id === appointment.id) setReviewTarget(null);
     } catch {
       setError("Không thể cập nhật lịch hẹn. Vui lòng thử lại.");
     }
@@ -130,7 +133,11 @@ export function OperationsCalendar() {
     return (
       <div className="flex flex-col items-start gap-2">
         {guardMessage ? <p className="text-xs font-medium text-text-muted">{guardMessage}</p> : null}
-        {actions.map((action) => (
+        {appointment.status === "requested" && actions.length ? (
+          <button aria-label={`Xem chi tiết ${patients.find((candidate) => candidate.id === appointment.patientId)?.fullName ?? "bệnh nhân"} ${formatTime(appointment.startAt)}`} className="h-9 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" onClick={() => setReviewTarget(appointment)} type="button">
+            Xem chi tiết
+          </button>
+        ) : actions.map((action) => (
           <button className="h-9 rounded-md border border-border px-3 text-sm font-semibold text-text hover:bg-surface-muted" key={action.label} onClick={() => void updateStatus(appointment, action.next)} type="button">
             {action.label}
           </button>
@@ -211,6 +218,17 @@ export function OperationsCalendar() {
         )}
       </section>
       {isLoading ? <div className="mt-6"><ShimmerList label="Đang tải lịch hoạt động" /></div> : <><div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface shadow-panel"><table className="hidden min-w-full text-left text-sm md:table"><thead className="bg-surface-muted text-text-muted"><tr><th className="p-3 font-medium">Giờ</th><th className="p-3 font-medium">Bệnh nhân</th><th className="p-3 font-medium">Bác sĩ</th><th className="p-3 font-medium">Dịch vụ</th><th className="p-3 font-medium">Trạng thái</th><th className="p-3 font-medium">Thao tác</th></tr></thead><tbody>{appointments.map((appointment) => { const patient = patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); const service = services.find((candidate) => candidate.id === appointment.serviceId); return <tr className="border-t border-border" key={appointment.id}><td className="p-3 font-semibold text-primary">{formatTime(appointment.startAt)}</td><td className="p-3 font-medium text-text">{patient?.fullName}</td><td className="p-3 text-text">{appointmentDoctor?.fullName}</td><td className="p-3 text-text-muted">{service?.name}</td><td className="p-3"><StatusBadge status={appointment.status} /></td><td className="p-3">{renderAppointmentActions(appointment)}</td></tr>; })}</tbody></table><ul className="divide-y divide-border md:hidden">{appointments.map((appointment) => { const patient = patients.find((candidate) => candidate.id === appointment.patientId); const appointmentDoctor = doctors.find((candidate) => candidate.id === appointment.doctorId); return <li className="flex gap-3 p-3" key={appointment.id}><span className="w-12 shrink-0 font-semibold text-primary">{formatTime(appointment.startAt)}</span><div className="min-w-0 flex-1"><p className="font-medium text-text">{patient?.fullName}</p><p className="mt-1 text-sm text-text-muted">{appointmentDoctor?.fullName}</p><div className="mt-2"><StatusBadge status={appointment.status} /></div><div className="mt-3">{renderAppointmentActions(appointment)}</div></div></li>; })}</ul></div>{!appointments.length ? <p className="mt-4 text-sm text-text-muted">Không có lịch hẹn phù hợp.</p> : null}</>}
+      <RequestedAppointmentReviewDialog
+        actions={reviewTarget ? calendarActionsForAppointment(reviewTarget, user?.role ?? "receptionist", date, today) : []}
+        appointment={reviewTarget}
+        doctor={doctors.find((candidate) => candidate.id === reviewTarget?.doctorId)}
+        onAction={(action) => {
+          if (reviewTarget?.id && action.next) void updateStatus(reviewTarget, action.next);
+        }}
+        onClose={() => setReviewTarget(null)}
+        patient={patients.find((candidate) => candidate.id === reviewTarget?.patientId)}
+        service={services.find((candidate) => candidate.id === reviewTarget?.serviceId)}
+      />
     </section>
   );
 }

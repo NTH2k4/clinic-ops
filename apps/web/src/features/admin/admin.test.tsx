@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../app/App";
 import { navigationForRole } from "../../components/navigation";
@@ -230,21 +230,39 @@ describe("admin workspace", () => {
     ])));
   });
 
-  it("confirms before deactivating an account", async () => {
+  it("warns that account deactivation cannot be undone and enables confirmation after five seconds", async () => {
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
       const url = String(input);
       if (url.endsWith("/deactivate")) return new Response(JSON.stringify({ data: { ...apiUsers[0], status: "inactive" }, meta: { requestId: "req-deactivate" } }), { status: 200 });
       return apiListResponse(apiUsers, "req-users");
     });
-    const user = userEvent.setup();
     await renderApiAdminAccounts(fetcher);
 
-    await user.click(await screen.findByRole("button", { name: "Vô hiệu hóa Nguyen Minh Anh" }));
+    const deactivateButton = await screen.findByRole("button", { name: "Vô hiệu hóa Nguyen Minh Anh" });
+    vi.useFakeTimers();
+    fireEvent.click(deactivateButton);
     expect(screen.getByRole("dialog", { name: "Xác nhận vô hiệu hóa tài khoản" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Xác nhận vô hiệu hóa tài khoản" })).toHaveTextContent("Sau khi vô hiệu hóa, hệ thống hiện chưa có chức năng hoàn tác hoặc kích hoạt lại tài khoản này.");
     expect(fetcher.mock.calls.map(([url]) => String(url))).not.toContain("/api/v1/users/user-active-1/deactivate");
 
-    await user.click(screen.getByRole("button", { name: "Vô hiệu hóa tài khoản" }));
+    expect(screen.getByRole("button", { name: "Vô hiệu hóa sau 5 giây" })).toBeDisabled();
 
+    for (let second = 0; second < 4; second += 1) {
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+    }
+    expect(fetcher.mock.calls.map(([url]) => String(url))).not.toContain("/api/v1/users/user-active-1/deactivate");
+    expect(screen.getByRole("button", { name: "Vô hiệu hóa sau 1 giây" })).toBeDisabled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(screen.getByRole("button", { name: "Vô hiệu hóa tài khoản" })).toBeEnabled();
+    expect(fetcher.mock.calls.map(([url]) => String(url))).not.toContain("/api/v1/users/user-active-1/deactivate");
+
+    fireEvent.click(screen.getByRole("button", { name: "Vô hiệu hóa tài khoản" }));
+    vi.useRealTimers();
     await waitFor(() => expect(fetcher.mock.calls.map(([url]) => String(url))).toContain("/api/v1/users/user-active-1/deactivate"));
     expect(await screen.findByText("Không hoạt động")).toBeInTheDocument();
   });
